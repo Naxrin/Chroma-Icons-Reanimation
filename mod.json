@@ -1,0 +1,35 @@
+{
+	"geode": "4.0.1",
+	"gd": {
+		"win":"2.2074",
+		"android": "2.2074",
+		"mac": "2.2074"
+	},
+	"version": "v3.2.0",
+	"id": "naxrin.chroma_icons",
+	"name": "Chroma Icons",
+	"developer": "Naxrin",
+	"description": "Chroma Icons like Mega Hack Icon Effects!",
+	"repository":"https://github.com/Naxrin/Chroma-Icons",
+	"resources": {
+		"sprites": [
+			"resources/*.png"
+
+		],
+		"files": [
+			"resources/*.fnt"
+		]
+	},
+	"dependencies": [
+		{
+			"id":"geode.node-ids",
+			"version": "1.17.0",
+			"importance": "required"
+	    },
+		{
+			"id":"hiimjustin000.more_icons",
+			"version": "1.4.6",
+			"importance": "suggested"
+	    }
+	]
+}

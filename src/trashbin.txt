@@ -1,0 +1,250 @@
+/*
+class MyColorPickPopup : public ColorPickPopup {
+protected:
+    bool init(ccColor3B const& color) {
+        if (!ColorPickPopup::initAnchored(400.f, 240.f, to4B(color), false))
+            return false;
+        auto layer = this->getChildByType<CCLayer>(0);
+        // remove bg
+        layer->getChildByType<CCScale9Sprite>(0)->removeFromParentAndCleanup(true);
+        layer->getChildByType<CCScale9Sprite>(0)->removeFromParentAndCleanup(true);
+        layer->getChildByType<CCMenu>(0)->removeFromParentAndCleanup(true);
+
+        // title
+        auto title = layer->getChildByType<CCLabelBMFont>(0);
+        title->setFntFile("ErasWhite.fnt"_spr);
+        title->setScale(0.7);
+        
+
+        auto menu = CCMenu::create();
+        layer->addChild(menu);
+        auto labConfirm = CCLabelBMFont::create("Confirm and Exit", "ErasWhite.fnt"_spr, 140.f);
+        labConfirm->setScale(0.7);
+        btnConfirm = CCMenuItemSpriteExtra::create(labConfirm, this, );
+
+    }
+public:
+    static MyColorPickPopup* create(ccColor3B const& color) {
+        auto ret = new MyColorPickPopup();
+            if (ret->init(color)) {
+                ret->autorelease();
+                return ret;
+            }
+            delete ret;
+            return nullptr;
+    }
+};*/
+//class 
+/*
+class ModeCell : public BaseCell {
+protected:
+    ChromaLayer* target;
+    CCMenuItemToggler* m_toggler;
+    CCLabelBMFont* m_label;
+    CCLabelBMFont* m_hint;
+    CCMenu* m_submenu;
+    // init commonly
+    bool init(const char* title, float y, float width, float subheight, ChromaLayer* target, int tag, std::string id, const char* desc);
+
+    // lazy
+    void toggle(bool yes);
+    // how
+    void disappear();
+public:
+    // ~by Anal Walker~
+    void FadeIn() override;
+    // byebye node
+    void FadeOut() override;
+
+    static ModeCell* create(const char* title, float y, float width, float subheight, ChromaLayer* target, int tag, std::string id, const char* desc) {
+        auto node = new ModeCell();
+        if (node && node->init(title, y, width, subheight, target, tag, id, desc)) {
+            node->autorelease();
+            return node;
+        };
+        CC_SAFE_DELETE(node);
+        return nullptr;
+    }
+};
+*/
+
+//void ItemsCell
+/*
+bool ModeCell::init(const char* title, float y, float width, float subheight, ChromaLayer* target, int tag, std::string id, const char* desc) {
+    if (!CCMenu::init())
+        return false;
+    this->setAnchorPoint(CCPoint(0.f, 0.f));
+
+    // add hint first to see the height
+    m_hint = CCLabelBMFont::create(desc, "ErasLight.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_hint->setScale(0.7);
+    m_hint->setWidth(width);
+    m_hint->setAnchorPoint(CCPoint(0.f, 0.f));
+    m_hint->setColor({255, 255, 0});
+    m_hint->setID("hint");
+    addChild(m_hint);
+
+    m_toggler = CCMenuItemToggler::createWithStandardSprites(target, menu_selector(ChromaLayer::onOption), 0.6);
+    m_toggler->setCascadeOpacityEnabled(true);
+    m_toggler->setID("toggler");
+    addChild(m_toggler);
+
+    m_label = CCLabelBMFont::create(title, "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_label->setScale(0.45);
+    m_label->setContentSize(CCSize(width - 25.f, 20.f));
+    m_label->setWidth(340.f);
+    m_label->setAnchorPoint(CCPoint(0.f, 0.5));
+    m_label->setID("label");
+    addChild(m_label);
+
+    // submenu
+    m_submenu = CCMenu::create();
+    m_submenu->setContentSize(CCSize(200.f, subheight));
+    m_submenu->setPosition(CCPoint(0.f, 0.f));
+    m_submenu->setID("sub-menu");
+    addChild(m_submenu);
+
+
+    return true;
+}*/
+
+/*
+bool EasyCell::init(ChromaLayer* target) {
+    if (!CCMenu::init())
+        return false;
+    
+    if (!BaseCell::setup(CCPoint(70.f, 32.f), CCSize(100.f, 24.f), 3, "easy-adv-switch"))
+        return false;
+
+    this->setOpacity(0.f);
+
+    easy = Mod::get()->getSavedValue<bool>("easy-mode", true);
+
+    easySpr = CCSprite::create("modeEasy.png"_spr);
+    easySpr->setColor(easy ? ccColor3B(0, 144, 255) : ccColor3B(255, 64, 64));
+    easySpr->setOpacity(easy * 255);
+    easySpr->setScale(0.4+0.6*easy);
+    easySpr->setTag(1);
+
+    advSpr = CCSprite::create("modeAdv.png"_spr);
+    advSpr->setColor(easy ? ccColor3B(0, 144, 255) : ccColor3B(255, 64, 64));
+    advSpr->setOpacity(!easy * 255);
+    advSpr->setScale(1-0.6*easy);
+    advSpr->setTag(0);
+
+    btn = CCMenuItemSpriteExtra::create(easySpr, target, menu_selector(ChromaLayer::onSwitchEasyAdv));
+    btn->setPosition(CCPoint(50.f, 11.f));
+    btn->setContentSize(CCSize(100.f, 24.f));
+    btn->setID("button");
+    btn->addChild(advSpr);
+    easySpr->setPosition(CCPoint(50.f, 12.f));
+    advSpr->setPosition(CCPoint(50.f, 12.f));
+    this->addChild(btn);
+    this->setScale(0.5);
+    return true;
+}
+
+void EasyCell::toggle() {
+    easy = !easy;
+    Mod::get()->setSavedValue("easy-mode", easy);
+    auto animOut = CCSpawn::create(
+        CCFadeOut::create(ANIM_TIME_S),
+        CCEaseExponentialOut::create(CCScaleTo::create(ANIM_TIME_S, 0), 2),
+        CCTintTo::create(ANIM_TIME_S, 255*(1-easy), 80*easy+64, 170*easy+65),
+        nullptr
+    );
+    auto animIn = CCSpawn::create(
+        CCFadeIn::create(ANIM_TIME_S),
+        CCEaseExponentialOut::create(CCScaleTo::create(ANIM_TIME_S, 1), 2),
+        CCTintTo::create(ANIM_TIME_S, 255*(1-easy), 80*easy+64, 170*easy+65),
+        nullptr
+    );
+    if (easy) {
+        advSpr->runAction(animOut);
+        easySpr->runAction(CCSequence::create(CCDelayTime::create(ANIM_TIME_S),
+            animIn, nullptr));
+    } else {
+        easySpr->runAction(animOut);
+        advSpr->runAction(CCSequence::create(CCDelayTime::create(ANIM_TIME_S),
+            animIn, nullptr));
+    }
+}
+*/
+
+        // distance
+        /*
+        //int d = TAG > 2 ? 30 : 45;
+        // middle child tag
+        int m = TAG > 2 ? 13 : 5;
+        // children count
+        int c = TAG > 2 ? 16 : 10;
+        int delay = -1;
+        CCAction* action;
+        CCNode* btn;
+        for (int i = m; i < c; i++) {
+            delay += 1;
+            if (in)
+                action = CCSpawn::create(
+                    CCDelayTime::create(0.02*delay),
+                    CallFuncExt::create([btn](void) { btn->setVisible(true); }),
+                    CCEaseElasticOut::create(CCScaleBy::create(ANIM_TIME_M, 2)),
+                    CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255)),
+                    nullptr
+                );
+            else
+                action = CCSequence::create(
+                    CCSpawn::create(
+                        CCDelayTime::create(0.02*delay),
+                        CCScaleBy::create(ANIM_TIME_M, 0.5),
+                        CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 0)),
+                        nullptr),
+                    CallFuncExt::create([btn](void) { btn->setVisible(false); }),
+                    nullptr
+                );
+            btn = this->getChildByTag(i);
+            btn->runAction(action);
+            if (i != m) {
+                btn = this->getChildByTag(c-1-i);
+                btn->runAction(action);
+            }
+        }
+    }*/
+
+
+    /*
+    // easy mode (one big button only)
+    if (TAG == 2)
+        this->getChildByTag(0)->runAction(CCSpawn::create(
+            CCEaseElasticOut::create(CCScaleBy::create(ANIM_TIME_M, in ? 2 : 0.5)),
+            CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, in ? 255 : 0)),
+            nullptr
+        ));
+    // should iterate buttons
+    else {
+        CCAction* action;
+        CCNode* btn;
+
+        for (CCObject* obj: CCArrayExt<CCObject*>(this->getChildren())) {
+            int tag = obj->getTag();
+            if (tag != 100) {
+                if (in)
+                    action = CCSpawn::create(
+                        CallFuncExt::create([this, tag](void) { this->getChildByTag(tag)->setVisible(true); }),
+                        CCEaseElasticOut::create(CCScaleBy::create(ANIM_TIME_M, 2)),
+                        CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255)),
+                        nullptr
+                    );
+                else
+                    action = CCSequence::create(
+                        CCSpawn::create(
+                            CCScaleBy::create(ANIM_TIME_M, 0.5),
+                            CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 0)),
+                            nullptr),
+                        CallFuncExt::create([this, tag](void) { this->getChildByTag(tag)->setVisible(false); }),
+                        nullptr
+                    );
+                btn = static_cast<CCMenuItem*>(obj);
+                btn->runAction(action);
+            }
+        }
+    }*/
