@@ -202,8 +202,8 @@ protected:
     void textInputClosed(CCTextInputNode* p) override;
     // change chroma frequency by slider
     void onSlider(CCObject*);
-    void sliderBegan(Slider *p);
-    void sliderEnded(Slider *p);
+    void sliderBegan(Slider *p) override;
+    void sliderEnded(Slider *p) override;
     // value -> slider
     virtual float Val2Slider(int val) {
         if (val > 255) return 1;
@@ -215,7 +215,7 @@ protected:
         return round(s * 255);
     }
 public:
-    void Fade(bool in);
+    void Fade(bool in) override;
     int getVal() {
         return value;
     }
@@ -242,11 +242,11 @@ protected:
     Slider* m_slider;
     TextInput* m_inputer;
     // init
-    bool init();
+    bool init() override;
     // update value from text input
     void textChanged(CCTextInputNode* p) override;
 public:
-    void Fade(bool in);
+    void Fade(bool in) override;
     void setColorValue(ccColor3B color) {
         this->str = cc3bToHexString(color);
         m_inputer->setString(str);

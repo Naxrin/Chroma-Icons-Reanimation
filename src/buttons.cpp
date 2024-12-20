@@ -3,7 +3,7 @@
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 
-#include "layer.hpp"
+#include "Layer.hpp"
 
 using namespace geode::prelude;
 

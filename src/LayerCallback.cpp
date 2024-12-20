@@ -95,6 +95,8 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
         case Face::Setup:
             this->fadeSetupPage();
             break;
+        default:
+            break;
         }
         // color page
         this->colorTag = event->value;
@@ -265,6 +267,8 @@ void ChromaLayer::onOptionsPage(CCObject*) {
         this->fadeColorPage();
         fade(m_applyBtn, false, ANIM_TIME_M);
         break;
+    default:
+        break;
     }
     this->runAction(CCSequence::create(
         CCDelayTime::create(ANIM_TIME_M),
@@ -292,6 +296,8 @@ void ChromaLayer::onInfo(CCObject*) {
         break;
     case Face::Options:
         this->fadeOptionsPage();
+    default:
+        break;
     }
     // delay enter info page
     this->runAction(CCSequence::create(
@@ -456,6 +462,8 @@ void ChromaLayer::onClose(CCObject* sender) {
             nullptr
         ));
         return;
+    default:
+        break;
     }
     
     // fade in the new
@@ -487,6 +495,8 @@ void ChromaLayer::onClose(CCObject* sender) {
             CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeItemPage)),
             nullptr
         ));
+        break;
+    default:
         break;
     }
     this->runAction(CCSequence::create(

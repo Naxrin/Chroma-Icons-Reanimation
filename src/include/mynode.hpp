@@ -67,11 +67,11 @@ public:
     void onSlider(CCObject*);
     // on arrow
     void onArrow(CCObject*);
-    void sliderBegan(Slider *p) {
+    void sliderBegan(Slider *p) override {
         SignalEvent("drag-slider", true).post();
     };
     //void sliderBegan(Slider *p) {log::info("slider began");};
-    void sliderEnded(Slider *p) {
+    void sliderEnded(Slider *p) override {
         SignalEvent("drag-slider", false).post();
         postEvent();
     };
@@ -158,11 +158,11 @@ protected:
     // check value > max case
     void textInputClosed(CCTextInputNode* p) override;
     // signal
-    void sliderBegan(Slider *p) {
+    void sliderBegan(Slider *p) override {
         SignalEvent("drag-slider", true).post();
     };
     // change chroma frequency by slider
-    void sliderEnded(Slider *p) {
+    void sliderEnded(Slider *p) override {
         SignalEvent("drag-slider", false).post();
         SignalEvent(mode == 3 ? "duty" :"satu", value).post();
     };
