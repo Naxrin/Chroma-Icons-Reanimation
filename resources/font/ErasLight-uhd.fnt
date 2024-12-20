@@ -1,6 +1,6 @@
 info face="Eras Light ITC" size=56 bold=0 italic=0 charset="" unicode=1 stretchH=110 smooth=1 aa=1 padding=10,20,20,10 spacing=5,5 outline=0
 common lineHeight=61 base=48 scaleW=1440 scaleH=1440 pages=1 packed=0 alphaChnl=1 redChnl=0 greenChnl=0 blueChnl=0
-page id=0 file="ErasLight.png"
+page id=0 file="ErasLight-uhd.png"
 chars count=95
 char id=32   x=969   y=207   width=33    height=31    xoffset=-11   yoffset=50    xadvance=12    page=0  chnl=15
 char id=33   x=657   y=146   width=35    height=66    xoffset=-7    yoffset=2     xadvance=12    page=0  chnl=15

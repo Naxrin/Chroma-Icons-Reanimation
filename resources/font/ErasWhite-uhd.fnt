@@ -1,6 +1,6 @@
 info face="Eras Demi ITC" size=100 bold=0 italic=0 charset="" unicode=1 stretchH=120 smooth=1 aa=1 padding=10,20,20,10 spacing=5,5 outline=0
 common lineHeight=119 base=93 scaleW=1440 scaleH=1440 pages=1 packed=0 alphaChnl=1 redChnl=0 greenChnl=0 blueChnl=0
-page id=0 file="ErasWhite.png"
+page id=0 file="ErasWhite-uhd.png"
 chars count=95
 char id=32   x=1402  y=318   width=33    height=31    xoffset=-11   yoffset=108   xadvance=22    page=0  chnl=15
 char id=33   x=733   y=333   width=47    height=100   xoffset=-5    yoffset=14    xadvance=27    page=0  chnl=15

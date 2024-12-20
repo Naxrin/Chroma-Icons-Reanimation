@@ -178,7 +178,7 @@ bool OptionTogglerCell::init(const char* title, float y, float width, bool defau
     // add hint first to see the height
     m_hint = CCLabelBMFont::create(desc, "ErasLight.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_hint->setScale(0.7);
-    m_hint->setWidth(width);
+    m_hint->setWidth(width - 10.f);
     m_hint->setAnchorPoint(CCPoint(0.f, 0.f));
     m_hint->setColor({255, 255, 0});
     m_hint->setID("hint");
