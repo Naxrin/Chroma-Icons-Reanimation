@@ -95,9 +95,9 @@ void fade(CCMenuItem* node, bool in, float time, float scaleX, float scaleY, int
     if (opacity < 0)
         opacity = in ? 255 : 0;
     if (scaleX < 0)
-        scaleX = in ? 1 : 0.5;
+        scaleX = in;
     if (scaleY < 0)
-        scaleY = in ? 1 : 0.5;
+        scaleY = in;
 
     auto action = CCSpawn::create(
         CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, opacity)),

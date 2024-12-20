@@ -69,20 +69,24 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
         // from setup menu icon
         else if (this->face.back() == Face::Setup) {
             bool really_changed = this->switchCurrentID(event->value);
-            if (really_changed)
+            if (really_changed) {
+                // show or hide channel switch arrow
+                fade(m_leftArrowSetupBtn, id < 10);
+                fade(m_rightArrowSetupBtn, id < 10);
                 this->m_workspace->runAction(CCSequence::create(
                     CallFuncExt::create([this](void) {m_workspace->Fade(false);}),
                     CCDelayTime::create(ANIM_TIME_M / 3),
                     CallFuncExt::create([this](void) {
                         m_waitspace->refreshUI(currentSetup);
-                        m_waitspace->Fade(true);                            
+                        m_waitspace->Fade(true);             
                         auto temp = m_waitspace;
                         m_waitspace = m_workspace;
                         m_workspace = temp;
-
                     }),
                     nullptr
-                ));
+                ));                
+            }
+
         }
     }
 

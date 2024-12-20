@@ -7,7 +7,7 @@ static std::string names[9] = {"icon", "ship", "ball", "ufo", "wave", "robot", "
 GJItemIconAlpha* GJItemIconAlpha::createBrowserItem(int typeID, int ID) {
     auto icon = new GJItemIconAlpha();
     UnlockType type = UnlockType(gametype[typeID]);
-    if (icon && icon->init(type, ID, ccColor3B(175, 175, 175), ccColor3B(255, 255, 255), true, true, true, ccColor3B(255, 255, 255))) {
+    if (icon && icon->init(type, ID, ccc3(175, 175, 175), ccc3(255, 255, 255), true, true, true, ccc3(255, 255, 255))) {
 
         // more icons compatible
         auto name = Loader::get()->getLoadedMod("hiimjustin000.more_icons")->getSavedValue<std::string>(names[typeID]);
@@ -51,7 +51,7 @@ GJItemEffect* GJItemEffect::createEffectItem(int effectID) {
         if (Loader::get()->isModLoaded("ninkaz.colorful-icons"))
             base->setColor(gm->colorForIdx(gm->getPlayerColor()));
         else
-            base->setColor(ccColor3B(175, 175, 175));
+            base->setColor(ccc3(175, 175, 175));
 
         base->autorelease();
         return base;
@@ -223,7 +223,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
     this->mode = mode;
     // common constructor
     this->setTag(tag);
-    this->setContentSize(CCSize(240.f, 20.f));
+    this->setContentSize(CCSize(220.f, 20.f));
     this->setAnchorPoint(CCPoint(0.5, 0.5));
     this->ignoreAnchorPointForPosition(false);
     
@@ -262,7 +262,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         label->setScale(0.8);
         label->setPosition(CCPoint(10.f, 10.f));
         label->setAnchorPoint(CCPoint(0.f, 0.5));
-        label->setColor(ccColor3B(255, 255, 0));
+        label->setColor(ccc3(255, 255, 0));
         this->addChild(label);
 
         this->setContentHeight(label->getContentHeight());
@@ -437,7 +437,7 @@ void ScrollLayerPlus::Transition(bool in, bool scale) {
     int tag = in ? m : 1;
     float delay = 0;
 
-    float X = this->getContentWidth() / 2;
+    float X = this->m_contentLayer->getContentWidth() / 2;
     // fade buttons
     while (tag > 0 && tag <= m) {
         if (auto opt = static_cast<CCMenu*>(m_contentLayer->getChildByTag(tag))) {

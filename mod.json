@@ -5,11 +5,11 @@
 		"android": "2.2074",
 		"mac": "2.2074"
 	},
-	"version": "v3.2.0-alpha.1",
+	"version": "v3.2.0-alpha.2",
 	"id": "naxrin.chroma_icons",
 	"name": "Chroma Icons",
 	"developer": "Naxrin",
-	"description": "Chroma Icons like Mega Hack Icon Effects!",
+	"description": "Chroma your Icons like Mega Hack Icon Effects!",
 	"repository":"https://github.com/Naxrin/Chroma-Icons",
 	"resources": {
 		"sprites": [
@@ -18,7 +18,8 @@
 
 		],
 		"files": [
-			"resources/font/*.fnt"
+			"resources/font/*.fnt",
+			"resources/blur/*.glsl"
 		]
 	},
 	"dependencies": [

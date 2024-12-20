@@ -79,7 +79,7 @@ struct IntColor {
 // load int color array from json file
 static std::vector<IntColor> IntColorfromJson(matjson::Value const& json, int defP) {
     if (!json.isObject())
-        return {IntColor{.p = 0, .c = ccColor3B(255, 255, 255)}, IntColor{.p = defP, .c = ccColor3B(255, 255, 255)}};
+        return {IntColor{.p = 0, .c = ccc3(255, 255, 255)}, IntColor{.p = defP, .c = ccc3(255, 255, 255)}};
     std::vector<IntColor> ret;
     for (auto& [key, val] : json) {
         // regex check to avoid stoi crash
@@ -145,9 +145,9 @@ struct ChromaSetup {
 
 // default chroma setup for this mod
 #define DEFAULT_SETUP ChromaSetup{\
-    .mode = 0, .satu = 50, .best = false, .color = ccColor3B(255, 255, 255),\
-    .gradient = {IntColor{.p = 0, .c = ccColor3B(255, 255, 255)}, IntColor{.p = 50, .c = ccColor3B(255, 255, 255)}},\
-    .progress = {IntColor{.p = 0, .c = ccColor3B(255, 255, 255)}, IntColor{.p = 100, .c = ccColor3B(255, 255, 255)}} }
+    .mode = 0, .satu = 50, .best = false, .color = ccc3(255, 255, 255),\
+    .gradient = {IntColor{.p = 0, .c = ccc3(255, 255, 255)}, IntColor{.p = 50, .c = ccc3(255, 255, 255)}},\
+    .progress = {IntColor{.p = 0, .c = ccc3(255, 255, 255)}, IntColor{.p = 100, .c = ccc3(255, 255, 255)}} }
 
 /*********** serialize chromasetup **********/
 template<>

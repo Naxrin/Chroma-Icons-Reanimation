@@ -15,9 +15,6 @@ void ChromaLayer::show() {
         this->fadeWarnPage();
     } else {
         face.push_back(Face::Init);
-        fade(m_applyBtn, false, 0);
-        fade(m_copyBtn, false, 0);
-        fade(m_pasteBtn, false, 0);
         
         this->fadeMainMenu();
         this->runAction(CCSequence::create(
@@ -30,7 +27,15 @@ void ChromaLayer::show() {
     Popup::show();
     float opacity = 196.f;
     // blur
-    // for pre-release blur-bg is not needed
+        if (Mod::get()->getSavedValue<bool>("blur-bg", true)) {
+            m_blur->runAction(CCEaseExponentialOut::create(CCFadeIn::create(ANIM_TIME_L)));   
+            opacity = 144.f;
+        }
+        else {
+            m_blur->setVisible(false);
+            m_blur->setOpacity(0);
+        }
+    /*
     //if (Loader::get()->isModLoaded("thesillydoggo.blur_bg"))
     if (auto node = this->getChildByType<CCBlurLayer>(0)) {
         // not my self-made background mask
@@ -46,7 +51,7 @@ void ChromaLayer::show() {
             node->setVisible(false);
             node->setOpacity(0);
         }
-    }
+    }*/
     m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, opacity));
 }
 
@@ -68,25 +73,25 @@ void ChromaLayer::switchTheme() {
         obj->m_bg->runAction(CCTintTo::create(ANIM_TIME_M, CELL_COLOR));
 
     // item labels
-    static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(5))->setColor(ccColor3B(CELL_COLOR));
-    static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(6))->setColor(ccColor3B(CELL_COLOR));
+    static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(5))->setColor(ccc3(CELL_COLOR));
+    static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(6))->setColor(ccc3(CELL_COLOR));
 
     // setup channel switch arrows
-    m_leftArrowSetupBtn->setColor(ccColor3B(CELL_COLOR));
-    m_rightArrowSetupBtn->setColor(ccColor3B(CELL_COLOR));
+    m_leftArrowSetupBtn->setColor(ccc3(CELL_COLOR));
+    m_rightArrowSetupBtn->setColor(ccc3(CELL_COLOR));
 
     // setup copy paste
-    m_copyBtn->setColor(ccColor3B(CELL_COLOR));
-    m_pasteBtn->setColor(ccColor3B(CELL_COLOR));
+    m_copyBtn->setColor(ccc3(CELL_COLOR));
+    m_pasteBtn->setColor(ccc3(CELL_COLOR));
 
     // color pick menu buttons
-    m_copyOriBtn->setColor(ccColor3B(CELL_COLOR));
-    m_rescOriBtn->setColor(ccColor3B(CELL_COLOR));
-    m_copyCrtBtn->setColor(ccColor3B(CELL_COLOR));
-    m_pasteCrtBtn->setColor(ccColor3B(CELL_COLOR));
+    m_copyOriBtn->setColor(ccc3(CELL_COLOR));
+    m_rescOriBtn->setColor(ccc3(CELL_COLOR));
+    m_copyCrtBtn->setColor(ccc3(CELL_COLOR));
+    m_pasteCrtBtn->setColor(ccc3(CELL_COLOR));
 
     // color pick menu arrow
-    m_mysteriousArrow->setColor(ccColor3B(CELL_COLOR));
+    m_mysteriousArrow->setColor(ccc3(CELL_COLOR));
 
     // options scroller cells
     int TAG = m_optionScroller->getTag();
@@ -105,23 +110,6 @@ void ChromaLayer::switchTheme() {
             break;
     }
 }
-
-/*
-void ChromaLayer::fadeMainMenuButtons() {
-    bool in1 = face.back() == Face::Init || face.back() == Face::Item;
-    bool in2 = face.back() == Face::Setup || face.back() == Face::Color;
-    // options
-    fade(m_optionsBtn, in1 || in2, ANIM_TIME_M, in1 || in2 ? 1 : 0.5, in1 || in2 ? 1 : 0.5);
-    // easy adv
-    fade(m_modeBtn, in1, ANIM_TIME_M, in1 ? 1 : 0.5, in1 ? 1 : 0.5);
-    // copy paste apply
-    fade(m_copyBtn, in2, ANIM_TIME_M, in2 ? 1 : 0.5, in2 ? 1 : 0.5);
-    fade(m_pasteBtn, in2, ANIM_TIME_M, in2 ? 1 : 0.5, in2 ? 1 : 0.5);
-    fade(m_applyBtn, in2, ANIM_TIME_M, in2 ? 1 : 0.5, in2 ? 1 : 0.5);
-    // info
-    bool in3 = in1 || face.back() == Face::Options;
-    fade(m_infoBtn, in3, ANIM_TIME_M, in3 ? 1 : 0.5, in3 ? 1 : 0.5);
-}*/
 
 void ChromaLayer::refreshColorPage(int type) {
     // set color title
@@ -162,11 +150,11 @@ void ChromaLayer::transistColorBtn(bool isCrt, bool display) {
     parent->setTag(1 + isCrt * 2 + display);
 
     int k = isCrt ? -1 : 1;
-    fade(boy, display, 0.5 * ANIM_TIME_M, display);
+    fade(boy, display, 0.5 * ANIM_TIME_M);
     boy->runAction(CCEaseExponentialOut::create(CCMoveTo::create(
         0.5 * ANIM_TIME_M, display ? CCPoint(-230.f, k*40.f) : CCPoint(-180.f, k*30.f))));
 
-    fade(girl, display, 0.5 * ANIM_TIME_M, display);
+    fade(girl, display, 0.5 * ANIM_TIME_M);
     girl->runAction(CCEaseExponentialOut::create(CCMoveTo::create(
         0.5 * ANIM_TIME_M, display ? CCPoint(-190.f, k*80.f) : CCPoint(-180.f, k*30.f))));
 }
@@ -224,8 +212,10 @@ void ChromaLayer::fadeSetupPage() {
 
     fade(m_chnlSetupLabel, in, ANIM_TIME_L, 0.32, 0.32);
 
-    fade(m_leftArrowSetupBtn, in);
-    fade(m_rightArrowSetupBtn, in);
+    if (id < 10) {
+        fade(m_leftArrowSetupBtn, in);
+        fade(m_rightArrowSetupBtn, in);
+    }
 
     fade(m_copyBtn, in, ANIM_TIME_M);
     fade(m_pasteBtn, in, ANIM_TIME_M);

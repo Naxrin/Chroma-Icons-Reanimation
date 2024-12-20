@@ -14,7 +14,7 @@ bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     m_bg->setPosition(CCPoint(size.width/2, size.height/2));
     m_bg->setContentSize(CCSize(size.width+10, size.height+10));
     m_bg->setZOrder(-1);
-    m_bg->setColor(ccColor3B(CELL_COLOR));
+    m_bg->setColor(ccc3(CELL_COLOR));
     m_bg->setID("background");
     addChild(m_bg);
 
@@ -65,7 +65,7 @@ bool WarnCell::init() {
     labConfirm->setScale(0.4);
     m_btnConfirm = CCMenuItemSpriteExtra::create(labConfirm, this, menu_selector(WarnCell::onClick));
     m_btnConfirm->setPosition(CCPoint(210.f, 90.f));
-    //m_btnConfirm->setColor(ccColor3B(255-col, 255-col, 255-col));
+    //m_btnConfirm->setColor(ccc3(255-col, 255-col, 255-col));
     m_btnConfirm->setTag(2);
     this->addChild(m_btnConfirm);
 
@@ -73,7 +73,7 @@ bool WarnCell::init() {
         "I know what this mod means to record submission, never pop it again.",
         "ErasLight.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
     hintConfirm->setPosition(CCPoint(210.f, 78.f));
-    hintConfirm->setColor(ccColor3B(255, 255, 0));
+    hintConfirm->setColor(ccc3(255, 255, 0));
     hintConfirm->setScale(0.6);
     this->addChild(hintConfirm);
 
@@ -81,7 +81,7 @@ bool WarnCell::init() {
     labRemind->setScale(0.4);
     m_btnRemind = CCMenuItemSpriteExtra::create(labRemind, this, menu_selector(WarnCell::onClick));
     m_btnRemind->setPosition(CCPoint(210.f, 55.f));
-    //m_btnRemind->setColor(ccColor3B(255-col, 255-col, 255-col));
+    //m_btnRemind->setColor(ccc3(255-col, 255-col, 255-col));
     m_btnRemind->setTag(1);
     this->addChild(m_btnRemind);
 
@@ -89,7 +89,7 @@ bool WarnCell::init() {
         "Yes for now but please still remind me next time.",
         "ErasLight.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
     hintRemind->setPosition(CCPoint(210.f, 43.f));
-    hintRemind->setColor(ccColor3B(255, 255, 0));
+    hintRemind->setColor(ccc3(255, 255, 0));
     hintRemind->setScale(0.6);
     this->addChild(hintRemind);
 
@@ -97,7 +97,7 @@ bool WarnCell::init() {
     labEscape->setScale(0.4);
     m_btnEscape = CCMenuItemSpriteExtra::create(labEscape, this, menu_selector(WarnCell::onClick));
     m_btnEscape->setPosition(CCPoint(210.f, 20.f));
-    m_btnEscape->setColor(ccColor3B(255, 96, 96));
+    m_btnEscape->setColor(ccc3(255, 96, 96));
     m_btnEscape->setTag(0);
     this->addChild(m_btnEscape);
 
@@ -105,7 +105,7 @@ bool WarnCell::init() {
         "Quit right now and tell the list team I not ever clicked the Chroma Icons button.",
         "ErasLight.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
     hintEscape->setPosition(CCPoint(210.f, 8.f));
-    hintEscape->setColor(ccColor3B(255, 255, 0));
+    hintEscape->setColor(ccc3(255, 255, 0));
     hintEscape->setScale(0.6);
     this->addChild(hintEscape);
 
@@ -121,7 +121,7 @@ bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::s
     m_title->setContentSize(CCSize(width, 20.f));
     m_title->setWidth(340.f);
     m_title->setAnchorPoint(CCPoint(0.5, 0.5));
-    m_title->setColor(ccColor3B(255, 255, 255));
+    m_title->setColor(ccc3(255, 255, 255));
     m_title->setID("label");
     addChild(m_title);
 
@@ -156,7 +156,7 @@ bool OptionTitleCell::init(const char* text, float y, float width, int tag, std:
     m_title->setContentSize(CCSize(width, 20.f));
     m_title->setWidth(340.f);
     m_title->setAnchorPoint(CCPoint(0.5, 0.5));
-    m_title->setColor(ccColor3B(64, 192, 255));
+    m_title->setColor(ccc3(64, 192, 255));
     m_title->setID("title");
     addChild(m_title);
 
@@ -210,7 +210,7 @@ bool OptionTogglerCell::init(const char* title, float y, float width, bool defau
     // switch!
     if (id == "activate") {
         m_label->setCString(yes ? "Switch : ON" : "Switch : OFF");
-        m_label->setColor(ccColor3B(255-255*yes, 255*yes, 0));
+        m_label->setColor(ccc3(255-255*yes, 255*yes, 0));
     }
     return true;
 }
@@ -221,7 +221,7 @@ void OptionTogglerCell::onOption(CCObject* sender) {
     // switch
     if (this->getID() == "activate") {
         m_label->setCString(yes ? "Switch : ON" : "Switch : OFF");
-        m_label->setColor(ccColor3B(255-255*yes, 255*yes, 0));
+        m_label->setColor(ccc3(255-255*yes, 255*yes, 0));
     }
     SignalEvent<bool>(this->getID(), yes).post();
 }
@@ -263,7 +263,7 @@ bool ItemCell::init(int tag) {
             if (Loader::get()->isModLoaded("ninkaz.colorful-icons"))
                 btn->chroma(gm->colorForIdx(gm->getPlayerColor()));
             else
-                btn->chroma(ccColor3B(175, 175, 175));*/
+                btn->chroma(ccc3(175, 175, 175));*/
             this->addChild(btn);
             this->btns.push_back(btn);
         }        
@@ -364,7 +364,7 @@ bool SetupItemCell::init(int tag, float Y, int nodeTag) {
     m_label->setPosition(CCPoint(60.f, 12.f));
     m_label->setContentSize(CCSize(60.f, 24.f));
     m_label->setWidth(65.f);
-    m_label->setColor(ccColor3B(127, 127, 127));
+    m_label->setColor(ccc3(127, 127, 127));
     m_label->setID("label");
     this->addChild(m_label);
 
@@ -379,7 +379,7 @@ bool SetupItemCell::init(int tag, float Y, int nodeTag) {
 }
 
 bool SetupOptionCell::init() {
-    if (!BaseCell::setup(CCPoint(65.f, 0.f), CCSize(270.f, 230.f), 0, "setup-options"))
+    if (!BaseCell::setup(CCPoint(50.f, 0.f), CCSize(240.f, 230.f), 0, "setup-options"))
         return false;
 
     this->setVisible(false);
@@ -450,14 +450,14 @@ void SetupOptionCell::refreshUI(ChromaSetup setup, bool fade) {
 }
 
 void SetupOptionCell::Fade(bool in, int dir) {
-    this->setPosition(CCPoint(65.f + 200 * dir * in, 0.f));
+    this->setPosition(CCPoint(50.f + 200 * dir * in, 0.f));
     BaseCell::Fade(in);
     static_cast<SetupOptionLine*>(getChildByID("satu"))->helpFade(in);
     static_cast<SetupOptionLine*>(getChildByID("duty"))->helpFade(in);
     // move
     if (dir)
         this->runAction(CCEaseExponentialOut::create(
-            CCMoveTo::create(ANIM_TIME_M, CCPoint(65.f - 200 * dir * (1-in), 0.f))));
+            CCMoveTo::create(ANIM_TIME_M, CCPoint(50.f - 200 * dir * (1-in), 0.f))));
 }
 
 std::string rgbLabels[3] = {"R", "G", "B"};
@@ -471,7 +471,7 @@ bool ColorValueCell::init(int type) {
     this->m_label = CCLabelBMFont::create(rgbLabels[type].c_str(), "ErasBold.fnt"_spr, 15.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_label->setPosition(CCPoint(10.f, 10.f));
     m_label->setAnchorPoint(CCPoint(0.f, 0.5));
-    m_label->setColor(ccColor3B(200 + 55 * (type==0), 200 + 55 * (type==1), 200 + 55 * (type==2)));
+    m_label->setColor(ccc3(200 + 55 * (type==0), 200 + 55 * (type==1), 200 + 55 * (type==2)));
     m_label->setScale(0.5);
     this->addChild(m_label);
 
@@ -567,7 +567,7 @@ bool ColorHexCell::init() {
     m_label = CCLabelBMFont::create("HEX", "ErasBold.fnt"_spr, 40.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_label->setPosition(CCPoint(10.f, 10.f));
     m_label->setAnchorPoint(CCPoint(0.f, 0.5));
-    m_label->setColor(ccColor3B(200, 200, 200));
+    m_label->setColor(ccc3(200, 200, 200));
     m_label->setScale(0.5);
     this->addChild(m_label);
 

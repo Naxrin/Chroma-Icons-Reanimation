@@ -16,6 +16,20 @@ bool ChromaLayer::setup() {
     m_bg->setZOrder(-2);
     m_bg->setID("bg");
     this->addChild(m_bg);
+
+    // blur
+    // for pre-release TheSillyDoggo's blur-bg is not needed
+    // this mod make up blur background by himself
+    if (auto blur = this->getChildByType<CCBlurLayer>(0))
+        m_blur = blur;
+    else {
+        m_blur = CCBlurLayer::create();
+        m_blur->setID("chroma-blur-layer");
+        m_blur->setZOrder(-69);
+        //m_blur->runAction(CCFadeTo::create(0.5f, 255));
+        this->addChild(m_blur);
+    }
+
     /********** Notify **********/
     this->m_warnPage = WarnCell::create();
     m_warnPage->setPosition(CCPoint(winSize.width/2, winSize.height/2));
@@ -42,7 +56,7 @@ bool ChromaLayer::setup() {
     exitSpr->setID("exit");
     this->m_exitBtn = CCMenuItemSpriteExtra::create(exitSpr, this, menu_selector(ChromaLayer::onClose));
     m_exitBtn->setPosition(CCPoint(30.f, winSize.height - 30.f));
-    m_exitBtn->setColor(ccColor3B(CELL_COLOR));    
+    m_exitBtn->setColor(ccc3(CELL_COLOR));    
     m_exitBtn->setTag(1);
     mainMenu->addChild(m_exitBtn);
 
@@ -52,9 +66,9 @@ bool ChromaLayer::setup() {
     applySpr->setID("apply");
     this->m_applyBtn = CCMenuItemSpriteExtra::create(applySpr, this, menu_selector(ChromaLayer::onApply));
     m_applyBtn->setPosition(CCPoint(winSize.width - 30.f, 30.f));
-    m_applyBtn->setColor(ccColor3B(CELL_COLOR));
+    m_applyBtn->setColor(ccc3(CELL_COLOR));
     m_applyBtn->setTag(5);
-    HIDE(m_applyBtn, 0.5, 0.5)
+    HIDE(m_applyBtn, 0, 0)
     mainMenu->addChild(m_applyBtn);
 
     // infoBtn
@@ -63,7 +77,7 @@ bool ChromaLayer::setup() {
     infoSpr->setID("info");
     this->m_infoBtn = CCMenuItemSpriteExtra::create(infoSpr, this, menu_selector(ChromaLayer::onInfo));    
     m_infoBtn->setPosition(CCPoint(winSize.width - 30.f, 30.f));
-    m_infoBtn->setColor(ccColor3B(CELL_COLOR));    
+    m_infoBtn->setColor(ccc3(CELL_COLOR));    
     m_infoBtn->setTag(4);
     mainMenu->addChild(m_infoBtn);
 
@@ -74,7 +88,7 @@ bool ChromaLayer::setup() {
     this->m_optionsBtn = CCMenuItemSpriteExtra::create(gearSpr, this, menu_selector(ChromaLayer::onOptionsPage));
     m_optionsBtn->setPosition(CCPoint(winSize.width - 30.f, winSize.height - 30.f));
     m_optionsBtn->setTag(2);
-    m_optionsBtn->setColor(ccColor3B(CELL_COLOR));    
+    m_optionsBtn->setColor(ccc3(CELL_COLOR));    
     mainMenu->addChild(m_optionsBtn);
 
     // Easy-Adv switcher
@@ -89,7 +103,7 @@ bool ChromaLayer::setup() {
     m_modeBtn->setTag(3);
     m_modeBtn->setCascadeOpacityEnabled(true);
     m_modeBtn->setCascadeColorEnabled(true);
-    m_modeBtn->setColor(ccColor3B(CELL_COLOR));    
+    m_modeBtn->setColor(ccc3(CELL_COLOR));    
     m_modeBtn->toggle(easy);
     mainMenu->addChild(m_modeBtn);
 
@@ -125,14 +139,14 @@ bool ChromaLayer::setup() {
     auto labelIcon = CCLabelBMFont::create("Player Icons", "ErasWhite.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     labelIcon->setPosition(CCPoint(0.f, 70.f));
     HIDE(labelIcon, 3.5, 0.14)
-    labelIcon->setColor(ccColor3B(CELL_COLOR));
+    labelIcon->setColor(ccc3(CELL_COLOR));
     labelIcon->setTag(5);
     itemMenu->addChild(labelIcon);
 
     auto labelEffect = CCLabelBMFont::create("In-Game Effects", "ErasWhite.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     labelEffect->setPosition(CCPoint(0.f, -25.f));
     HIDE(labelEffect, 3.5, 0.14)
-    labelEffect->setColor(ccColor3B(CELL_COLOR));
+    labelEffect->setColor(ccc3(CELL_COLOR));
     labelEffect->setTag(6);
     itemMenu->addChild(labelEffect);
 
@@ -167,7 +181,7 @@ bool ChromaLayer::setup() {
     this->m_chnlSetupLabel = CCLabelBMFont::create("Channel", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_chnlSetupLabel->setPosition(CCPoint(60.f - winSize.width / 2, winSize.height / 2 - 45.f));
     m_chnlSetupLabel->setAnchorPoint(CCPoint(0.f, 0.5));
-    m_chnlSetupLabel->setColor(ccColor3B(192, 192, 192));
+    m_chnlSetupLabel->setColor(ccc3(192, 192, 192));
     HIDE(m_chnlSetupLabel, 0.4, 0.4)
     m_chnlSetupLabel->setID("current-channel-label");
     setupMenu->addChild(m_chnlSetupLabel);
@@ -237,9 +251,9 @@ bool ChromaLayer::setup() {
     arrowLeft->setID("channel-button-left");
     this->m_leftArrowSetupBtn = CCMenuItemSpriteExtra::create(arrowLeft, this, menu_selector(ChromaLayer::onSwitchChannelPage));
     m_leftArrowSetupBtn->setPosition(CCPoint(-90.f, 0.f));
-    m_leftArrowSetupBtn->setColor(ccColor3B(CELL_COLOR));    
+    m_leftArrowSetupBtn->setColor(ccc3(CELL_COLOR));
     m_leftArrowSetupBtn->setTag(1);
-    HIDE(m_leftArrowSetupBtn, 0.5, 0.5)
+    HIDE(m_leftArrowSetupBtn, 0, 0)
     m_leftArrowSetupBtn->setEnabled(false);
     setupMenu->addChild(m_leftArrowSetupBtn);
 
@@ -248,10 +262,10 @@ bool ChromaLayer::setup() {
     arrowRight->setID("channel-button-right");
     arrowRight->setFlipX(true);
     this->m_rightArrowSetupBtn = CCMenuItemSpriteExtra::create(arrowRight, this, menu_selector(ChromaLayer::onSwitchChannelPage));
-    m_rightArrowSetupBtn->setPosition(CCPoint(220.f, 0.f));
-    m_rightArrowSetupBtn->setColor(ccColor3B(CELL_COLOR));    
+    m_rightArrowSetupBtn->setPosition(CCPoint(190.f, 0.f));
+    m_rightArrowSetupBtn->setColor(ccc3(CELL_COLOR));    
     m_rightArrowSetupBtn->setTag(2);
-    HIDE(m_rightArrowSetupBtn, 0.5, 0.5)
+    HIDE(m_rightArrowSetupBtn, 0, 0)
     m_rightArrowSetupBtn->setEnabled(false);
     setupMenu->addChild(m_rightArrowSetupBtn);
 
@@ -262,7 +276,8 @@ bool ChromaLayer::setup() {
     this->m_copyBtn = CCMenuItemSpriteExtra::create(copySpr, this, menu_selector(ChromaLayer::onCopy));
     m_copyBtn->setPosition(CCPoint(winSize.width / 2 - 30.f, winSize.height / 2 - 75.f));
     m_copyBtn->setTag(5);
-    m_copyBtn->setColor(ccColor3B(CELL_COLOR));
+    m_copyBtn->setColor(ccc3(CELL_COLOR));
+    HIDE(m_copyBtn, 0, 0)
     setupMenu->addChild(m_copyBtn);
 
     // pasteBtn
@@ -272,7 +287,8 @@ bool ChromaLayer::setup() {
     this->m_pasteBtn = CCMenuItemSpriteExtra::create(pasteSpr, this, menu_selector(ChromaLayer::onPaste));
     m_pasteBtn->setPosition(CCPoint(winSize.width / 2 - 30.f, winSize.height / 2 - 120.f));
     m_pasteBtn->setTag(6);
-    m_pasteBtn->setColor(ccColor3B(CELL_COLOR));
+    m_pasteBtn->setColor(ccc3(CELL_COLOR));
+    HIDE(m_pasteBtn, 0, 0)
     setupMenu->addChild(m_pasteBtn);
 
     /********** Color Menu **********/
@@ -289,7 +305,7 @@ bool ChromaLayer::setup() {
 
     this->m_colorItem = CCLabelBMFont::create("target", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     m_colorItem->setPosition(CCPoint(0.f, 105.f));
-    m_colorItem->setColor(ccColor3B(192, 192, 192));
+    m_colorItem->setColor(ccc3(192, 192, 192));
     HIDE(m_colorItem, 0.2, 0.2)
     m_colorItem->setTag(6);
     colorMenu->addChild(m_colorItem);
@@ -336,7 +352,7 @@ bool ChromaLayer::setup() {
     this->m_mysteriousArrow = CCSprite::create("mysteriousArrow.png"_spr);
     m_mysteriousArrow->setPosition(CCPoint(-180.f, 0.f));
     HIDE(m_mysteriousArrow, 0.3, 0.3)
-    m_mysteriousArrow->setColor(ccColor3B(CELL_COLOR));
+    m_mysteriousArrow->setColor(ccc3(CELL_COLOR));
     colorMenu->addChild(m_mysteriousArrow);
 
     // copy Ori
@@ -347,7 +363,7 @@ bool ChromaLayer::setup() {
     m_copyOriBtn->setPosition(CCPoint(-180.f, 30.f));
     HIDE(m_copyOriBtn, 0, 0)
     m_copyOriBtn->setTag(1);
-    m_copyOriBtn->setColor(ccColor3B(CELL_COLOR));
+    m_copyOriBtn->setColor(ccc3(CELL_COLOR));
     colorMenu->addChild(m_copyOriBtn);
 
     // resc Ori
@@ -358,7 +374,7 @@ bool ChromaLayer::setup() {
     m_rescOriBtn->setPosition(CCPoint(-180.f, 30.f));
     m_rescOriBtn->setTag(4);
     HIDE(m_rescOriBtn, 0, 0)
-    m_rescOriBtn->setColor(ccColor3B(CELL_COLOR));
+    m_rescOriBtn->setColor(ccc3(CELL_COLOR));
     colorMenu->addChild(m_rescOriBtn);
 
     // copy Crt
@@ -369,7 +385,7 @@ bool ChromaLayer::setup() {
     m_copyCrtBtn->setPosition(CCPoint(-180.f, -30.f));
     m_copyCrtBtn->setTag(3);
     HIDE(m_copyCrtBtn, 0, 0)
-    m_copyCrtBtn->setColor(ccColor3B(CELL_COLOR));
+    m_copyCrtBtn->setColor(ccc3(CELL_COLOR));
     colorMenu->addChild(m_copyCrtBtn);
 
     // paste Crt
@@ -380,7 +396,7 @@ bool ChromaLayer::setup() {
     m_pasteCrtBtn->setPosition(CCPoint(-180.f, -30.f));
     m_pasteCrtBtn->setTag(2);
     HIDE(m_pasteCrtBtn, 0, 0)
-    m_pasteCrtBtn->setColor(ccColor3B(CELL_COLOR));
+    m_pasteCrtBtn->setColor(ccc3(CELL_COLOR));
     colorMenu->addChild(m_pasteCrtBtn);
 
     /********** Options Menu **********/
@@ -388,10 +404,13 @@ bool ChromaLayer::setup() {
     optionsMenu->setID("options-menu");
     this->addChild(optionsMenu);
 
+    // optionsScroller
+    // fullscreen scroll tolerance
     this->m_optionScroller = ScrollLayerPlus::create(CCRect(0.f, 0.f, 320.f, 400.f));
     m_optionScroller->setAnchorPoint(CCPoint(0.5, 0.5));
     m_optionScroller->ignoreAnchorPointForPosition(false);
-	m_optionScroller->setContentSize(CCSize(320.f, winSize.height));
+	m_optionScroller->setContentSize(winSize);//CCSize(winSize.width, winSize.height)
+    m_optionScroller->m_contentLayer->setPositionX(winSize.width / 2 - 160.f);
 	m_optionScroller->setID("options-scroller");
     m_optionScroller->setVisible(false);
     optionsMenu->addChild(m_optionScroller);
@@ -486,7 +505,7 @@ bool ChromaLayer::setup() {
     this->addChild(infoMenu);
 
     auto lazy = CCLabelBMFont::create(
-        "As I mentioned in Github,\nthis pre-release does NOTHING to ur icons.\n\n"
+        "As I mentioned in Github,\nthis pre-release does NOTHING to ur icons.\n"
         "I'm too lazy to make this info page in this pre-release.\n"        
         "See you in official release!\n@_@",
         "ErasBold.fnt"_spr, 460.f, CCTextAlignment::kCCTextAlignmentCenter);

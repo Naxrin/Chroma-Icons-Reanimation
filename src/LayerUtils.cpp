@@ -56,9 +56,7 @@ bool ChromaLayer::switchCurrentID(int id) {
         m_itemSetupLabel->setString((id > 10 ? items[id-1] : items[id]).c_str());
         this->channel = id < 10 ? Channel::Main : Channel::Effect;
         m_chnlSetupLabel->setString(id < 10 ? "Main" : "Effect");
-        // show or hide channel switch arrow
-        fade(m_leftArrowSetupBtn, id < 10);
-        fade(m_rightArrowSetupBtn, id < 10);
+
         // load new setup
         currentSetup = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(), DEFAULT_SETUP);
     } else
