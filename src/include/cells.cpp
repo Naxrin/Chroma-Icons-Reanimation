@@ -425,6 +425,8 @@ void SetupOptionCell::refreshUI(ChromaSetup setup, bool fade) {
             case OptionLineType::Slider:
                 node->setVal(node->mode == 3 ? setup.gradient.at(1).p : setup.satu);
                 break;
+            default:
+                break;
             }
 
         bool display = node->type == OptionLineType::Title || node->mode == setup.mode;
