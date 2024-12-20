@@ -11,7 +11,7 @@ bool ChromaLayer::setup() {
     /********** Init Value **********/
 
     // bg regarding theme color
-    this->m_bg = CCLayerColor::create(ccColor4B(BG_COLOR, 0));
+    this->m_bg = CCLayerColor::create(ccc4(BG_COLOR, 0));
     m_bg->setContentSize(winSize);
     m_bg->setZOrder(-2);
     m_bg->setID("bg");
