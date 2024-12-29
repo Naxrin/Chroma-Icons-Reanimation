@@ -67,9 +67,7 @@ void fade(CCMenuItem* node, bool in, float time, float scaleX, float scaleY, int
 
 // load int color array from json file
 mapline MapfromJson(matjson::Value const& json, int def, int max) {
-    if (json.isNull())
-        return {};
-    if (!json.isObject())
+    if (json.isNull() || !json.isObject())
         return {{0, ccc3(255, 255, 255)}, {def, ccc3(255, 255, 255)}};
     mapline map;
     for (auto& [key, val] : json)
@@ -112,11 +110,11 @@ GJItemEffect* GJItemEffect::createEffectItem(int effectID) {
 
 // RGB -> HSV
 // copy from gay wave trail
-inline ccColor3B HSVtoRGB(float h, float s, float v) {
-    float c = v * s;
-    float hp = fmod(h / 60.0, 6);
+inline ccColor3B HSVtoRGB(myColorHSV hsv) {
+    float c = hsv.v * hsv.s;
+    float hp = fmod(hsv.h / 60.0, 6);
     float x = c * (1 - fabs(fmod(hp, 2) - 1));
-    float m = v - c;
+    float m = hsv.v - c;
 
     float r, g, b;
     if (0 <= hp && hp < 1) {
@@ -143,11 +141,12 @@ inline ccColor3B HSVtoRGB(float h, float s, float v) {
 
 // RGB -> HSV
 // reverse of the function above
-/*
-inline ccHSVValue RGBtoHSV(ccColor3B rgb) {
+inline myColorHSV RGBtoHSV(ccColor3B rgb) {
     float delta, h, s, v;
 
     float r = rgb.r, g = rgb.g, b = rgb.b;
+    if (r == g && g == b)
+        return myColorHSV{0, 0.f, g / 255};
     if (r >= g && r >= b) {
         v = r;
         delta = g >= b ? r-b : r-g;
@@ -164,12 +163,12 @@ inline ccHSVValue RGBtoHSV(ccColor3B rgb) {
         h = 60 * ((r-g)/delta + 4);
     }
     s = v == 0 ? 0 : delta / v;
-    return ccHSVValue{h, s, v, true, true};
-}*/
+    return myColorHSV{h, s, v / 255};
+}
 
 // get RGB cycle color
 inline ccColor3B getRainbow(float hue, float saturation) {
-    return HSVtoRGB(hue, saturation / 100, 1);
+    return HSVtoRGB(myColorHSV{hue, saturation / 100, 1});
 }
 
 inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpos &r) {
@@ -180,6 +179,18 @@ inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpo
         l.second.b + p * (r.second.b - l.second.b)
     );
 }
+/*
+inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpos &r) {
+    float p = (middle - l.first) / (r.first - l.first);
+    auto L = RGBtoHSV(l.second);
+    auto R = RGBtoHSV(r.second);
+    int Rev = 360 * (R.h-L.h > 180.f);
+    return HSVtoRGB(myColorHSV{
+        L.h + Rev + p * (R.h - L.h - Rev),
+        L.s + p * (R.s - L.s),
+        L.v + p * (R.v - L.v)
+    });
+}*/
 
 ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float progress, bool reset) {
     if (reset)
@@ -187,7 +198,6 @@ ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float
 
     // current left intcolor valve
     pairpos l;
-    bool start = true;
     switch (setup.mode) {
     // static
     case 1:
@@ -203,14 +213,15 @@ ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float
         }
         for (pairpos r : setup.gradient) {
             if (r.first > phase) {
-                pairpos ret = std::make_pair(setup.gradient.end()->first - 360, setup.gradient.end()->second);
-                return getGradient(phase, l, start ? ret : r);
+                if (r == *setup.progress.begin()) {
+                    pairpos illu = std::make_pair(setup.gradient.rbegin()->first - 360, setup.gradient.rbegin()->second);
+                    return getGradient(phase, illu, r);                    
+                }
+                return getGradient(phase, l, r);
             }
             // this may be the left
             l = r;
-            start = false;
         }
-
         return getGradient(phase, l, std::make_pair(setup.gradient.begin()->first + 360, setup.gradient.begin()->second));
     case 4:
         // dont crash the game at least
@@ -219,12 +230,11 @@ ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float
         }
         for (pairpos r : setup.progress) {
             if (r.first > progress)
-                return start ? setup.progress.begin()->second : getGradient(progress, l, r);
+                return r == *setup.progress.begin() ? setup.progress.begin()->second : getGradient(progress, l, r);
             // this may be the left
             l = r;
-            start = false;
         }
-        return setup.progress.end()->second;
+        return setup.progress.rbegin()->second;
     // default
     default:
         return defaultVal;

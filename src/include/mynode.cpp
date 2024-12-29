@@ -74,21 +74,29 @@ void PickItemButton::runChroma(float const& phase, float const& progress) {
         return;
     if (this->getTag() > 10)
         this->effect->setColor(getChroma(
-            setups[getIndex(ptwo, getTag(), Channel::Effect)], gm->colorForIdx(gm->getPlayerColor()), phase, progress));
+            setups[getIndex(ptwo, getTag(), Channel::Effect)],
+                gm->colorForIdx(gm->getPlayerColor()), phase, progress));
     else {
         icon->m_player->setColor(getChroma(
-            setups[getIndex(ptwo, getTag(), Channel::Main)], gm->colorForIdx(gm->getPlayerColor()), phase, progress));
+            setups[getIndex(ptwo, getTag(), Channel::Main)],
+                gm->colorForIdx(gm->getPlayerColor()), phase, progress));
         icon->m_player->setSecondColor(getChroma(
-            setups[getIndex(ptwo, getTag(), Channel::Secondary)], gm->colorForIdx(gm->getPlayerColor2()), phase + 120 * opts["sep-second"], progress));
+            setups[getIndex(ptwo, getTag(), Channel::Secondary)],
+                gm->colorForIdx(gm->getPlayerColor2()), phase + 120 * opts["sep-second"], progress));
         if (icon->m_player->m_hasGlowOutline)
-            icon->m_player->setGlowOutline(getChroma(
-                setups[getIndex(ptwo, getTag(), Channel::Glow)], gm->colorForIdx(gm->getPlayerGlowColor()), phase - 120 * opts["sep-glow"], progress));
+            icon->m_player->setGlowOutline(getChroma(setups[getIndex(ptwo, getTag(), Channel::Glow)],
+                gm->colorForIdx(gm->getPlayerGlowColor()), phase - 120 * opts["sep-glow"], progress));
     }
 }
+
+void PickItemButton::toggleChroma() {
+    this->toggleChroma(opts["activate"] && opts["prev"]);
+}
+
 // toggle on or off chroma, activated means not grey
 void PickItemButton::toggleChroma(bool current) {
     // toggle
-    this->chroma = current || (opts["activate"] && opts["prev"]);
+    this->chroma = current;
     // on
     if (this->chroma)
         return;
@@ -333,7 +341,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         this->addChild(label);
         break;
     case OptionLineType::Slider:
-        this->max = 100;
+        this->max = mode == 3 ? 99 : 100;
         // label
         this->setID(mode == 3 ? "duty" :"satu");
         m_label = CCLabelBMFont::create(mode == 3 ? "Duty %" :"Saturation", "ErasBold.fnt"_spr, 140.f, CCTextAlignment::kCCTextAlignmentLeft);

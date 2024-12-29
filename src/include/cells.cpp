@@ -381,6 +381,16 @@ bool SetupOptionCell::init() {
 
 void SetupOptionCell::refreshUI(ChromaSetup setup, bool fade) {
     float Y = this->getContentHeight() - 5.f;
+    // temply we read the progress like this to avoid crash as possible as i can
+    int duty = 180;
+    ccColor3B grad1 = setup.gradient.begin()->second;
+    ccColor3B grad2 = setup.gradient.rbegin()->second;
+    for (auto p : setup.gradient) {
+        if (p == *setup.gradient.begin())
+            continue;
+        // get duty
+        duty = p.second == grad2 ? p.first : p.first / 2 + 180;
+    }
     for (auto node: m_aryMenus) {
         // title toggle and tint
         if (node->type == OptionLineType::Title) {
@@ -392,14 +402,14 @@ void SetupOptionCell::refreshUI(ChromaSetup setup, bool fade) {
                 node->m_colpk->setColor(setup.color);
                 break;
             case OptionLineType::MultiColor:
-                node->m_colpk1->setColor(node->mode == 4 ? setup.progress.begin()->second : setup.gradient.begin()->second);
-                node->m_colpk2->setColor(node->mode == 4 ? setup.progress.end()->second : setup.gradient.end()->second);
+                node->m_colpk1->setColor(node->mode == 4 ? setup.progress.begin()->second : grad1);
+                node->m_colpk2->setColor(node->mode == 4 ? (setup.progress.rbegin())->second : grad2);
                 break;
             case OptionLineType::Toggler:
                 node->m_toggler->toggle(setup.best);
                 break;
             case OptionLineType::Slider:
-                node->setVal(node->mode == 3 ? setup.gradient.end()->first : setup.satu);
+                node->setVal(node->mode == 3 ? (int)(duty / 3.6) : setup.satu);
                 break;
             default:
                 break;

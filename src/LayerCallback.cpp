@@ -81,10 +81,19 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
 
     // set duty value
     else if (event->name == "duty") {
-        // kick and add
-        auto col = currentSetup.gradient.end()->second;
-        this->currentSetup.gradient.erase(currentSetup.gradient.end()->first);
-        this->currentSetup.gradient[event->value] = col;
+        // cache
+        ccColor3B grad1 = currentSetup.gradient.begin()->second;
+        ccColor3B grad2 = currentSetup.gradient.rbegin()->second;
+        // clear
+        currentSetup.gradient.clear();
+        // construct
+        this->currentSetup.gradient[0] = grad1;
+        int d = event->value ? (int)round(event->value * 18 / 5) : 1;
+        this->currentSetup.gradient[d] = grad2;
+        if (d > 180)
+            this->currentSetup.gradient[2 * d - 360] = grad1;
+        if (d < 180)
+            this->currentSetup.gradient[360 - d] = grad2;
         this->refreshPreview(false);
     }
 
@@ -453,13 +462,13 @@ void ChromaLayer::onApply(CCObject* sender) {
             currentSetup.gradient.begin()->second = crtColor;
             break;
         case 3:
-            currentSetup.gradient.end()->second = crtColor;
+            currentSetup.gradient.rbegin()->second = crtColor;
             break;
         case 4:
             currentSetup.progress.begin()->second = crtColor;
             break;
         case 5:
-            currentSetup.progress.end()->second = crtColor;
+            currentSetup.progress.rbegin()->second = crtColor;
             break;
         }
         this->refreshPreview(false);

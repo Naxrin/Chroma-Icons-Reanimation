@@ -123,7 +123,7 @@ bool ChromaLayer::switchCurrentID(int id) {
         m_currentItem->m_label->runAction(CCEaseExponentialOut::create(
             CCTintTo::create(ANIM_TIME_M, 127, 127, 127)));
         // stop chroma
-        m_currentItem->m_btn->toggleChroma();
+        m_currentItem->m_btn->toggleChroma(false);
         // dump config
         this->refreshPreview(true);
     }
@@ -163,3 +163,4 @@ void ChromaLayer::colorValueChanged(ccColor3B color) {
     this->crtColor = color;
     refreshColorPage(3);
 }
+

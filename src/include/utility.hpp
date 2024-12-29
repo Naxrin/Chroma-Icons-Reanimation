@@ -161,6 +161,12 @@ public:
     static GJItemEffect* createEffectItem(int effectID);
 };
 
+struct myColorHSV {
+    float h;
+    float s;
+    float v;
+};
+
 // chroma engine
 ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float progress, bool reset = false);
 

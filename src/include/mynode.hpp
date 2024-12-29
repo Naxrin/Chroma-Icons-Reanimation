@@ -21,8 +21,10 @@ public:
     void delayFade(int delay, bool in);
     // chroma proxy
     void runChroma(float const& phase, float const& progress);
+    // for current item switch
+    void toggleChroma();
     // toggle on or off chroma, activated means not grey
-    void toggleChroma(bool current = false);
+    void toggleChroma(bool current);
 
     // constructor for effects
     static PickItemButton* create(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback) {
@@ -164,11 +166,11 @@ protected:
     void onArrow(CCObject*);
     // value -> slider
     inline float Val2Slider(int value) {
-        return (float)value / 100;
+        return (float)value / max;
     }
     // slider -> value
     inline int Slider2Val(float value) {
-        return (int)round(value * 100);
+        return (int)round(value * max);
     }
 public:
     OptionLineType type;

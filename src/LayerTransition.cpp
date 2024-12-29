@@ -101,15 +101,15 @@ void ChromaLayer::transistColorBtn(bool isCrt, bool display) {
     CCMenuItemSpriteExtra* girl = isCrt ? m_pasteCrtBtn : m_rescOriBtn;
 
     parent->setTag(1 + isCrt * 2 + display);
-
     int k = isCrt ? -1 : 1;
+
     fade(boy, display, 0.5 * ANIM_TIME_M);
     boy->runAction(CCEaseExponentialOut::create(CCMoveTo::create(
-        0.5 * ANIM_TIME_M, display ? CCPoint(-230.f, k*40.f) : CCPoint(-180.f, k*30.f))));
+        0.5 * ANIM_TIME_M, display ? CCPoint(-205.f, k*80.f) : CCPoint(-180.f, k*30.f))));
 
     fade(girl, display, 0.5 * ANIM_TIME_M);
     girl->runAction(CCEaseExponentialOut::create(CCMoveTo::create(
-        0.5 * ANIM_TIME_M, display ? CCPoint(-190.f, k*80.f) : CCPoint(-180.f, k*30.f))));
+        0.5 * ANIM_TIME_M, display ? CCPoint(-155.f, k*80.f) : CCPoint(-180.f, k*30.f))));
 }
 
 // fade main menu
