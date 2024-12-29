@@ -7,13 +7,20 @@
 // This class works as a CCNode with a CCScale9Sprite background
 class BaseCell : public CCMenu {
 protected:
-    bool setup(CCPoint point, CCSize size, int tag, std::string id);
-
-public:
     CCScale9Sprite* m_bg;
+    // setup
+    bool setup(CCPoint point, CCSize size, int tag, std::string id);
+public:
+
     // ~by Anal Walker~
-    virtual void Fade(bool);
-    // switch theme
+    virtual void Fade(bool in) {
+        fade(this, in, ANIM_TIME_L);
+    }
+    // tint
+    void tint(float d, int r, int g, int b);
+    inline void switchTheme() {
+        this->m_bg->runAction(CCTintTo::create(ANIM_TIME_M, CELL_COLOR));
+    }
 };
 
 // notice player when they launch it in extreme demons
@@ -94,15 +101,15 @@ protected:
     CCLabelBMFont* m_hint;
 
     // Option Toggle
-    bool init(const char* title, float y, float width, bool defaultVal, int tag, std::string id, const char* desc);
+    bool init(const char* title, float y, float width, int tag, std::string id, const char* desc);
 public:
     // for switch animation
     void onOption(CCObject*);
     void Fade(bool) override;
     
-    static OptionTogglerCell* create(const char* title, float y, float width, bool defaultVal, int tag, std::string id, const char* desc) {
+    static OptionTogglerCell* create(const char* title, float y, float width, int tag, std::string id, const char* desc) {
         auto node = new OptionTogglerCell();
-        if (node && node->init(title, y, width, defaultVal, tag, id, desc)) {
+        if (node && node->init(title, y, width, tag, id, desc)) {
             node->autorelease();
             return node;
         };
@@ -121,9 +128,12 @@ protected:
     }
 public:
     bool p2 = false;
-    CCArrayExt<PickItemButton*> btns;
+    std::vector<PickItemButton*> btns;
     void Fade(bool) override;
-    void switchPlayer();
+    void toggleChroma() {
+        for (auto btn : this->btns)
+            btn->toggleChroma();
+    }
     static ItemCell* create(int tag) {
         auto node = new ItemCell();
         if (node && node->init(tag)) {
@@ -139,19 +149,19 @@ public:
 class SetupItemCell : public BaseCell {
 protected:
     bool p2 = false;
-    int tag = 0;
-    CCSprite* m_spr = nullptr;
-    PickItemButton* m_btn = nullptr;
+    int id = 0;
 
-    bool init(int tag, float Y, int nodeTag);
+    bool init(int id, float Y, int tag);
     void onPickItem(CCObject* sender) {
-        SignalEvent("pick", sender->getTag()).post();
+        SignalEvent("pick", this->id).post();
     }
 public:
+    ChromaSetup setup;
     CCLabelBMFont* m_label = nullptr;
-    static SetupItemCell* create(int tag, float Y, int nodeTag) {
+    PickItemButton* m_btn = nullptr;
+    static SetupItemCell* create(int id, float Y, int tag) {
         auto node = new SetupItemCell();
-        if (node && node->init(tag, Y, nodeTag)) {
+        if (node && node->init(id, Y, tag)) {
             node->autorelease();
             return node;
         };
@@ -201,25 +211,25 @@ protected:
     // check value > max case
     void textInputClosed(CCTextInputNode* p) override;
     // change chroma frequency by slider
-    void onSlider(CCObject*);
+    inline void onSlider(CCObject*);
     void sliderBegan(Slider *p) override;
     void sliderEnded(Slider *p) override;
     // value -> slider
-    virtual float Val2Slider(int val) {
+    inline virtual float Val2Slider(int val) {
         if (val > 255) return 1;
         if (val < 0) return 0;
         return (float)val / 255;
     }
     // slider -> value
-    virtual int Slider2Val(float s) {
+    inline virtual int Slider2Val(float s) {
         return round(s * 255);
     }
 public:
     void Fade(bool in) override;
-    int getVal() {
+    inline int getVal() {
         return value;
     }
-    void setVal(int value) {
+    inline void setVal(int value) {
         this->value = value;
         m_inputer->setString(cocos2d::CCString::createWithFormat("%i", value)->getCString());
         m_slider->setValue(Val2Slider(value));

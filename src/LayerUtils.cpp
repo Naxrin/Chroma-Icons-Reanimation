@@ -1,21 +1,87 @@
 #include "Layer.hpp"
 
+extern std::map<short, ChromaSetup> setups;
+extern std::map<std::string, bool> opts;
+extern float speed;
+extern bool ptwo;
 
-// schedule update rewrite
-void ChromaLayer::update(float dt) {
+// process some init animation
+void ChromaLayer::show() {
+    // no i donot need it
+    this->getChildByType<CCLayer>(0)->setVisible(false);
+    // fade the bg from 0 to 120
+    this->setOpacity(0);
+    this->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 100)));
+    // check warn
+    bool warn = Mod::get()->getSavedValue<bool>("notify", true) && PlayLayer::get()
+        && PlayLayer::get()->m_level->m_demonDifficulty == 6;
+    if (warn) {
+        face.push_back(Face::Warn);
+        this->fadeWarnPage();
+    } else {
+        face.push_back(Face::Init);
+        
+        this->fadeMainMenu();
+        this->runAction(CCSequence::create(
+            CCDelayTime::create(0.6 * ANIM_TIME_L),
+            CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeItemPage)),
+            nullptr
+        ));
+    }
 
+    // toggle preview
+    m_advBundleCell->toggleChroma();
+    m_ezyBundleCell->toggleChroma();
+    m_effBundleCell->toggleChroma();
+    // setup item
+    for (auto obj : CCArrayExt<CCObject*>(m_setupAdvScroller->m_contentLayer->getChildren())) {
+        auto cell = static_cast<SetupItemCell*>(obj);
+        if (cell != m_currentItem)
+            cell->m_btn->toggleChroma();
+    }
+    for (auto obj : CCArrayExt<CCObject*>(m_setupEasyScroller->m_contentLayer->getChildren())) {
+        auto cell = static_cast<SetupItemCell*>(obj);
+        if (cell != m_currentItem)
+            cell->m_btn->toggleChroma();
+    }
+    // run base function
+    Popup::show();
+    float opacity = 196.f;
+    // blur
+        if (Mod::get()->getSavedValue<bool>("blur-bg", true)) {
+            m_blur->runAction(CCEaseExponentialOut::create(CCFadeIn::create(ANIM_TIME_L)));   
+            opacity = 144.f;
+        }
+        else {
+            m_blur->setVisible(false);
+            m_blur->setOpacity(0);
+        }
+
+    m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, opacity));
 }
 
-std::string ChromaLayer::getConfigKey(bool space) {
-    // get string
-    std::string cat = space ? "  " : "-";
-    std::string p = this->p2 ? "P2" : "P1";
+// schedule update rewrite
+void ChromaLayer::update(float d) {
+    // step phase
+    this->phase = fmod(phase + 360 * d * speed, 360.f);
+    if (m_currentItem)
+        // setup menu selected
+        m_currentItem->m_btn->runChroma(phase, 50);
 
-    // concatenate
-    if (this->id > 10)
-        return p + cat + items[id-1];
-    else
-        return p + cat + items[id] + cat + chnls[(int)channel];
+    // skip
+    if (!(opts["activate"] && opts["prev"]))
+        return;
+
+    // item menu
+    if (!m_advBundleCell->btns.empty())
+        for (auto btn : m_advBundleCell->btns)
+            btn->runChroma(phase, 50);
+    if (!m_ezyBundleCell->btns.empty())
+        for (auto btn : m_ezyBundleCell->btns)
+            btn->runChroma(phase, 50);
+    if (!m_effBundleCell->btns.empty())
+        for (auto btn : m_effBundleCell->btns)
+            btn->runChroma(phase, 50);
 }
 
 CCMenuItemSpriteExtra* ChromaLayer::getColorTarget() {
@@ -39,41 +105,57 @@ CCMenuItemSpriteExtra* ChromaLayer::getColorTarget() {
     return nullptr;
 }
 
+void ChromaLayer::refreshPreview(bool dump) {
+    // dump setup
+    Mod::get()->setSavedValue(getConfigKey(ptwo, this->id, this->channel), currentSetup);
+    setups[getIndex(ptwo, this->id, this->channel)] = currentSetup;
+}
+
 bool ChromaLayer::switchCurrentID(int id) {
-    // avoid nullptr crash
-    if (m_currentItem)
+    // switch a nonsense
+    if (this->id == id && face.back() == Face::Setup)
+        return false;
+
+    if (m_currentItem) {
+        // tint bg
+        m_currentItem->switchTheme();
         // tint gray
         m_currentItem->m_label->runAction(CCEaseExponentialOut::create(
             CCTintTo::create(ANIM_TIME_M, 127, 127, 127)));
-    
-    bool changed = true;
-    if (this->id != id) {
-        if (m_currentItem)
-            // dump former setup
-            Mod::get()->setSavedValue(getConfigKey(), currentSetup);
-        this->id = id;
-        // labels
-        m_itemSetupLabel->setString((id > 10 ? items[id-1] : items[id]).c_str());
-        this->channel = id < 10 ? Channel::Main : Channel::Effect;
-        m_chnlSetupLabel->setString(id < 10 ? "Main" : "Effect");
+        // stop chroma
+        m_currentItem->m_btn->toggleChroma();
+        // dump config
+        this->refreshPreview(true);
+    }
+    // edit id
+    this->id = id;
+    this->channel = id < 10 ? Channel::Main : Channel::Effect;
 
-        // load new setup
-        currentSetup = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(), DEFAULT_SETUP);
-    } else
-        changed = false;
+    // labels
+    m_itemSetupLabel->setString((id > 10 ? items[id-1] : items[id]).c_str());
+    m_chnlSetupLabel->setString(id < 10 ? "Main" : "Effect");
+
+    // load new setup
+    currentSetup = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(ptwo, this->id, this->channel), DEFAULT_SETUP);
 
     // locate new current setup item
-    if (easy)
-        m_currentItem = static_cast<SetupItemCell*>(m_setupEasyScroller->m_contentLayer->getChildByTag(id > 10 ? 16 - id : 6));
-    else
-        m_currentItem = static_cast<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildByTag(id > 10 ? 16 - id : 15 - id));
+    int tag = id > 10 ? 16 - id : (opts["easy"] ? 6 : 15 - id);
+    // loate current item
+    m_currentItem = static_cast<SetupItemCell*>((opts["easy"] ? m_setupEasyScroller : m_setupAdvScroller)->m_contentLayer->getChildByTag(tag));
+    // scroll the scroller to dest position
     // tint green
-    if (m_currentItem)
+    if (m_currentItem) {
+        // tint bg
+        m_currentItem->tint(ANIM_TIME_M, 0, 60, 0);
+        // tint gray
         m_currentItem->m_label->runAction(CCEaseExponentialOut::create(
             CCTintTo::create(ANIM_TIME_M, 0, 255, 0)));
+        // start chroma
+        m_currentItem->m_btn->toggleChroma(true);
+    }
     else
         log::error("m_currentItem not found: id = {}", id);
-    return changed;
+    return true;
 }
 
 // override ColorPickerDelegate function

@@ -29,6 +29,11 @@
 			"importance": "required"
 	    },
 		{
+			"id":"alphalaneous.happy_textures",
+			"version": "1.6.3",
+			"importance": "required"
+	    },
+		{
 			"id":"hiimjustin000.more_icons",
 			"version": "1.4.6",
 			"importance": "suggested"

@@ -17,7 +17,7 @@ enum class Face {
     Warn = 7
 };
 
-// MY HOLY MOD MENU
+// fubao is clever neko
 class ChromaLayer : public Popup<>, public ColorPickerDelegate {
 protected:
     /********** VARIENT CENTRAL ***********/
@@ -27,18 +27,11 @@ protected:
     // @note if warn page is triggered, warn page will be added firstly
     std::vector<Face> face;
 
-    // current mode is Easy or Advanced
-    // @note will also influence some UI behaviors
-    bool easy = Mod::get()->getSavedValue<bool>("easy-mode", true);
-
-    // player 2 triggers status
-    bool p2 = false;
-
     // the identifier of the current modifying icon/effect for setup menu
     // @note easy mode : common = 0
     // @note adv mode : icons = 1-9
     // @note Effects (11~15?) : trail, wave trail, dash fire, teleport line, ufo shell...
-    int id = -1;
+    short id = -1;
 
     // current channel in setup page
     // @note 0-2 = main/second/glow
@@ -47,8 +40,6 @@ protected:
     // current editing color tag in case color page dosen't know what he's working on
     int colorTag = 0;
 
-    // current speed value, influence menu preview speed
-    float speed = Mod::get()->getSavedValue<float>("speed", 0.8);
 
     // phase for schedule update
     float phase = 0;
@@ -103,6 +94,12 @@ protected:
 
     // player switch
     CCMenuItemToggler* m_playerItemBtn;
+    // full icons
+    ItemCell* m_advBundleCell;
+    // single icon
+    ItemCell* m_ezyBundleCell;
+    // effect
+    ItemCell* m_effBundleCell;
 
     // setup player switch
     CCMenuItemToggler* m_playerSetupBtn;
@@ -180,17 +177,16 @@ protected:
 
     /*********** UTILITY ***********/
 
-    // schedule update rewrite
-    void update(float) override;
-
-    // dump current config
-    // @param space false if getting saved value key, true if generating color page title
-    // @return string result
-    std::string getConfigKey(bool space = false);
+    // override update
+    void update(float xdt) override;
 
     // get color target
     // @return point to the color button who calls color page
     CCMenuItemSpriteExtra* getColorTarget();
+
+    //refresh some chroma preview status when setup changed
+    // @param dump save current setup
+    void refreshPreview(bool dump);
 
     // save config -> switch current ID and refresh setup page
     // @param id new target id he will switch to.

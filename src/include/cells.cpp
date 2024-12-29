@@ -1,5 +1,8 @@
 #include "cells.hpp"
 
+extern std::map<std::string, bool> opts;
+extern bool ptwo;
+
 bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     // myself
     this->setPosition(point);
@@ -21,8 +24,11 @@ bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     return true;
 }
 
-void BaseCell::Fade(bool in) {
-    fade(this, in, ANIM_TIME_L);
+void BaseCell::tint(float d, int r, int g, int b) {
+    if (opts["dark-theme"])
+        this->m_bg->runAction(CCTintTo::create(ANIM_TIME_M, 255 - (b + g) / 2, 255 - (b + r) / 2, 255 - (r + g) / 2));
+    else
+        this->m_bg->runAction(CCTintTo::create(ANIM_TIME_M, r, g, b));
 }
 
 bool WarnCell::init() {
@@ -129,6 +135,7 @@ bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::s
     if (!BaseCell::setup(pos, CCSize(width, 20.f), tag, id))
         return false;
 
+    m_bg->setVisible(false);
     this->display_pos = pos;
     setTag(tag);
     setID(id);
@@ -170,11 +177,11 @@ bool OptionTitleCell::init(const char* text, float y, float width, int tag, std:
 }
 
 // toggler option
-bool OptionTogglerCell::init(const char* title, float y, float width, bool defaultVal, int tag, std::string id, const char* desc) {
+bool OptionTogglerCell::init(const char* title, float y, float width, int tag, std::string id, const char* desc) {
     if (!CCMenu::init())
         return false;
 
-    this->yes = Mod::get()->getSavedValue<bool>(id, defaultVal);
+    this->yes = Mod::get()->getSavedValue<bool>(id);
     // add hint first to see the height
     m_hint = CCLabelBMFont::create(desc, "ErasLight.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_hint->setScale(0.7);
@@ -211,19 +218,29 @@ bool OptionTogglerCell::init(const char* title, float y, float width, bool defau
     if (id == "activate") {
         m_label->setCString(yes ? "Switch : ON" : "Switch : OFF");
         m_label->setColor(ccc3(255-255*yes, 255*yes, 0));
+        // tint bg
+        this->tint(0, 80 * (!yes), 80 * (yes), 0);
     }
     return true;
 }
 
 void OptionTogglerCell::onOption(CCObject* sender) {
+    // revert
     yes = !yes;
+    // set value
     Mod::get()->setSavedValue(this->getID(), yes);
+    // option
+    opts[this->getID()] = yes;
+    // post signal
+    SignalEvent<bool>(this->getID(), yes).post();
+
     // switch
     if (this->getID() == "activate") {
         m_label->setCString(yes ? "Switch : ON" : "Switch : OFF");
         m_label->setColor(ccc3(255-255*yes, 255*yes, 0));
+        // tint bg
+        this->tint(ANIM_TIME_M, 80 * (!yes), 80 * (yes), 0);
     }
-    SignalEvent<bool>(this->getID(), yes).post();
 }
 
 void OptionTogglerCell::Fade(bool in) {
@@ -248,22 +265,12 @@ bool ItemCell::init(int tag) {
         if (!BaseCell::setup(CCPoint(0.f, -55.f), CCSize(150.f, 24.f), tag, "effect-sheet"))
             return false;
 
-        for (int item = 0; item < 5; item ++) {
+        for (int item = 11; item < 16; item ++) {
             // spr
-            auto spr = GJItemEffect::createEffectItem(item + 1);
-            spr->setScale(0.85);
-            // btn
-            auto btn = PickItemButton::create(spr, this, menu_selector(ItemCell::onPickItem));
-            btn->setPosition(CCPoint(15.f + 30.f*item, 12.f));
-            btn->setTag(11 + item);
-            btn->setScale(0.5);
+            auto btn = PickItemButton::create(item, false, this, menu_selector(ItemCell::onPickItem));
+            btn->setPosition(CCPoint(30.f*item - 315.f, 12.f));
+            btn->setScale(0);
             btn->setOpacity(0);
-            // set color
-            /*
-            if (Loader::get()->isModLoaded("ninkaz.colorful-icons"))
-                btn->chroma(gm->colorForIdx(gm->getPlayerColor()));
-            else
-                btn->chroma(ccc3(175, 175, 175));*/
             this->addChild(btn);
             this->btns.push_back(btn);
         }        
@@ -274,12 +281,10 @@ bool ItemCell::init(int tag) {
         if (!BaseCell::setup(CCPoint(0.f, 20.f), CCSize(50.f, 50.f), tag, "easy-sheet"))
             return false;
         // btn
-        auto icon = GJItemIconAlpha::createBrowserItem(0, gm->getPlayerFrame());
-        auto btn = PickItemButton::create(icon, this, menu_selector(ItemCell::onPickItem));
+        auto btn = PickItemButton::create(0, false, this, menu_selector(ItemCell::onPickItem));
         btn->setPosition(CCPoint(25.f, 25.f));
-        btn->setTag(0);
         // init status
-        btn->setScale(0.5);
+        btn->setScale(0);
         btn->setOpacity(0);
         this->addChild(btn);
         this->btns.push_back(btn);
@@ -290,20 +295,18 @@ bool ItemCell::init(int tag) {
         if (!BaseCell::setup(CCPoint(0.f, 20.f), CCSize(400.f, 34.f), tag, "advanced-sheet"))
             return false;
         // full mode icons
-        for (int status = 0; status < 9; status ++) {
-            // spr
-            auto icon = GJItemIconAlpha::createBrowserItem(status, garageitem[status]);
-            icon->setScale(0.8);
-            auto btn = PickItemButton::create(icon, this, menu_selector(ItemCell::onPickItem));
-            btn->setPosition(CCPoint(20.f + 45.f*status, 17.f));
-            btn->setTag(1 + status);
+        for (int status = 1; status < 10; status ++) {
+            // btn
+            auto btn = PickItemButton::create(status, false, this, menu_selector(ItemCell::onPickItem));
+            btn->setPosition(CCPoint(45.f * status - 25.f, 17.f));
             // init status
-            btn->setScale(0.5);
+            btn->setScale(0);
             btn->setOpacity(0);
             this->addChild(btn);
             this->btns.push_back(btn);
-        }        
+        }
     }
+    
     // say goodbye to init
     m_bg->setTag(100);
     m_bg->setScale(5, 0.2);
@@ -322,44 +325,19 @@ void ItemCell::Fade(bool in) {
     }
 }
 
-void ItemCell::switchPlayer() {
-    this->p2 = !p2;
-    switch (this->getTag()) {
-    case 1:
-        for (int i = 1; i < 10; i++)
-            static_cast<PickItemButton*>(this->getChildByTag(i))->switchPlayer();
-        break;
-    case 2:
-        static_cast<PickItemButton*>(this->getChildByTag(0))->switchPlayer();
-        break;
-    case 3:
-        for (int i = 11; i < 16; i++)
-            static_cast<PickItemButton*>(this->getChildByTag(i))->switchPlayer();
-        break;
-    }
-}
-
-bool SetupItemCell::init(int tag, float Y, int nodeTag) {
+bool SetupItemCell::init(int id, float Y, int tag) {
     if (!CCMenu::init())
         return false;
 
-    if (!BaseCell::setup(CCPoint(60.f, Y), CCSize(90.f, 24.f), nodeTag, "sheet"))
+    if (!BaseCell::setup(CCPoint(60.f, Y), CCSize(90.f, 24.f), tag, "sheet"))
         return false;
 
-    // spr
-    if (tag > 10) {
-        m_spr = GJItemEffect::createEffectItem(tag - 10);
-        m_spr->setScale(0.75);        
-    }
-    else {
-        m_spr = GJItemIconAlpha::createBrowserItem(tag ? tag-1 : 0, tag ? garageitem[tag-1] : gm->getPlayerFrame());
-        m_spr->setScale(0.6);
-    }
+    this->id = id;
 
-    m_label = CCLabelBMFont::create(items[tag-(tag > 10)].c_str(), "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_label = CCLabelBMFont::create(items[id - (id > 10)].c_str(), "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_label->setScale(0.4);
     // wave trail label is too long
-    if (tag == 12)
+    if (id == 12)
         m_label->setScaleX(0.35);
     m_label->setPosition(CCPoint(60.f, 12.f));
     m_label->setContentSize(CCSize(60.f, 24.f));
@@ -369,9 +347,8 @@ bool SetupItemCell::init(int tag, float Y, int nodeTag) {
     this->addChild(m_label);
 
     // btn
-    m_btn = PickItemButton::create(m_spr, this, menu_selector(SetupItemCell::onPickItem));
-    m_btn->setPosition(CCPoint(15.f, 12.f));
-    m_btn->setTag(tag);
+    m_btn = PickItemButton::create(id, true, this, menu_selector(SetupItemCell::onPickItem));
+    m_btn->setPosition(CCPoint(14.f, 12.f));
     this->addChild(m_btn);
 
     this->setCascadeOpacityEnabled(true);
@@ -399,7 +376,6 @@ bool SetupOptionCell::init() {
             m_aryMenus.push_back(optionNode);
         }
     }
-
     return true;
 }
 
@@ -416,14 +392,14 @@ void SetupOptionCell::refreshUI(ChromaSetup setup, bool fade) {
                 node->m_colpk->setColor(setup.color);
                 break;
             case OptionLineType::MultiColor:
-                node->m_colpk1->setColor(node->mode == 4 ? setup.progress.at(0).c : setup.gradient.at(0).c);
-                node->m_colpk2->setColor(node->mode == 4 ? setup.progress.at(1).c : setup.gradient.at(1).c);
+                node->m_colpk1->setColor(node->mode == 4 ? setup.progress.begin()->second : setup.gradient.begin()->second);
+                node->m_colpk2->setColor(node->mode == 4 ? setup.progress.end()->second : setup.gradient.end()->second);
                 break;
             case OptionLineType::Toggler:
                 node->m_toggler->toggle(setup.best);
                 break;
             case OptionLineType::Slider:
-                node->setVal(node->mode == 3 ? setup.gradient.at(1).p : setup.satu);
+                node->setVal(node->mode == 3 ? setup.gradient.end()->first : setup.satu);
                 break;
             default:
                 break;
@@ -539,10 +515,7 @@ void ColorValueCell::onSlider(CCObject* sender) {
 void ColorValueCell::sliderBegan(Slider *p) {
     SignalEvent("drag-slider", true).post();
     // tint bg
-    if (Mod::get()->getSavedValue<bool>("dark-theme"))
-        m_bg->runAction(CCTintTo::create(ANIM_TIME_M, 255 - 50 * (type!=0), 255 - 50 * (type!=1), 255 - 50 * (type!=2)));
-    else
-        m_bg->runAction(CCTintTo::create(ANIM_TIME_M, 50 * (type==0), 50 * (type==1), 50 * (type==2)));
+    this->tint(ANIM_TIME_M, 50 * (type==0), 50 * (type==1), 50 * (type==2));
 }
 void ColorValueCell::sliderEnded(Slider *p) {
     SignalEvent("drag-slider", false).post();

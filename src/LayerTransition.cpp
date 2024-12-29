@@ -1,62 +1,12 @@
 #include "Layer.hpp"
 
-// process some init animation
-void ChromaLayer::show() {
-    // no i donot need it
-    this->getChildByType<CCLayer>(0)->setVisible(false);
-    // fade the bg from 0 to 120
-    this->setOpacity(0);
-    this->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 100)));
-    // check warn
-    bool warn = Mod::get()->getSavedValue<bool>("notify", true) && PlayLayer::get()
-        && PlayLayer::get()->m_level->m_demonDifficulty == 6;
-    if (warn) {
-        face.push_back(Face::Warn);
-        this->fadeWarnPage();
-    } else {
-        face.push_back(Face::Init);
-        
-        this->fadeMainMenu();
-        this->runAction(CCSequence::create(
-            CCDelayTime::create(0.6 * ANIM_TIME_L),
-            CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeItemPage)),
-            nullptr
-        ));
-    }
-    // run base function
-    Popup::show();
-    float opacity = 196.f;
-    // blur
-        if (Mod::get()->getSavedValue<bool>("blur-bg", true)) {
-            m_blur->runAction(CCEaseExponentialOut::create(CCFadeIn::create(ANIM_TIME_L)));   
-            opacity = 144.f;
-        }
-        else {
-            m_blur->setVisible(false);
-            m_blur->setOpacity(0);
-        }
-    /*
-    //if (Loader::get()->isModLoaded("thesillydoggo.blur_bg"))
-    if (auto node = this->getChildByType<CCBlurLayer>(0)) {
-        // not my self-made background mask
-        if (node->getID() == "bg")
-            return;
-        m_blur = node;
-        if (Mod::get()->getSavedValue<bool>("blur-bg", true)) {
-            node->runAction(CCEaseExponentialOut::create(CCFadeIn::create(ANIM_TIME_L)));   
-            opacity = 144.f;
-        }
-
-        else {
-            node->setVisible(false);
-            node->setOpacity(0);
-        }
-    }*/
-    m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, opacity));
-}
+extern std::map<short, ChromaSetup> setups;
+extern std::map<std::string, bool> opts;
+extern float speed;
+extern bool ptwo;
 
 void ChromaLayer::updateSpeedValue(float value) {
-    this->speed = value;
+    speed = value;
 }
 
 void ChromaLayer::switchTheme() {
@@ -70,7 +20,7 @@ void ChromaLayer::switchTheme() {
 
     // items page
     for (auto obj : CCArrayExt<BaseCell*>(m_cells))
-        obj->m_bg->runAction(CCTintTo::create(ANIM_TIME_M, CELL_COLOR));
+        obj->switchTheme();
 
     // item labels
     static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(5))->setColor(ccc3(CELL_COLOR));
@@ -100,8 +50,11 @@ void ChromaLayer::switchTheme() {
         if (auto opt = m_optionScroller->m_contentLayer->getChildByTag(tag)) {
             opt->runAction(CCSequence::create(
                 CCDelayTime::create(0.03*tag-0.03),
-                CallFuncExt::create([opt]() {
-                    static_cast<BaseCell*>(opt)->m_bg->runAction(CCTintTo::create(ANIM_TIME_M, CELL_COLOR));
+                CallFuncExt::create([this, opt, tag, TAG]() {
+                    if (tag == TAG)
+                        static_cast<BaseCell*>(opt)->tint(ANIM_TIME_M, 80 * (!opts["activate"]), 80 * opts["activate"], 0);
+                    else
+                        static_cast<BaseCell*>(opt)->switchTheme();
                 }),
                 nullptr
             ));
@@ -112,15 +65,15 @@ void ChromaLayer::switchTheme() {
 }
 
 void ChromaLayer::refreshColorPage(int type) {
-    // set color title
-    if (type != 4)
-    m_colorTitle->setString(getConfigKey(true).c_str());
-
     // edit displayers
     m_crtColorDisplay->setColor(crtColor);    
     if (!type) {
         this->oriColor = crtColor;
         m_oriColorDisplay->setColor(crtColor);
+        // set color title
+        m_colorTitle->setString(
+            std::regex_replace(getConfigKey(ptwo, this->id, this->channel),
+                std::regex("-"), "  ").c_str());
     }
 
     // not from single rgb change
@@ -182,8 +135,8 @@ void ChromaLayer::fadeItemPage() {
     // title label
     static_cast<TitleCell*>(this->getChildByID("title-label"))->Fade(in);
     // item menu
-    static_cast<ItemCell*>(this->getChildByID("item-menu")->getChildByTag(easy ? 2 : 1))->Fade(in);
-    static_cast<ItemCell*>(this->getChildByID("item-menu")->getChildByTag(3))->Fade(in);
+    (opts["easy"] ? m_ezyBundleCell : m_advBundleCell)->Fade(in);
+    m_effBundleCell->Fade(in);
     // labels
     fade(m_playerItemBtn, in, ANIM_TIME_L, in ? 1 : 5, in ? 1 : 0.2);
     fade(this->getChildByID("item-menu")->getChildByTag(5), in, ANIM_TIME_L, in ? 0.7 : 3.5, in ? 0.7 : 0.14);
@@ -201,10 +154,10 @@ void ChromaLayer::fadeItemPage() {
 void ChromaLayer::fadeSetupPage() {
     bool in = face.back() == Face::Setup;
     // switch between easy and adv
-    if (this->easy)
-        m_setupEasyScroller->Transition(in);
+    if (opts["easy"])
+        m_setupEasyScroller->Transition(in, id > 10 ? 16 - id : 6);
     else
-        m_setupAdvScroller->Transition(in);
+        m_setupAdvScroller->Transition(in, id > 10 ? 16 - id : 15 - id);
 
     // player btn
     fade(m_playerSetupBtn, in, ANIM_TIME_L, 0.8, 0.8);
@@ -261,7 +214,8 @@ void ChromaLayer::fadeColorPage() {
 void ChromaLayer::fadeOptionsPage() {
     bool in = face.back() == Face::Options;
     // animation
-    m_optionScroller->Transition(in);
+    // move offset not solved, give false for now
+    m_optionScroller->Transition(in, 0);
 }
 
 void ChromaLayer::fadeInfoPage() {

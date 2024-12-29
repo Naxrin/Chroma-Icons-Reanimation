@@ -1,14 +1,18 @@
 #include "Layer.hpp"
 
 #define HIDE(target, sX, sY) target->setScaleX(sX); target->setScaleY(sY); target->setVisible(false); target->setOpacity(0);
+
+extern std::map<std::string, bool> opts;
+extern float speed;
+
 // makup initial UI
 bool ChromaLayer::setup() {
     // set id
     this->setID("chroma-icons-central"_spr);
     // winSize
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-
-    /********** Init Value **********/
+    
+    /********** BG **********/
 
     // bg regarding theme color
     this->m_bg = CCLayerColor::create(ccc4(BG_COLOR, 0));
@@ -104,7 +108,7 @@ bool ChromaLayer::setup() {
     m_modeBtn->setCascadeOpacityEnabled(true);
     m_modeBtn->setCascadeColorEnabled(true);
     m_modeBtn->setColor(ccc3(CELL_COLOR));    
-    m_modeBtn->toggle(easy);
+    m_modeBtn->toggle(opts["easy"]);
     mainMenu->addChild(m_modeBtn);
 
     mainMenu->setOpacity(0);
@@ -117,12 +121,18 @@ bool ChromaLayer::setup() {
     this->addChild(itemMenu);
 
     // full items, easy item, effect row
-    for (int wine = 1; wine < 4; wine ++) {
-        auto itemBundle = ItemCell::create(wine);
-        itemMenu->addChild(itemBundle);
-        m_cells.push_back(itemBundle);
-    }
-    
+    this->m_advBundleCell = ItemCell::create(1);
+    itemMenu->addChild(m_advBundleCell);
+    m_cells.push_back(m_advBundleCell);
+    // full items, easy item, effect row
+    this->m_ezyBundleCell = ItemCell::create(2);
+    itemMenu->addChild(m_ezyBundleCell);
+    m_cells.push_back(m_ezyBundleCell);
+    // full items, easy item, effect row
+    this->m_effBundleCell = ItemCell::create(3);
+    itemMenu->addChild(m_effBundleCell);
+    m_cells.push_back(m_effBundleCell);
+
     auto labelP1 = CCLabelBMFont::create("Player 1", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     labelP1->setScale(0.7);
     auto labelP2 = CCLabelBMFont::create("Player 2", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
@@ -213,24 +223,24 @@ bool ChromaLayer::setup() {
     SetupItemCell* cell = nullptr;
 
     // effects
-    for (int tag = 15; tag > 10; tag--) {
-        cell = SetupItemCell::create(tag, Y, 16-tag);
+    for (int id = 15; id > 10; id--) {
+        cell = SetupItemCell::create(id, Y, 16-id);
         static_cast<MyContentLayer*>(m_setupEasyScroller->m_contentLayer)->addChild(cell);
         m_cells.push_back(cell);
         Y += 40.f;
     }
-    // simple icon
+    // single icon
     cell = SetupItemCell::create(0, Y, 6);
     static_cast<MyContentLayer*>(m_setupEasyScroller->m_contentLayer)->addChild(cell);
     m_cells.push_back(cell);
     Y = 50.f;
 
     // full icons
-    for (int tag = 15; tag > 0; tag--) {
-        // skip tag 10 cuz there is nonsense
-        if (tag == 10)
+    for (int id = 15; id > 0; id--) {
+        // skip id 10 cuz there is nonsense
+        if (id == 10)
             continue;
-        cell = SetupItemCell::create(tag, Y, 15-tag + (tag > 10));
+        cell = SetupItemCell::create(id, Y, 15 - id + (id > 10));
         static_cast<MyContentLayer*>(m_setupAdvScroller->m_contentLayer)->addChild(cell);
         m_cells.push_back(cell);
         Y += 40.f;
@@ -409,7 +419,7 @@ bool ChromaLayer::setup() {
     this->m_optionScroller = ScrollLayerPlus::create(CCRect(0.f, 0.f, 320.f, 400.f));
     m_optionScroller->setAnchorPoint(CCPoint(0.5, 0.5));
     m_optionScroller->ignoreAnchorPointForPosition(false);
-	m_optionScroller->setContentSize(winSize);//CCSize(winSize.width, winSize.height)
+	m_optionScroller->setContentSize(winSize);
     m_optionScroller->m_contentLayer->setPositionX(winSize.width / 2 - 160.f);
 	m_optionScroller->setID("options-scroller");
     m_optionScroller->setVisible(false);
@@ -419,19 +429,19 @@ bool ChromaLayer::setup() {
     int sTag = 0;
 
     sTag ++;
-    auto darkOpt = OptionTogglerCell::create("Dark Theme", H, 300, true, sTag, "dark-theme",
+    auto darkOpt = OptionTogglerCell::create("Dark Theme", H, 300, sTag, "dark-theme",
         "Deep Dark Fantasy...");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(darkOpt);
     H += darkOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto blurOpt = OptionTogglerCell::create("Blur Background", H, 300, true, sTag, "blur-bg",
-        "Add a gaussian blur effect to the background. Needs Blur BG (by TheSillyDoggo) to be loaded");
+    auto blurOpt = OptionTogglerCell::create("Blur Background", H, 300, sTag, "blur-bg",
+        "Add a gaussian blur effect to the background. Give it up if you feel this effect can't worth your device lag.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(blurOpt);
     H += blurOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto prevOpt = OptionTogglerCell::create("Preview Effects", H, 300, true, sTag, "prev-effects",
+    auto prevOpt = OptionTogglerCell::create("Preview Effects", H, 300, sTag, "prev",
         "Preview Chroma Effects in menu.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(prevOpt);
     H += prevOpt->getContentHeight() + 15.f;
@@ -442,19 +452,19 @@ bool ChromaLayer::setup() {
     H += 40.f;
 
     sTag ++;
-    auto sepglowOpt = OptionTogglerCell::create("Seperate Glow Color Phase", H, 300, false, sTag, "sep-glow",
+    auto sepglowOpt = OptionTogglerCell::create("Seperate Glow Color Phase", H, 300, sTag, "sep-glow",
         "Set phase of Glow Color keeps 120 degrees delay from Main Color.\nOtherwise Glow Color aligns with Main Color");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepglowOpt);
     H += sepglowOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto sepsecondOpt = OptionTogglerCell::create("Seperate Secondary Color Phase", H, 300, false, sTag, "sep-second",
+    auto sepsecondOpt = OptionTogglerCell::create("Seperate Secondary Color Phase", H, 300, sTag, "sep-second",
         "Set phase of Secondary Color keeps 120 degrees lead from Main Color.\nOtherwise Secondary Color aligns with Main Color");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepsecondOpt);
     H += sepsecondOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto sepdualOpt = OptionTogglerCell::create("Seperate Dual Mode Phase", H, 300, false, sTag, "sep-dual",
+    auto sepdualOpt = OptionTogglerCell::create("Seperate Dual Mode Phase", H, 300, sTag, "sep-dual",
         "Set color phase of P2 keeps 180 degrees away from P1.\n"
         "Otherwise the two players use the same phase are their color are the same everytime.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepdualOpt);
@@ -466,21 +476,22 @@ bool ChromaLayer::setup() {
     H += 40.f;
 
     sTag ++;
-    auto editorOpt = OptionTogglerCell::create("Editor Test", H, 300, false, sTag, "editor",
-        "Apply to Editor Playtest. Will also add a button in your editor menu if activated.\n But I do not promise your device will not lag.");
+    auto editorOpt = OptionTogglerCell::create("Editor Test", H, 300, sTag, "editor",
+        "Apply to Editor Playtest. Will also add a button in your editor menu if activated.\n"
+        "But I do not promise your device will not lag.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(editorOpt);
     H += editorOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto riderOpt = OptionTogglerCell::create("Seperate Riders", H, 300, false, sTag, "rider",
+    auto riderOpt = OptionTogglerCell::create("Seperate Riders", H, 300, sTag, "rider",
         "Set the cube rider of ship/ufo/jetpack will follow Cube mode's color.\nOtherwise she follow her vehicle's color.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(riderOpt);
     H += riderOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto samedualOpt = OptionTogglerCell::create("Same Dual Color Mode", H, 300, false, sTag, "same-dual",
-        "Merge Player 2's color setup with Player 1.\nNot fully equal to general Same Dual Color things,"
-        "but you can also uncheck Seperate Dual Mode Phase if u hope that.");
+    auto samedualOpt = OptionTogglerCell::create("Same Dual Color Mode", H, 300, sTag, "same-dual",
+        "Merge Player 2's color setup with Player 1.\nNOT the same thing with general Same Dual Color!"
+        "You can still preview unmerged P2 setup in this menu.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(samedualOpt);
     H += samedualOpt->getContentHeight() + 15.f;
 
@@ -490,8 +501,8 @@ bool ChromaLayer::setup() {
     H += 40.f;
 
     sTag ++;
-    auto switchOpt = OptionTogglerCell::create("Switch", H, 300, true, sTag, "activate",
-        "Ultimate Switch of this mod.\nYou aren't required to reboot GD to toggle ON/OFF this mod!");
+    auto switchOpt = OptionTogglerCell::create("Switch", H, 300, sTag, "activate",
+        "Ultimate Switch of this mod.\nIf disabled, all icons (except picked item in setup page) in this menu will be set to grey-white and ignore preview effects.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(switchOpt);
     H += switchOpt->getContentHeight() + 15.f;
 
@@ -512,7 +523,9 @@ bool ChromaLayer::setup() {
     lazy->setID("lazy-label");
     HIDE(lazy, 0.25, 0.25)
     infoMenu->addChild(lazy);
+
     // update
-    //this->scheduleUpdate();
+    this->scheduleUpdate();
+
     return true;
 }

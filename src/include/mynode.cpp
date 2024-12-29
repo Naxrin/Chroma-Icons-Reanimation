@@ -1,74 +1,107 @@
 #include "mynode.hpp"
 
-// IconType name from More Icons
-// @warning ONLY used for More Icons name analyze
-static std::string names[9] = {"icon", "ship", "ball", "ufo", "wave", "robot", "spider", "swing", "jetpack"};
+extern std::map<short, ChromaSetup> setups;
+extern std::map<std::string, bool> opts;
+extern bool ptwo;
 
-GJItemIconAlpha* GJItemIconAlpha::createBrowserItem(int typeID, int ID) {
-    auto icon = new GJItemIconAlpha();
-    UnlockType type = UnlockType(gametype[typeID]);
-    if (icon && icon->init(type, ID, ccc3(175, 175, 175), ccc3(255, 255, 255), true, true, true, ccc3(255, 255, 255))) {
+// UnlockType tags by RobTop
+const static int gametype[9] = {1, 4, 5, 6, 7, 8, 9, 13, 14};
+// IconType name
+const static std::string names[9] = {"icon", "ship", "ball", "ufo", "wave", "robot", "spider", "swing", "jetpack"};
+//player mode
+const static int garageIconIndex[9] = {
+    gm->getPlayerFrame(), gm->getPlayerShip(), gm->getPlayerBall(),
+    gm->getPlayerBird(), gm->getPlayerDart(), gm->getPlayerRobot(),
+    gm->getPlayerSpider(), gm->getPlayerSwing(), gm->getPlayerJetpack(),
+};
 
-        // more icons compatible
-        auto name = Loader::get()->getLoadedMod("hiimjustin000.more_icons")->getSavedValue<std::string>(names[typeID]);
+bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback) {
+    this->setTag(tag);
+    this->src = src;
+    
+    // effect
+    if (tag > 10) {
+        // spr
+        effect = GJItemEffect::createEffectItem(tag - 10);
+        effect->setScale(src ? 0.75 : 0.85);
+        // init button
+        return CCMenuItemSpriteExtra::init(effect, effect, target, callback);
+    }
+    // icon
+    // spr
+    int index = tag ? tag - 1 : 0;
+    icon = GJItemIcon::createBrowserItem(UnlockType(gametype[index]), garageIconIndex[index]);
+
+    if (src)
+        icon->setScale(0.6);
+    else if (tag)
+        icon->setScale(0.8);
+
+    // more icons compatible
+    if (auto mod = Loader::get()->getLoadedMod("hiimjustin000.more_icons")) {
+        auto name = mod->getSavedValue<std::string>(tag ? names[index] : "icon");
         DispatchEvent<SimplePlayer*, std::string, IconType>(
-            "hiimjustin000.more_icons/simple-player",
-            icon->m_player, name,
-            IconType(typeID)
-        ).post();
+            "hiimjustin000.more_icons/simple-player", icon->m_player, name, IconType(index)).post();        
+    }
 
-        // cascade opacity ohh fuck
-        icon->setCascadeOpacityEnabled(true);
-        icon->m_player->setCascadeOpacityEnabled(true);
-        for (CCObject* obj: CCArrayExt<CCObject*>(icon->m_player->getChildren()))
+    // cascade opacity ohh fuck
+    icon->setCascadeOpacityEnabled(true);
+    icon->m_player->setCascadeOpacityEnabled(true);
+    for (CCObject* obj: CCArrayExt<CCObject*>(icon->m_player->getChildren()))
+        static_cast<CCSprite*>(obj)->setCascadeOpacityEnabled(true);
+    if (index == 5 || index == 6) {
+        auto part = icon->m_player->getChildByType<CCAnimatedSprite>(0)->getChildByType<CCPartAnimSprite>(0);
+        part->setCascadeOpacityEnabled(true);
+        for (CCObject* obj: CCArrayExt<CCObject*>(part->getChildren()))
             static_cast<CCSprite*>(obj)->setCascadeOpacityEnabled(true);
-        if (type == UnlockType::Robot || type == UnlockType::Spider) {
-            auto part = icon->m_player->getChildByType<CCAnimatedSprite>(0)->getChildByType<CCPartAnimSprite>(0);
-            part->setCascadeOpacityEnabled(true);
-            for (CCObject* obj: CCArrayExt<CCObject*>(part->getChildren()))
-                static_cast<CCSprite*>(obj)->setCascadeOpacityEnabled(true);
-        }
-        icon->autorelease();
-        return icon;
     }
-    CC_SAFE_DELETE(icon);
-    return nullptr;
-}
-
-GJItemEffect* GJItemEffect::createEffectItem(int effectID) {
-    auto base = new GJItemEffect();
-    if (base && base->initWithFile("effect_base.png"_spr)) {
-        // cascade opacity
-        base->setCascadeOpacityEnabled(true);
-        // add cover
-        std::string str = "effect_"_spr + std::to_string(effectID) + ".png";
-        base->m_cover = CCSprite::create(str.c_str());
-        auto size = base->getContentSize();
-        base->m_cover->setPosition(CCPoint(size.width / 2, size.height / 2));
-        base->m_cover->setID("cover");
-        base->addChild(base->m_cover);
-        // set color
-        if (Loader::get()->isModLoaded("ninkaz.colorful-icons"))
-            base->setColor(gm->colorForIdx(gm->getPlayerColor()));
-        else
-            base->setColor(ccc3(175, 175, 175));
-
-        base->autorelease();
-        return base;
-    }
-    CC_SAFE_DELETE(base);
-    return nullptr;
+    // init button
+    return CCMenuItemSpriteExtra::init(icon, icon, target, callback);
 }
 
 void PickItemButton::delayFade(int delay, bool in) {
     this->runAction(CCSequence::create(
-        CCDelayTime::create(ANIM_TIME_GAP*(1+delay)),
+        CCDelayTime::create(0.01 + ANIM_TIME_GAP*(1+delay)),
         CallFuncExt::create([this, in](void) {
-            float s = in ? 1 : 0.5;
-            fade(this, in, ANIM_TIME_L, s, s);
+            fade(this, in, ANIM_TIME_L);
         }),
         nullptr
-    ));        
+    ));
+}
+
+void PickItemButton::runChroma(float const& phase, float const& progress) {
+    if (!this->chroma)
+        return;
+    if (this->getTag() > 10)
+        this->effect->setColor(getChroma(
+            setups[getIndex(ptwo, getTag(), Channel::Effect)], gm->colorForIdx(gm->getPlayerColor()), phase, progress));
+    else {
+        icon->m_player->setColor(getChroma(
+            setups[getIndex(ptwo, getTag(), Channel::Main)], gm->colorForIdx(gm->getPlayerColor()), phase, progress));
+        icon->m_player->setSecondColor(getChroma(
+            setups[getIndex(ptwo, getTag(), Channel::Secondary)], gm->colorForIdx(gm->getPlayerColor2()), phase + 120 * opts["sep-second"], progress));
+        if (icon->m_player->m_hasGlowOutline)
+            icon->m_player->setGlowOutline(getChroma(
+                setups[getIndex(ptwo, getTag(), Channel::Glow)], gm->colorForIdx(gm->getPlayerGlowColor()), phase - 120 * opts["sep-glow"], progress));
+    }
+}
+// toggle on or off chroma, activated means not grey
+void PickItemButton::toggleChroma(bool current) {
+    // toggle
+    this->chroma = current || (opts["activate"] && opts["prev"]);
+    // on
+    if (this->chroma)
+        return;
+    // off
+    if (this->getTag() > 10)
+        this->effect->setColor(opts["activate"] ? gm->colorForIdx(gm->getPlayerColor()) : ccc3(127, 127, 127));
+    else {
+        auto p = this->icon->m_player;
+        p->setColor(opts["activate"] ? gm->colorForIdx(gm->getPlayerColor()) : ccc3(175, 175, 175));
+        p->setSecondColor(opts["activate"] ? gm->colorForIdx(gm->getPlayerColor2()) : ccc3(255, 255, 255));
+        if (p->m_hasGlowOutline)
+            p->setGlowOutline(opts["activate"] ? gm->colorForIdx(gm->getPlayerGlowColor()) : ccc3(255, 255, 255));
+    }
 }
 
 bool SliderBundleBase::init(const char* name, float value, float max) {
@@ -144,18 +177,6 @@ void SliderBundleBase::onSlider(CCObject* sender) {
 
 
 void SliderBundleBase::onArrow(CCObject* sender) {
-    /*
-    if (!m_slider) {
-        log::info("where is your slider");
-        if (!m_inputer)
-            log::info("where is your inputer");
-        return;
-    }
-    if (!m_inputer) {
-        log::info("where is your inputer");
-        return;
-    }*/
-
     float delta = sender->getTag() == 2 ? 0.1 : -0.1;
     float s = m_slider->getValue();
     s += delta;
@@ -246,7 +267,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         this->addChild(m_toggler);
         break;
     case OptionLineType::Toggler:
-        label = CCLabelBMFont::create("Best Progress", "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
+        label = CCLabelBMFont::create("Best Progress", "ErasBold.fnt"_spr, 220.f, CCTextAlignment::kCCTextAlignmentLeft);
         label->setScale(0.4);
         label->setPosition(CCPoint(25.f, 10.f));
         label->setAnchorPoint(CCPoint(0.f, 0.5));
@@ -258,7 +279,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         this->addChild(m_toggler);
         break;
     case OptionLineType::Desc:
-        label = CCLabelBMFont::create(descs[mode], "ErasLight.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
+        label = CCLabelBMFont::create(descs[mode], "ErasLight.fnt"_spr, 220.f, CCTextAlignment::kCCTextAlignmentLeft);
         label->setScale(0.8);
         label->setPosition(CCPoint(10.f, 10.f));
         label->setAnchorPoint(CCPoint(0.f, 0.5));
@@ -427,55 +448,87 @@ float MyContentLayer::getSomething(float Y, float H) {
     else
         return p1 > 25 ? 1 : 0.04*p1;
 }
-
-void ScrollLayerPlus::Transition(bool in, bool scale) {
+/*
+void ScrollLayerPlus::Transition(bool in, int move) {
+    auto m_realCL = static_cast<MyContentLayer*>(m_contentLayer);
     // move to top plz
-    if (in)
-        this->moveToTop();
+    if (in) {
+        if (move)
+            m_realCL->setPositionY(move > 5 ? 210.f - 40.f * move : 0.f);
+        else
+            this->moveToTop();
+    }
     // animation        
     int m = this->getTag();
     int tag = in ? m : 1;
     float delay = 0;
-
+    
     float X = this->m_contentLayer->getContentWidth() / 2;
+
     // fade buttons
     while (tag > 0 && tag <= m) {
-        if (auto opt = static_cast<CCMenu*>(m_contentLayer->getChildByTag(tag))) {
-            // get some sneaky things
-            auto m_realCL = static_cast<MyContentLayer*>(m_contentLayer);
-            float y0 = m_realCL->Ystd.at(tag-1) - (in ? m_realCL->offset : 0);
-            float y1 = m_realCL->Ystd.at(tag-1) - (in ? 0 : m_realCL->offset);
+        if (auto opt = static_cast<BaseCell*>(m_contentLayer->getChildByTag(tag))) {
+            // casted contentLayer
+            
+            // start
+            float y0 = m_realCL->Ystd.at(tag-1) - (in && move ? 0.f : 0);
             float tg0 = m_realCL->getSomething(y0, opt->getContentHeight());
+            // dest
+            float y1 = m_realCL->Ystd.at(tag-1) - (in || !move ? 0 : 0.f);
             float tg1 = m_realCL->getSomething(y1, opt->getContentHeight());
-            // place it in the original status
+            opt->stopInnerAction();
+
+            //log::warn("start tag = {} y0 = {} tg0 = {} y1 = {} tg1 = {}", tag, y0, tg0, y1, tg1);
+            // we won't see them at all
+            if ((in && !tg1) || (!in && !tg0)) {
+                // place it in the dest status
+                opt->setPosition(CCPoint(X, y1));
+                opt->setVisible(false);
+                opt->setScale(0.5);
+                opt->setOpacity(0);
+                tag += in ? -1 : 1;
+                continue;
+            }
+            // set it in the start status
             opt->setPosition(CCPoint(X, y0));
-            opt->setVisible(tg0 > 0);
-            if (scale)
-                opt->setScale(in ? 0.25 + 0.25 * tg0 : 0.5 + 0.5 * tg0);
+            opt->setVisible(true);
+            opt->setScale(in ? 0.25 + 0.25 * tg0 : 0.5 + 0.5 * tg0);
             opt->setOpacity(in ? 0 : 255 * tg0);
 
-            auto act = m_realCL->actions.at(tag-1);
-            if (act)
-                opt->stopAction(act);
-            act = CCSequence::create(
+            float newScale = in ? 0.5 + 0.5 * tg1 : 0.25 + 0.25 * tg1;
+
+            auto actIn = CCSequence::create(
                 CCDelayTime::create(delay),
-                CallFuncExt::create([opt, in, X, tg1, y1, scale](void) {
-                    if (scale) {
-                        float newScale = in ? 0.5 + 0.5 * tg1 : 0.25 + 0.25 * tg1;
-                        fade(opt, in, ANIM_TIME_M, newScale, newScale, in ? 255 * tg1 : 0);
-                        opt->runAction(CCEaseExponentialOut::create(CCMoveTo::create(ANIM_TIME_M, CCPoint(X, y1))));                
-                    }
+                CCSpawn::create(
+                    CCEaseExponentialOut::create(CCScaleTo::create(ANIM_TIME_M, 0.5 + 0.5 * tg1)),
+                    CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255 * tg1)),
+                    CCEaseExponentialOut::create(CCMoveTo::create(ANIM_TIME_M, CCPoint(X, y1))),
+                    nullptr
+                ),
+                CallFuncExt::create([opt, tg1] () {
+                    opt->setVisible(true);
+                    opt->setOpacity(255 * tg1);
                 }),
                 nullptr
             );
-            opt->runAction(act);
+            auto actOut = CCSequence::create(
+                CCDelayTime::create(delay),
+                CCSpawn::create(
+                    CCEaseExponentialOut::create(CCScaleTo::create(ANIM_TIME_M, tg1 > tg0 ? 0.25 + 0.25 * tg0 : 0.25 + 0.25 * tg1)),
+                    CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 0)),
+                    CCEaseExponentialOut::create(CCMoveTo::create(ANIM_TIME_M, CCPoint(X, y1))),
+                    nullptr
+                ),
+                CallFuncExt::create([opt] () {
+                    opt->setVisible(false);
+                    opt->setOpacity(0);
+                }),
+                nullptr
+            );
+            opt->runActionPlus(in ? actIn : actOut);
 
-            if (in)
-                tag --;
-            else
-                tag ++;
-            if ((in && tg1 > 0) || (!in && tg0 > 0))
-                delay += ANIM_TIME_GAP;
+            tag += in ? -1 : 1;
+            delay += ANIM_TIME_GAP;
         } else
             break;
     }
@@ -492,5 +545,107 @@ void ScrollLayerPlus::Transition(bool in, bool scale) {
         );
         this->runAction(actionFade);
     }
+}
+*/
 
+void ScrollLayerPlus::Transition(bool in, int move) {
+    auto m_realCL = static_cast<MyContentLayer*>(m_contentLayer);
+    // move to top plz
+    if (in) {
+        if (move)
+            m_realCL->setPositionY(move > 5 ? 210.f - 40.f * move : 0.f);
+        else
+            this->moveToTop();
+    }
+    // animation        
+    int m = this->getTag();
+    int tag = in ? m : 1;
+    float delay = 0;
+    
+    float X = this->m_contentLayer->getContentWidth() / 2;
+
+    // fade buttons
+    while (tag > 0 && tag <= m) {
+        if (auto opt = static_cast<CCMenu*>(m_contentLayer->getChildByTag(tag))) {
+            // casted contentLayer
+            
+            // start
+            float y0 = m_realCL->Ystd.at(tag-1) - (in && !move ? 0.f : 0);
+            float tg0 = m_realCL->getSomething(y0, opt->getContentHeight());
+            // dest
+            float y1 = m_realCL->Ystd.at(tag-1) - (in || move ? 0 : 0.f);
+            float tg1 = m_realCL->getSomething(y1, opt->getContentHeight());
+            //opt->stopInnerAction();
+
+            //log::warn("start tag = {} y0 = {} tg0 = {} y1 = {} tg1 = {}", tag, y0, tg0, y1, tg1);
+            // we won't see them at all
+            if ((in && !tg1) || (!in && !tg0)) {
+                // place it in the dest status
+                opt->setPosition(CCPoint(X, y1));
+                opt->setVisible(false);
+                opt->setScale(0.5);
+                opt->setOpacity(0);
+                tag += in ? -1 : 1;
+                continue;
+            }
+            // set it in the start status
+            opt->setPosition(CCPoint(X, y0));
+            opt->setVisible(true);
+            opt->setScale(in ? 0.25 + 0.25 * tg0 : 0.5 + 0.5 * tg0);
+            opt->setOpacity(in ? 0 : 255 * tg0);
+
+            //float newScale = in ? 0.5 + 0.5 * tg1 : 0.25 + 0.25 * tg1;
+
+            if (in)
+                m_realCL->acts.at(tag-1) = opt->runAction(CCSequence::create(
+                    CCDelayTime::create(delay),
+                    CCSpawn::create(
+                        CCEaseExponentialOut::create(CCScaleTo::create(ANIM_TIME_M, 0.5 + 0.5 * tg1)),
+                        CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255 * tg1)),
+                        CCEaseExponentialOut::create(CCMoveTo::create(ANIM_TIME_M, CCPoint(X, y1))),
+                        nullptr
+                    ),
+                    CallFuncExt::create([opt, tg1] () {
+                        opt->setVisible(true);
+                        opt->setOpacity(255 * tg1);
+                    }),
+                    CCDelayTime::create(ANIM_TIME_L),
+                    nullptr
+                ));
+            else
+                m_realCL->acts.at(tag-1) = opt->runAction(CCSequence::create(
+                    CCDelayTime::create(delay),
+                    CCSpawn::create(
+                        CCEaseExponentialOut::create(CCScaleTo::create(ANIM_TIME_M, tg1 > tg0 ? 0.25 + 0.25 * tg0 : 0.25 + 0.25 * tg1)),
+                        CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 0)),
+                        CCEaseExponentialOut::create(CCMoveTo::create(ANIM_TIME_M, CCPoint(X, y1))),
+                        nullptr
+                    ),
+                    CallFuncExt::create([opt] () {
+                        opt->setVisible(false);
+                        opt->setOpacity(0);
+                    }),
+                    CCDelayTime::create(ANIM_TIME_L),
+                    nullptr
+                ));
+
+            delay += ANIM_TIME_GAP;
+            tag += in ? -1 : 1;
+            //delay += ANIM_TIME_GAP;
+        } else
+            break;
+    }
+    // stop former fade to avoid spam issue
+    if (actionFade)
+        this->stopAction(actionFade);
+    if (in)
+        this->setVisible(true);
+    else {
+        actionFade = CCSequence::create(
+            CCDelayTime::create(delay + ANIM_TIME_M),
+            CallFuncExt::create([this](void) { this->setVisible(false); }),
+            nullptr
+        );
+        this->runAction(actionFade);
+    }
 }

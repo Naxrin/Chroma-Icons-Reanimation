@@ -3,7 +3,9 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
+#include <Geode/loader/Dispatch.hpp>
 #include <regex>
+
 using namespace geode::prelude;
 
 // used for transition between pages
@@ -14,7 +16,7 @@ using namespace geode::prelude;
 #define ANIM_TIME_M 0.6 * Mod::get()->getSavedValue<float>("anim-speed", 0.4)
 // used in scroller cell delay adn item cell enter delay
 // @note 0 - 0.05
-#define ANIM_TIME_GAP 0.1 * Mod::get()->getSavedValue<float>("anim-speed", 0.4)
+#define ANIM_TIME_GAP 0//.1 * Mod::get()->getSavedValue<float>("anim-speed", 0.4)
 
 #define CELL_COLOR Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0, \
                     Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0, \
@@ -24,9 +26,10 @@ using namespace geode::prelude;
                     Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255, \
                     Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255
 
+//#define ACTIVATE Mod::get()->getSavedValue<bool>("activate")
+
+
 /********** Useful Const Value *************/
-// UnlockType tags by RobTop
-static int gametype[9] = {1, 4, 5, 6, 7, 8, 9, 13, 14};
 
 // pick icon/effect name in my own mod
 // @warning icons and effects are different in indexing
@@ -38,24 +41,8 @@ static std::string items[15] = {
 // channel names
 static std::string chnls[3] = {"Main", "Secondary", "Glow"};
 
-//player mode
+// game manager
 static GameManager* gm = GameManager::sharedState();
-static int garageitem[9] = {
-    gm->getPlayerFrame(), gm->getPlayerShip(), gm->getPlayerBall(),
-    gm->getPlayerBird(), gm->getPlayerDart(), gm->getPlayerRobot(),
-    gm->getPlayerSpider(), gm->getPlayerSwing(), gm->getPlayerJetpack(),
-};
-
-// HSV -> RGB
-// copy from gay wave trail
-void HSVtoRGB(float &fR, float &fG, float &fB, float &fH, float &fS, float &fV);
-
-// RGB -> HSV
-// reverse of the function above
-void RGBtoHSV(float &fR, float &fG, float &fB, float &fH, float &fS, float &fV);
-
-// get RGB cycle color
-ccColor3B getRainbow(float &phase, float offset, float saturation);
 
 // fade utility (CCNode)
 void fade(CCNode* node, bool in, float time = ANIM_TIME_L, float scaleX = -1, float scaleY = -1, int opacity = -1);
@@ -70,62 +57,15 @@ enum class Channel {
 };
 
 /********** SETUP AND SERIELIZE ***********/
-// percentage int and ccColor3B color
-struct IntColor {
-    int p;
-    ccColor3B c;
-};
+
+typedef std::map<int, ccColor3B> mapline;
+typedef std::pair<int, ccColor3B> pairpos;
 
 // load int color array from json file
-static std::vector<IntColor> IntColorfromJson(matjson::Value const& json, int defP) {
-    if (!json.isObject())
-        return {IntColor{.p = 0, .c = ccc3(255, 255, 255)}, IntColor{.p = defP, .c = ccc3(255, 255, 255)}};
-    std::vector<IntColor> ret;
-    for (auto& [key, val] : json) {
-        // regex check to avoid stoi crash
-        if (!std::regex_match(key, std::regex("[0-9]+")))
-            continue;
-            
-        // goat element
-        if (ret.empty()) {
-            ret.push_back(IntColor{
-                .p = stoi(key), 
-                .c = val.asString().andThen([](auto str) { return cc3bFromHexString(str, true); }).unwrapOr(ccc3(255,255,255))});
-            continue;
-        }
-        // find his place
-        for (int i = 0; i < size(ret); i++)
-            if (stoi(key) < ret.at(i).p) {
-                ret.insert(ret.begin() + i, IntColor{
-                .p = stoi(key), 
-                .c = val.asString().andThen([](auto str) { return cc3bFromHexString(str, true); }).unwrapOr(ccc3(255,255,255))}
-                );
-                break;
-            }
-        // giant key element
-        ret.push_back(IntColor{
-            .p = stoi(key), 
-            .c = val.asString().andThen([](auto str) { return cc3bFromHexString(str, true); }).unwrapOr(ccc3(255,255,255))});
-    }
-    return ret;
-}
+mapline MapfromJson(matjson::Value const& json, int def, int max);
 
 // dump int color array to json file
-static matjson::Value IntColortoJson(std::vector<IntColor> const& vec) {
-    auto json = matjson::makeObject({});
-    for (auto obj: vec)
-        json[std::to_string(obj.p)] = cc3bToHexString(obj.c);
-    return json;
-}
-
-// judge json file with max tolerance
-static bool isJson(matjson::Value value) {
-    return true;
-    if (!value.isObject()) return false;
-    if (!value.contains("pos") || !value["pos"].isNumber()) return false;
-    if (!value.contains("color") || !value["color"].isString()) return false;
-    return true;
-}
+matjson::Value MaptoJson(mapline const& vec);
 
 // The whole set of a color channel config
 struct ChromaSetup {
@@ -137,17 +77,17 @@ struct ChromaSetup {
     bool best;
     // static color
     ccColor3B color;
-    // gradient vector
-    std::vector<IntColor> gradient;
-    // progress vector
-    std::vector<IntColor> progress;
+    // gradient map
+    mapline gradient;
+    // progress map
+    mapline progress;
 };
 
 // default chroma setup for this mod
 #define DEFAULT_SETUP ChromaSetup{\
     .mode = 0, .satu = 50, .best = false, .color = ccc3(255, 255, 255),\
-    .gradient = {IntColor{.p = 0, .c = ccc3(255, 255, 255)}, IntColor{.p = 50, .c = ccc3(255, 255, 255)}},\
-    .progress = {IntColor{.p = 0, .c = ccc3(255, 255, 255)}, IntColor{.p = 100, .c = ccc3(255, 255, 255)}} }
+    .gradient = {{0, ccc3(255, 255, 255)}, {180, ccc3(255, 255, 255)}},\
+    .progress = {{0, ccc3(255, 255, 255)}, {100, ccc3(255, 255, 255)}} }
 
 /*********** serialize chromasetup **********/
 template<>
@@ -162,8 +102,8 @@ struct matjson::Serialize<ChromaSetup> {
             .best = value["best"].asBool().unwrapOr(false),
             .color = value["color"].asString().andThen([](auto str) { return cc3bFromHexString(str, true); })
                 .unwrapOr(ccc3(255,255,255)),
-            .gradient = IntColorfromJson(value["gradient"], 50),
-            .progress = IntColorfromJson(value["progress"], 100)
+            .gradient = MapfromJson(value["gradient"], 180, 360),
+            .progress = MapfromJson(value["progress"], 100, 101)
         });
     }
 
@@ -174,8 +114,8 @@ struct matjson::Serialize<ChromaSetup> {
             {"saturation", value.satu},
             {"best", value.best},
             {"color", cc3bToHexString(value.color)},
-            {"gradient", IntColortoJson(value.gradient)},
-            {"progress", IntColortoJson(value.progress)}
+            {"gradient", MaptoJson(value.gradient)},
+            {"progress", MaptoJson(value.progress)}
         });
     }
 
@@ -192,6 +132,7 @@ struct matjson::Serialize<ChromaSetup> {
     }
 };
 
+
 /********** EVENT ***********/
 // Integrated Event Signal Emitter
 template<typename T>
@@ -204,3 +145,43 @@ public:
         this->value = value;
     }
 };
+
+enum class EffectType {
+    Trail = 1,
+    WaveTrail = 2,
+    DashFire = 3,
+    Teleport = 4,
+    Shell = 5
+};
+
+class GJItemEffect : public CCSprite {
+public:
+    EffectType type;
+    CCSprite* m_cover;
+    static GJItemEffect* createEffectItem(int effectID);
+};
+
+// chroma engine
+ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float progress, bool reset = false);
+
+// get index for in-level pointer
+// @return string result
+inline short getIndex(bool p2, int id, Channel channel) {
+    // concatenate
+    if (id > 10)
+        return (short)p2 << 6 | id << 2;
+    else
+        return (short)p2 << 6 | id << 2 | (int)channel;
+}
+
+// get config key for mod save
+// @return string result
+inline std::string getConfigKey(bool p2, int id, Channel channel) {
+    // get string
+    std::string p = p2 ? "P2" : "P1";
+    // concatenate
+    if (id > 10)
+        return p + "-" + items[id-1];
+    else
+        return p + "-" + items[id] + "-" + chnls[(int)channel];
+}

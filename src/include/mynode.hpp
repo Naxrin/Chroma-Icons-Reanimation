@@ -3,38 +3,31 @@
 
 #include "utility.hpp"
 #include <Geode/ui/TextInput.hpp>
-#include <Geode/loader/Dispatch.hpp>
 
 /********** UI ***********/
 
-// rewrite GJItemIcon to cascade its opacity
-class GJItemIconAlpha : public GJItemIcon {
-public:
-    static GJItemIconAlpha* createBrowserItem(int typeID, int iconID);
-};
-
-class GJItemEffect : public CCSprite {
-public:
-    CCSprite* m_cover;
-    static GJItemEffect* createEffectItem(int effectID);
-};
-
 class PickItemButton : public CCMenuItemSpriteExtra {
 protected:
-    bool p2 = false;
-    CCSprite* spr = nullptr;
+    // this icon is from setup page or not
+    bool src;
+    // chroma
+    bool chroma = false;
+    GJItemIcon* icon = nullptr;
+    GJItemEffect* effect = nullptr;
+    // init
+    bool init(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback);
 public:
+    // fade one by one
     void delayFade(int delay, bool in);
-    void chroma(ccColor3B main, ccColor3B secondary, ccColor3B glow) {}
-    void chroma(ccColor3B color) {}
-    void switchPlayer() {
-        this->p2 = !p2;
-    }
+    // chroma proxy
+    void runChroma(float const& phase, float const& progress);
+    // toggle on or off chroma, activated means not grey
+    void toggleChroma(bool current = false);
+
     // constructor for effects
-    static PickItemButton* create(CCSprite* spr, CCObject* target, cocos2d::SEL_MenuHandler callback) {
+    static PickItemButton* create(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback) {
         auto node = new PickItemButton();
-        node->spr = spr;
-        if (node && node->init(node->spr, node->spr, target, callback)) {
+        if (node && node->init(tag, src, target, callback)) {
             node->autorelease();
             return node;
         };
@@ -64,7 +57,7 @@ public:
     // check value > max case
     void textInputClosed(CCTextInputNode* p) override;
     // change chroma frequency by slider
-    void onSlider(CCObject*);
+    inline void onSlider(CCObject*);
     // on arrow
     void onArrow(CCObject*);
     void sliderBegan(Slider *p) override {
@@ -76,20 +69,20 @@ public:
         postEvent();
     };
     // value -> slider
-    virtual float Val2Slider(float value) {
+    inline virtual float Val2Slider(float value) {
         return value > 1 ? 1 : value;
     }
     // slider -> value
-    virtual float Slider2Val(float value) {
+    inline virtual float Slider2Val(float value) {
         return value;
     }
     // post event
     virtual void postEvent() = 0;
 
-    float getVal() {
+    inline float getVal() {
         return this->value;
     }
-    void setVal(float value) {
+    inline void setVal(float value) {
         this->value = value;
         m_inputer->setString(cocos2d::CCString::createWithFormat("%.2f", static_cast<float>(value))->getCString());
         m_slider->setValue(Val2Slider(value));
@@ -166,15 +159,15 @@ protected:
         SignalEvent("drag-slider", false).post();
         SignalEvent(mode == 3 ? "duty" :"satu", value).post();
     };
-    void onSlider(CCObject*);
+    inline void onSlider(CCObject*);
     // on arrow
     void onArrow(CCObject*);
     // value -> slider
-    float Val2Slider(int value) {
+    inline float Val2Slider(int value) {
         return (float)value / 100;
     }
     // slider -> value
-    int Slider2Val(float value) {
+    inline int Slider2Val(float value) {
         return (int)round(value * 100);
     }
 public:
@@ -201,10 +194,10 @@ public:
     }
     // i hate cascading opacity
     void helpFade(bool in);
-    int getVal() {
+    inline int getVal() {
         return this->value;
     }
-    void setVal(int value) {
+    inline void setVal(int value) {
         this->value = value;
         if (m_inputer)
             m_inputer->setString(cocos2d::CCString::createWithFormat("%i", value)->getCString());
@@ -230,12 +223,14 @@ public:
     // nodes' Y positions when they are on display
     // arranged by tag order, from bottom to top
     std::vector<float> Ystd;
-    // cell actions array
-    std::vector<CCAction*> actions;
-    // Y offset when fade in
-    float offset = 30.f;
-    // get a mysterious arg related to animaiton
+    // node action volume
+    std::vector<CCAction*> acts;
+    // get a mysterious value related to manually scrolled animaiton
+    // @param Y cell's vertical pos
+    // @param H cell's content height
+    // @return opacity = 255*tg   scale = 0.5+0.5*tg
     float getSomething(float Y, float H);
+    // override set position to meanwhile set their scale and opacity
     void setPosition(CCPoint const& pos) override {
         CCLayerColor::setPosition(pos);
 
@@ -246,11 +241,13 @@ public:
             child->setScale(0.5 + tg/2);
         }
     }
+    // register the node's initial position Y
     void addChild(CCNode* child) override {
         CCNode::addChild(child);
         Ystd.push_back(child->getPositionY());
-        actions.push_back(nullptr);
+        acts.push_back(nullptr);
     }
+
     static MyContentLayer* create(float width, float height) {
         auto ret = new MyContentLayer();
         if (ret->initWithColor({ 0, 0, 0, 0 }, width, height)) {
@@ -264,6 +261,7 @@ public:
 
 class ScrollLayerPlus : public ScrollLayer {
 protected:
+    
     CCAction* actionFade = nullptr;
 public:
 
@@ -282,7 +280,7 @@ public:
     void setCeiling() {
         static_cast<MyContentLayer*>(this->m_contentLayer)->ceilingHeight = getContentHeight();
     }
-    void Transition(bool in, bool scale = true);
+    void Transition(bool in, int move);
 
     static ScrollLayerPlus* create(CCRect const& rect, bool scroll = true, bool vertical = true) {
         auto ret = new ScrollLayerPlus(rect, scroll, vertical);
