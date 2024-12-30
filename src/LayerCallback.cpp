@@ -5,7 +5,7 @@ extern std::map<short, ChromaSetup> setups;
 extern std::map<std::string, bool> opts;
 extern float speed;
 extern bool ptwo;
-extern std::map<PlayerObject*, bool> reset;
+std::map<PlayerObject*, int> reset;
 /**************** EVENT HANDLER *******************/
 ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
     // activate
@@ -13,7 +13,7 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
         opts["activate"] = event->value;
         if (!reset.empty())
             for (auto [key, _] : reset)
-                reset[key] = !event->value;
+                reset[key] = 5 * (int)!event->value;
 
         // item menu toggle preview
         m_advBundleCell->toggleChroma();
