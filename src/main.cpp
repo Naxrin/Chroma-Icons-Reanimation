@@ -352,7 +352,9 @@ class $modify(ChromaPlayer, PlayerObject) {
     }
 
     // spider teleport line i guess
-    void spiderTestJump(bool unk) {
+    // this is not for mac
+    #ifndef GEODE_IS_MACOS
+    void spiderTestJumpInternal(bool unk) {
 
         if (!opts["activate"]) {
             PlayerObject::spiderTestJump(unk);
@@ -360,7 +362,7 @@ class $modify(ChromaPlayer, PlayerObject) {
         }
 
         auto pori = this->getPosition();
-        PlayerObject::spiderTestJump(unk);
+        PlayerObject::spiderTestJumpInternal(unk);
         auto pcur = this->getPosition();
         
         for (auto node : CCArrayExt<CCNode*>(this->getParent()->getChildren())) {
@@ -374,6 +376,7 @@ class $modify(ChromaPlayer, PlayerObject) {
             }
         }
     }
+    #endif
 
     bool detectTPline(CCSprite *tele, CCPoint &pori, CCPoint &pcur) {
         //log::error("isSideWay = {}", m_isSideways);
