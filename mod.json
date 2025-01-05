@@ -5,11 +5,11 @@
 		"android": "2.2074",
 		"mac": "2.2074"
 	},
-	"version": "v3.2.0-alpha.3",
+	"version": "v3.2.0-beta.1",
 	"id": "naxrin.chroma_icons",
 	"name": "Chroma Icons",
 	"developer": "Naxrin",
-	"description": "Chroma your Icons like Mega Hack Icon Effects!",
+	"description": "Chroma Everything of Your Icons!",
 	"repository":"https://github.com/Naxrin/Chroma-Icons",
 	"resources": {
 		"sprites": [

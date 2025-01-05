@@ -11,7 +11,7 @@ bool ChromaLayer::setup() {
     this->setID("chroma-icons-central"_spr);
     // winSize
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-    
+    this->id = opts["easy"] ? 0 : 1;
     /********** BG **********/
 
     // bg regarding theme color
@@ -39,14 +39,6 @@ bool ChromaLayer::setup() {
     m_warnPage->setPosition(CCPoint(winSize.width/2, winSize.height/2));
     this->addChild(m_warnPage);
     m_cells.push_back(m_warnPage);
-    
-    /********** Title Label **********/
-    // title label, will change
-    auto titleLabel = TitleCell::create("Chroma Icons", CCPoint(winSize.width/2, winSize.height + 5.f), 200, 0, "title-label");
-    titleLabel->setOpacity(0);
-    titleLabel->setScale(0.5);
-    this->addChild(titleLabel);
-    m_cells.push_back(titleLabel);
     
     /********** Main Menu **********/
     auto mainMenu = CCMenu::create();
@@ -79,7 +71,7 @@ bool ChromaLayer::setup() {
     auto infoSpr = CCSprite::create("infoBtn.png"_spr);
     infoSpr->setScale(0.6);
     infoSpr->setID("info");
-    this->m_infoBtn = CCMenuItemSpriteExtra::create(infoSpr, this, menu_selector(ChromaLayer::onInfo));    
+    this->m_infoBtn = CCMenuItemSpriteExtra::create(infoSpr, this, menu_selector(ChromaLayer::onInfoPage));    
     m_infoBtn->setPosition(CCPoint(winSize.width - 30.f, 30.f));
     m_infoBtn->setColor(ccc3(CELL_COLOR));    
     m_infoBtn->setTag(4);
@@ -120,6 +112,13 @@ bool ChromaLayer::setup() {
     itemMenu->setID("item-menu");
     this->addChild(itemMenu);
 
+    this->m_titleLabel = CCLabelBMFont::create("Chroma Icons Central", "ErasBold.fnt"_spr, 500.f, CCTextAlignment::kCCTextAlignmentCenter);
+    m_titleLabel->setPosition(CCPoint(0, winSize.height / 2 - 30.f));
+    m_titleLabel->setWidth(500.f);
+    HIDE(m_titleLabel, 0.3, 0.3)
+    m_titleLabel->setID("title-label");
+    itemMenu->addChild(m_titleLabel);
+
     // full items, easy item, effect row
     this->m_advBundleCell = ItemCell::create(1);
     itemMenu->addChild(m_advBundleCell);
@@ -148,17 +147,24 @@ bool ChromaLayer::setup() {
 
     auto labelIcon = CCLabelBMFont::create("Player Icons", "ErasWhite.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     labelIcon->setPosition(CCPoint(0.f, 70.f));
-    HIDE(labelIcon, 3.5, 0.14)
+    HIDE(labelIcon, 0.35, 0.35)
     labelIcon->setColor(ccc3(CELL_COLOR));
     labelIcon->setTag(5);
     itemMenu->addChild(labelIcon);
 
     auto labelEffect = CCLabelBMFont::create("In-Game Effects", "ErasWhite.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     labelEffect->setPosition(CCPoint(0.f, -25.f));
-    HIDE(labelEffect, 3.5, 0.14)
+    HIDE(labelEffect, 0.35, 0.35)
     labelEffect->setColor(ccc3(CELL_COLOR));
     labelEffect->setTag(6);
     itemMenu->addChild(labelEffect);
+
+    auto labelTarget = CCLabelBMFont::create("- Cube -", "ErasWhite.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
+    labelTarget->setPosition(CCPoint(0.f, -80.f));
+    HIDE(labelTarget, 0.25, 0.25);
+    labelTarget->setColor(ccc3(CELL_COLOR));
+    labelTarget->setTag(7);
+    itemMenu->addChild(labelTarget);
 
     auto menuSpeed = SpeedSliderBundle::create(speed);
     itemMenu->addChild(menuSpeed);
@@ -240,7 +246,7 @@ bool ChromaLayer::setup() {
         // skip id 10 cuz there is nonsense
         if (id == 10)
             continue;
-        cell = SetupItemCell::create(id, Y, 15 - id + (id > 10));
+        cell = SetupItemCell::create(id, Y, 16 - id - (id < 10));
         static_cast<MyContentLayer*>(m_setupAdvScroller->m_contentLayer)->addChild(cell);
         m_cells.push_back(cell);
         Y += 40.f;
@@ -429,6 +435,12 @@ bool ChromaLayer::setup() {
     int sTag = 0;
 
     sTag ++;
+    auto questionMarkOpt = OptionTogglerCell::create("???", H, 300, sTag, "???",
+        "?????");
+    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(questionMarkOpt);
+    H += questionMarkOpt->getContentHeight() + 15.f;
+
+    sTag ++;
     auto darkOpt = OptionTogglerCell::create("Dark Theme", H, 300, sTag, "dark-theme",
         "Deep Dark Fantasy...");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(darkOpt);
@@ -476,6 +488,13 @@ bool ChromaLayer::setup() {
     H += 40.f;
 
     sTag ++;
+    auto teleOpt = OptionTogglerCell::create("Align TP line fix", H, 300, sTag, "tele-fix",
+        "Not related to icons chroma though, this option will fix spider teleport jump (or player triggering purple rings / pad) "
+        "effect line strictly to the center point between the player positions before and after being teleported.\n");
+    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(teleOpt);
+    H += teleOpt->getContentHeight() + 15.f;
+
+    sTag ++;
     auto editorOpt = OptionTogglerCell::create("Editor Test", H, 300, sTag, "editor",
         "Apply to Editor Playtest. Will also add a button in your editor menu if activated.\n"
         "But I do not promise your device will not lag.");
@@ -515,6 +534,103 @@ bool ChromaLayer::setup() {
     infoMenu->setID("info-menu");
     this->addChild(infoMenu);
 
+    auto aboutLabel = CCLabelBMFont::create("Chroma Icons", "ErasBold.fnt"_spr, 200, CCTextAlignment::kCCTextAlignmentCenter);
+    aboutLabel->setPosition(CCPoint(0.f, 130.f));
+    HIDE(aboutLabel, 0.32, 0.32);
+    aboutLabel->setID("about");
+    infoMenu->addChild(aboutLabel);
+
+    auto versionLabel = CCLabelBMFont::create(Mod::get()->getVersion().toVString().c_str(), "ErasBold.fnt"_spr, 150, CCTextAlignment::kCCTextAlignmentCenter);
+    versionLabel->setPosition(CCPoint(0.f, 110.f));
+    HIDE(versionLabel, 0.15, 0.15);
+    versionLabel->setColor(ccc3(127, 127, 127));
+    versionLabel->setID("version");
+    infoMenu->addChild(versionLabel);
+
+    auto manualLabel = CCLabelBMFont::create("About This Mod", "ErasBold.fnt"_spr, 300, CCTextAlignment::kCCTextAlignmentCenter);
+    manualLabel->setPosition(CCPoint(0.f, 80.f));
+    HIDE(manualLabel, 0.25, 0.25);
+    manualLabel->setID("manual");
+    infoMenu->addChild(manualLabel);
+
+    auto authorLabel = CCLabelBMFont::create("My Website / Contact", "ErasBold.fnt"_spr, 300, CCTextAlignment::kCCTextAlignmentCenter);
+    authorLabel->setPosition(CCPoint(0.f, 10.f));
+    HIDE(authorLabel, 0.25, 0.25);
+    authorLabel->setID("author");
+    infoMenu->addChild(authorLabel);
+
+    auto menuManual = CCMenu::create();
+    menuManual->setID("manual-menu");
+    menuManual->setPosition(CCPoint(0.f, 50.f));
+    menuManual->setAnchorPoint(CCPoint(0.5, 0.5));
+    menuManual->ignoreAnchorPointForPosition(false);
+    menuManual->setContentSize(CCSize(300.f, 20.f));
+    infoMenu->addChild(menuManual);
+
+    int index = 0;
+    std::vector<const char*> manuals = {"githubBtn.png"_spr, "geodeBtn.png"_spr};
+    for (auto manual : manuals) {
+        auto spr = CCSprite::create(manual);
+        spr->setScale(0.6);
+        auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ChromaLayer::onInfoButtons));
+        btn->setTag(index);
+        HIDE(btn, 0, 0)
+        menuManual->addChild(btn);
+        index ++;
+    }
+    menuManual->setLayout(AxisLayout::create()
+        ->setGap(10.f)
+        ->setAxisAlignment(AxisAlignment::Center)
+    );
+    menuManual->updateLayout();
+
+    auto menuAuthor = CCMenu::create();
+    menuAuthor->setID("author-menu");
+    menuAuthor->setPosition(CCPoint(0.f, -20.f));
+    menuAuthor->setAnchorPoint(CCPoint(0.5, 0.5));
+    menuAuthor->ignoreAnchorPointForPosition(false);
+    menuAuthor->setContentSize(CCSize(300.f, 20.f));
+    infoMenu->addChild(menuAuthor);
+
+    index = 0;
+    std::vector<const char*> authors = {"youtubeBtn.png"_spr, "twitterBtn.png"_spr, "discordBtn.png"_spr};
+    // what's this?
+    if (Loader::get()->isModLoaded("endless-spike-studio.endless-services-connector"))
+        authors.push_back("bilibiliBtn.png"_spr);
+    for (auto author : authors) {
+        auto spr = CCSprite::create(author);
+        spr->setScale(0.6);
+        auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ChromaLayer::onInfoButtons));
+        btn->setTag(10 + index);
+        HIDE(btn, 0, 0)
+        menuAuthor->addChild(btn);
+        index ++;
+    }
+    menuAuthor->setLayout(AxisLayout::create()
+        ->setGap(10.f)
+        ->setAxisAlignment(AxisAlignment::Center)
+    );
+    menuAuthor->updateLayout();
+
+    auto thanksTitleLabel = CCLabelBMFont::create("Special Thanks", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
+    thanksTitleLabel->setPosition(CCPoint(0.f, -60.f));
+    HIDE(thanksTitleLabel, 0.25, 0.25);
+    thanksTitleLabel->setID("thanks-title");
+    infoMenu->addChild(thanksTitleLabel);
+
+    auto thanksContentLabel = CCLabelBMFont::create(
+        "@Mat for index login, CCSequence mac build, etc; this guy is my hero\n"
+        "@hiimjustin000 for More Icons mod support\n"
+        "@irryan for internal testing\n"
+        "@clunos for mac test",
+        "ErasBold.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
+    thanksContentLabel->setPosition(CCPoint(0.f, -110.f));
+    thanksContentLabel->setColor(ccc3(127, 127, 127));
+    HIDE(thanksContentLabel, 0.2, 0.2);
+    thanksContentLabel->setID("thanks-content");
+    infoMenu->addChild(thanksContentLabel);
+
+    /*
     auto lazy = CCLabelBMFont::create(
         "As I mentioned in Github,\nthis pre-release does NOTHING to ur icons.\n"
         "I'm too lazy to make this info page in this pre-release.\n"        
@@ -522,7 +638,7 @@ bool ChromaLayer::setup() {
         "ErasBold.fnt"_spr, 460.f, CCTextAlignment::kCCTextAlignmentCenter);
     lazy->setID("lazy-label");
     HIDE(lazy, 0.25, 0.25)
-    infoMenu->addChild(lazy);
+    infoMenu->addChild(lazy);*/
 
     // update
     this->scheduleUpdate();

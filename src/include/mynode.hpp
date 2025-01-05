@@ -20,11 +20,15 @@ public:
     // fade one by one
     void delayFade(int delay, bool in);
     // chroma proxy
-    void runChroma(float const& phase, float const& progress);
+    void runChroma(float const& phase, float const& percentage, float const& progress);
     // for current item switch
     void toggleChroma();
     // toggle on or off chroma, activated means not grey
     void toggleChroma(bool current);
+    // edit mode target (effect only)
+    void setModeTarget(Channel tg) {
+        this->effect->targetMode = (int)tg;
+    }
 
     // constructor for effects
     static PickItemButton* create(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback) {

@@ -4,13 +4,10 @@
 bool ptwo = false;
 // level
 GJGameLevel* Level;
-// get level prrogress
-float progress;
 // phase for game layer update
 // mod menu has its own phase standalone
 float lvlphase = 0.f;
-// reset for each object
-std::map<PlayerObject*, bool> reset;
+
 // bools
 std::map<std::string, bool> opts;
 // speed option
@@ -192,7 +189,7 @@ inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpo
     });
 }*/
 
-ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float progress, bool reset) {
+ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, float progress, bool reset) {
     if (reset)
         return defaultVal;
 
@@ -204,6 +201,7 @@ ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float
         return setup.color;
     // chromatic
     case 2:
+        phase = fmod(phase, 360.f);
         return getRainbow(phase, setup.satu);
     // gradient
     case 3:
@@ -211,6 +209,7 @@ ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float
         if (setup.gradient.empty()) {
             return defaultVal;
         }
+        phase = fmod(phase, 360.f);
         for (pairpos r : setup.gradient) {
             if (r.first > phase) {
                 if (r == *setup.progress.begin()) {
@@ -229,8 +228,8 @@ ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float
             return defaultVal;
         }
         for (pairpos r : setup.progress) {
-            if (r.first > progress)
-                return r == *setup.progress.begin() ? setup.progress.begin()->second : getGradient(progress, l, r);
+            if (r.first > (setup.best ? progress : percentage))
+                return r == *setup.progress.begin() ? setup.progress.begin()->second : getGradient(setup.best ? progress : percentage, l, r);
             // this may be the left
             l = r;
         }

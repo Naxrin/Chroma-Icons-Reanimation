@@ -37,12 +37,12 @@ void ChromaLayer::show() {
     for (auto obj : CCArrayExt<CCObject*>(m_setupAdvScroller->m_contentLayer->getChildren())) {
         auto cell = static_cast<SetupItemCell*>(obj);
         if (cell != m_currentItem)
-            cell->m_btn->toggleChroma();
+            cell->m_btn->toggleChroma(false);
     }
     for (auto obj : CCArrayExt<CCObject*>(m_setupEasyScroller->m_contentLayer->getChildren())) {
         auto cell = static_cast<SetupItemCell*>(obj);
         if (cell != m_currentItem)
-            cell->m_btn->toggleChroma();
+            cell->m_btn->toggleChroma(false);
     }
     // run base function
     Popup::show();
@@ -64,9 +64,10 @@ void ChromaLayer::show() {
 void ChromaLayer::update(float d) {
     // step phase
     this->phase = fmod(phase + 360 * d * speed, 360.f);
+    this->percentage = fmod(percentage + 10 * d, 100.f);
     if (m_currentItem)
         // setup menu selected
-        m_currentItem->m_btn->runChroma(phase, 50);
+        m_currentItem->m_btn->runChroma(phase, percentage, 50);
 
     // skip
     if (!(opts["activate"] && opts["prev"]))
@@ -75,13 +76,13 @@ void ChromaLayer::update(float d) {
     // item menu
     if (!m_advBundleCell->btns.empty())
         for (auto btn : m_advBundleCell->btns)
-            btn->runChroma(phase, 50);
+            btn->runChroma(phase, percentage, 50);
     if (!m_ezyBundleCell->btns.empty())
         for (auto btn : m_ezyBundleCell->btns)
-            btn->runChroma(phase, 50);
+            btn->runChroma(phase, percentage, 50);
     if (!m_effBundleCell->btns.empty())
         for (auto btn : m_effBundleCell->btns)
-            btn->runChroma(phase, 50);
+            btn->runChroma(phase, percentage, 50);
 }
 
 CCMenuItemSpriteExtra* ChromaLayer::getColorTarget() {
@@ -107,8 +108,8 @@ CCMenuItemSpriteExtra* ChromaLayer::getColorTarget() {
 
 void ChromaLayer::refreshPreview(bool dump) {
     // dump setup
-    Mod::get()->setSavedValue(getConfigKey(ptwo, this->id, this->channel), currentSetup);
-    setups[getIndex(ptwo, this->id, this->channel)] = currentSetup;
+    Mod::get()->setSavedValue(getConfigKey(ptwo, this->id, (int)this->channel), currentSetup);
+    setups[getIndex(ptwo, this->id, (int)this->channel)] = currentSetup;
 }
 
 bool ChromaLayer::switchCurrentID(int id) {
@@ -127,19 +128,30 @@ bool ChromaLayer::switchCurrentID(int id) {
         // dump config
         this->refreshPreview(true);
     }
+    // change channel format
+    int n = getIDType(id);
+    // have to change channel
+    if (getIDType(this->id) != n) {
+        if (opts["easy"])
+            this->channel = id ? Channel::Effect : Channel::Main;
+        else
+            this->channel = n == 2 ? Channel::Effect : (n == 1 ? Channel::Cube : Channel::Main);        
+    }
+    // change target
+    if (n == 1)
+        this->target = Channel::Cube;
     // edit id
     this->id = id;
-    this->channel = id < 10 ? Channel::Main : Channel::Effect;
 
     // labels
-    m_itemSetupLabel->setString((id > 10 ? items[id-1] : items[id]).c_str());
-    m_chnlSetupLabel->setString(id < 10 ? "Main" : "Effect");
+    m_itemSetupLabel->setString(items[id].c_str());
+    m_chnlSetupLabel->setString(((int)this->channel < 5 ? chnls[(int)this->channel] : items[(int)this->channel - 4]).c_str());
 
     // load new setup
-    currentSetup = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(ptwo, this->id, this->channel), DEFAULT_SETUP);
+    currentSetup = setups[getIndex(ptwo, this->id, (int)this->channel)];
 
     // locate new current setup item
-    int tag = id > 10 ? 16 - id : (opts["easy"] ? 6 : 15 - id);
+    int tag = id > 9 ? 16 - id : (opts["easy"] ? 6 : 15 - id);
     // loate current item
     m_currentItem = static_cast<SetupItemCell*>((opts["easy"] ? m_setupEasyScroller : m_setupAdvScroller)->m_contentLayer->getChildByTag(tag));
     // scroll the scroller to dest position

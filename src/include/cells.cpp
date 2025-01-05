@@ -334,7 +334,7 @@ bool SetupItemCell::init(int id, float Y, int tag) {
 
     this->id = id;
 
-    m_label = CCLabelBMFont::create(items[id - (id > 10)].c_str(), "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_label = CCLabelBMFont::create(items[id].c_str(), "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_label->setScale(0.4);
     // wave trail label is too long
     if (id == 12)

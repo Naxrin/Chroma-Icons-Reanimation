@@ -1,14 +1,26 @@
 #include "Layer.hpp"
+#include <random>
+
+// menu type identifier
+enum class LayerType {
+    PlayLayer,
+    LevelEditorLayer,
+    MenuLayer
+};
 
 // allow chroma
-static bool allow_chroma = false;
+static LayerType layerType = LayerType::MenuLayer;
 // level
 static GJGameLevel* Level;
 // get level progress
+static float progress;
+// get current percantage
 static float percentage;
 // phase for game layer update
 // mod menu has its own phase standalone
 static float lvlphase;
+// reset
+//extern std::vector<int> reset2;
 // reset
 extern std::map<PlayerObject*, int> reset;
 // bools
@@ -132,7 +144,9 @@ class $modify(GameLayer, PlayLayer) {
         // register level
         Level = level;
         // allow chroma
-        allow_chroma = true;
+        layerType = LayerType::MenuLayer;
+        // log
+        progress = level->m_normalPercent.value();
         return PlayLayer::init(level, useReplay, dontCreateObjects);
     }
     // edit phase
@@ -143,9 +157,9 @@ class $modify(GameLayer, PlayLayer) {
         PlayLayer::postUpdate(d);
     }
 
-    // quit
-    ~GameLayer() {
-        allow_chroma = false;
+    void resetPlayer() {
+        PlayLayer::resetPlayer();
+        progress = m_level->m_normalPercent.value();
     }
 };
 
@@ -162,7 +176,9 @@ class $modify(NivelEditorLayer, LevelEditorLayer) {
         // register level
         Level = level;
         // allow chroma
-        allow_chroma = true;
+        layerType = LayerType::LevelEditorLayer;
+        // log
+        progress = level->m_normalPercent.value();
 		return LevelEditorLayer::init(level, p);
     }
 
@@ -173,9 +189,37 @@ class $modify(NivelEditorLayer, LevelEditorLayer) {
         LevelEditorLayer::postUpdate(d);
     }
 
-    // quit
-    ~NivelEditorLayer() {
-        allow_chroma = false;
+    void resetPlayer() {
+        LevelEditorLayer::resetPlayer();
+        progress = m_level->m_normalPercent.value();
+    }
+};
+
+// I'm afraid of typeinfo cast so I decide not to directly modify GJBaseGameLayer
+// also menu layer has a GJBaseGameLayer, so it's even more horrible
+#include <Geode/modify/MenuGameLayer.hpp>
+class $modify(MainGameLayer, MenuGameLayer) {
+    // reset phase and tell mod central the level type in init
+	bool init() {
+        // reset phase
+        lvlphase = 0;
+        // allow chroma
+        layerType = LayerType::MenuLayer;
+		return MenuGameLayer::init();
+    }
+
+    // edit phase
+    void update(float d) override {
+        if (opts["???"])
+            lvlphase = fmod(lvlphase + 360 * d * speed, 360.f);
+
+        MenuGameLayer::update(d);
+    }
+
+    void resetPlayer() {
+        if (opts["???"])
+            progress = std::rand() / 100;
+        MenuGameLayer::resetPlayer();
     }
 };
 
@@ -199,138 +243,210 @@ class $modify(ChromaPlayer, PlayerObject) {
         // base
         this->PlayerObject::update(d);
         // only chroma the visible two
-        if ((!opts["activate"] && !reset[this]) || !allow_chroma || !this->isVisible() || this->m_isDead)
+        if ((!opts["activate"] && !reset[this]) || !this->isVisible() || this->m_isDead)
             return;
+        if (layerType == LayerType::LevelEditorLayer && !opts["editor"])
+            return;
+        if (layerType == LayerType::MenuLayer) {
+            if (opts["???"])
+                percentage = 100 * this->getPositionX() / CCDirector::sharedDirector()->getWinSize().width;
+            else
+                return;
+        }
         // get some phase offsets
         // as sending negative phase value to getChroma(...) is not allowed, all of them should really be positive
-        bool p = this->m_isSecondPlayer && (opts["same-dual"]);
+        bool p = this->m_isSecondPlayer && !opts["same-dual"];
         short od = this->m_isSecondPlayer && (opts["sep-dual"]) ? 180 : 0;
         short o2 = opts["sep-second"] ? 120 : 0;
         short o3 = opts["sep-glow"] ? 240 : 0;
         // easy-mode
-        short id = 0;
-        // adv mode
-        if (!opts["easy"]) {
-            id = 1;
-            if (this->m_isShip)
-                id = Level && Level->isPlatformer() ? 9 : 2;
-            else if (this->m_isBall)
-                id = 3;
-            else if (this->m_isBird)
-                id = 4;
-            else if (this->m_isDart)
-                id = 5;
-            else if (this->m_isRobot)
-                id = 6;
-            else if (this->m_isSpider)
-                id = 7;
-            else if (this->m_isSwing)
-                id = 8;
-        }
+        short id = this->getStatusID();
 
-        // get the two chroma pattern result firstly
-        ccColor3B main = getChroma(setups[getIndex(p, id, Channel::Main)],
-            m_fields->main, lvlphase + od, percentage, reset[this]);
-        ccColor3B secondary = getChroma(setups[getIndex(p, id, Channel::Secondary)],
-            m_fields->secondary, lvlphase + od + o2, percentage, reset[this]);
-        ccColor3B glow = getChroma(setups[getIndex(p, id, Channel::Glow)],
-            m_glowColor, lvlphase + od + o3, percentage, reset[this]);
+        // get the chroma pattern result firstly
+        ccColor3B main = getChroma(setups[getIndex(p, id, 0)],
+            m_fields->main, lvlphase + od, percentage, progress, reset[this]);
+        ccColor3B secondary = getChroma(setups[getIndex(p, id, 1)],
+            m_fields->secondary, lvlphase + od + o2, percentage, progress, reset[this]);
+        ccColor3B glow = getChroma(setups[getIndex(p, id, 2)],
+            m_glowColor, lvlphase + od + o3, percentage, progress, reset[this]);
 
-        // for compatibility with Seperate dual icons or other mods, here I should always avoid using PlayerObject's own member functions
-        bool isRider = false;
         // icons
-        if (m_isShip || m_isBird) {
-            isRider = opts["rider"] && id;
-            this->m_iconSprite->setColor(isRider ? getChroma(setups[getIndex(p,  1, Channel::Main)],
-                m_fields->main, lvlphase + od, percentage, reset[this]) : main);
-            this->m_iconSpriteSecondary->setColor(isRider ? getChroma(setups[getIndex(p, 1, Channel::Secondary)],
-                m_fields->secondary, lvlphase + od + o2, percentage, reset[this]) : secondary);
-            if (m_hasGlow)
-                this->m_iconGlow->setColor(isRider ? getChroma(setups[getIndex(p, 1, Channel::Glow)],
-                    m_glowColor, lvlphase + od + o3, percentage, reset[this]) : glow);
+        // for compatibility with Seperate dual icons or other mods
+        // here I should always avoid using my own member functions
+        this->PlayerObject::setColor(main);
+        this->PlayerObject::setSecondColor(secondary);
+        if (this->m_hasGlow) {
+            this->setGlowOutline(glow);
+        }
+        this->setWhiteColor(getChroma(setups[getIndex(p, id, 3)],
+            ccc3(255, 255, 255), lvlphase + od, percentage, progress, reset[this]));
 
-            // vehicles
-            this->m_vehicleSprite->setColor(main);
-            this->m_vehicleSpriteSecondary->setColor(secondary);
+        if ((m_isShip || m_isBird) && opts["rider"] && id) {
+            this->m_iconSprite->setColor(getChroma(setups[getIndex(p, 1, 0)],
+                m_fields->main, lvlphase + od, percentage, progress, reset[this]));
+            this->m_iconSpriteSecondary->setColor(getChroma(setups[getIndex(p, 1, 1)],
+                m_fields->secondary, lvlphase + od + o2, percentage, progress, reset[this]));
             if (m_hasGlow)
-                this->m_vehicleGlow->setColor(glow);
-        }
-        // robot
-        else if (m_isRobot) {
-            auto arr = this->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->m_spriteParts;
-            for (auto part : CCArrayExt<CCSpritePart*>(arr)) {
-                part->setColor(main);
-                part->getChildByType<CCSprite>(0)->setColor(secondary);
-            }
-            if (m_hasGlow)
-                for (auto spr: CCArrayExt<CCSprite*>(this->m_robotSprite->getChildByType<CCSprite>(0)->getChildren()))
-                    spr->setColor(glow);
-        }
-        // spider
-        else if (m_isSpider) {
-            auto arr = this->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->m_spriteParts;
-            for (auto part : CCArrayExt<CCSpritePart*>(arr)) {
-                part->setColor(main);
-                part->getChildByType<CCSprite>(0)->setColor(secondary);
-            }
-            if (m_hasGlow)
-                for (auto spr: CCArrayExt<CCSprite*>(this->m_spiderSprite->getChildByType<CCSprite>(0)->getChildren()))
-                    spr->setColor(glow);
-        }
-        // regular modes
-        else {
-            this->m_iconSprite->setColor(main);
-            this->m_iconSpriteSecondary->setColor(secondary);
-            if (m_hasGlow)
-                this->m_iconGlow->setColor(glow);
+                this->m_iconGlow->setColor(getChroma(setups[getIndex(p, 1, 2)],
+                    m_glowColor, lvlphase + od + o3, percentage, progress, reset[this]));
+            this->m_iconSpriteWhitener->setColor(getChroma(setups[getIndex(p, 1, 3)],
+                ccc3(255, 255, 255), lvlphase + od, percentage, progress, reset[this]));
         }
 
         // trail
-        if (gm->getPlayerStreak() != 2)
-            this->m_regularTrail->setColor(getChroma(setups[getIndex(p, 11, Channel::Effect)],
+        if (gm->getPlayerStreak() != 2 && gm->getPlayerStreak() != 7)
+            this->m_regularTrail->setColor(getChroma(setups[getIndex(p, 11, id + 4)],
                 m_fields->secondary, lvlphase + od, percentage, reset[this]));
         // wave trail
         if (this->m_isDart)
-            this->m_waveTrail->setColor(getChroma(setups[getIndex(p, 12, Channel::Effect)],
+            this->m_waveTrail->setColor(getChroma(setups[getIndex(p, 12)],
                 gm->getGameVariable("0096") ? m_fields->secondary : m_fields->main, lvlphase + od, percentage, reset[this]));
         // dash fire
         if (this->m_isDashing)
-            this->m_dashFireSprite->setColor(getChroma(setups[getIndex(p, 13, Channel::Effect)],
+            this->m_dashFireSprite->setColor(getChroma(setups[getIndex(p, 13, id + 4)],
                 gm->getGameVariable("0062") ? m_fields->main : m_fields->secondary, lvlphase + od, percentage, reset[this]));
-        // teleport line
-        // ?
         // ufo shell
         if (this->m_isBird)
-            this->m_birdVehicle->setColor(getChroma(setups[getIndex(p, 15, Channel::Effect)],
+            this->m_birdVehicle->setColor(getChroma(setups[getIndex(p, 15)],
                 ccc3(255, 255, 255), lvlphase + od, percentage, reset[this]));
 
         if (reset[this])
             reset[this] --;
     }
 
+    // how
+    void setGlowOutline(ccColor3B const &color) {
+        // robot
+        if (m_isRobot) {
+            for (auto spr: CCArrayExt<CCSprite*>(this->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByType<CCSprite>(0)->getChildren()))
+                spr->setColor(color);
+        }
+        // spider
+        else if (m_isSpider) {
+            for (auto spr: CCArrayExt<CCSprite*>(this->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByType<CCSprite>(0)->getChildren()))
+                spr->setColor(color);
+        }
+        // regular modes
+        else {
+            this->m_iconGlow->setColor(color);
+            this->m_vehicleGlow->setColor(color);
+        }
+    }
+    // naxrin addition
+    void setWhiteColor(ccColor3B const &color) {
+        // robot
+        if (m_isRobot) {
+            this->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)
+                ->setColor(color);
+        }
+        // spider
+        else if (m_isSpider) {
+            this->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)
+                ->setColor(color);
+        }
+        // regular modes
+        else {
+            m_iconSpriteWhitener->setColor(color);
+            m_vehicleSpriteWhitener->setColor(color);
+        }
+    }
+
+    // spider teleport line i guess
+    void spiderTestJumpInternal(bool unk) {
+
+        if (!opts["activate"]) {
+            PlayerObject::spiderTestJumpInternal(unk);
+            return;
+        }
+
+        auto pori = this->getPosition();
+        PlayerObject::spiderTestJumpInternal(unk);
+        auto pcur = this->getPosition();
+        
+        for (auto node : CCArrayExt<CCNode*>(this->getParent()->getChildren())) {
+            // stupid judge
+            if (auto tele = typeinfo_cast<CCSprite*>(node)) {
+                if (typeinfo_cast<PlayerObject*>(node) || !(tele->getContentSize() == CCSize(221.f, 21.f) )) // && tele->getRotation() == (this->m_isUpsideDown ? 90.f : -90.f)
+                    continue;
+                if (opts["activate"] && detectTPline(tele, pori, pcur))
+                    tele->setColor(getChroma(setups[getIndex(this->m_isSecondPlayer && !opts["same-dual"], 14, this->getStatusID() + 4)],
+                        m_fields->main, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress, reset[this]));
+            }
+        }
+    }
+
+    bool detectTPline(CCSprite *tele, CCPoint &pori, CCPoint &pcur) {
+        //log::error("isSideWay = {}", m_isSideways);
+        CCPoint pos = tele->getPosition();
+        CCPoint posfix;
+        // horizental tp
+        if (this->m_isSideways) {
+            posfix = CCPoint((pori.x + pcur.x) / 2, pori.y);
+            //log::error("delta x = {} y = {}", pos.x - posfix.x + (this->m_isGoingLeft ? 4.5 : -10.5), pos.y - posfix.y);
+            if (std::abs(pos.y - posfix.y) > 0.001 || std::abs(pos.x - posfix.x + (this->m_isGoingLeft ? 4.5 : -10.5)) > 0.001
+                || tele->getRotation() != this->m_isUpsideDown * 180.f)
+                return false;
+        }
+        // vertical tp
+        else {
+            posfix = CCPoint(pori.x, (pori.y + pcur.y) / 2);
+            //log::error("delta x = {} y = {}", pos.x - posfix.x + (this->m_isGoingLeft ? 7.5 : -7.5), pos.y - posfix.y);
+            if (std::abs(pos.x - posfix.x + (this->m_isGoingLeft ? 7.5 : -7.5)) > 0.001 || std::abs(pos.y - posfix.y) > 0.001
+                || tele->getRotation() != (this->m_isUpsideDown ? 90.f : -90.f))
+                return false;
+        }
+        // confirmed
+        if (opts["tele-fix"])
+            tele->setPosition(posfix);
+        return true;
+    }
+
+    short getStatusID() {
+        if (opts["easy"]) return 0;
+        if (this->m_isShip) return Level && Level->isPlatformer() ? 9 : 2;
+        else if (this->m_isBall) return 3;
+        else if (this->m_isBird) return 4;
+        else if (this->m_isDart) return 5;
+        else if (this->m_isRobot) return 6;
+        else if (this->m_isSpider) return 7;
+        else if (this->m_isSwing) return 8;
+        return 1;
+    }
+    // record main color
     void setColor(ccColor3B const &color) override {
         PlayerObject::setColor(color);
         m_fields->main = color;
     }
+    // record second color
     void setSecondColor(ccColor3B const &color) {
         PlayerObject::setSecondColor(color);
         m_fields->secondary = color;
     }
-    
-    ~ChromaPlayer() {
+
+    /*useless
+    void destructor() {
+        log::error("remove player");
         reset.erase(this);
-    }
+        PlayerObject::~PlayerObject();
+    }*/
 };
 
 // control default values
 $on_mod(Loaded) {
     // load setups
     for (short p = 0; p < 2; p++) {
+        // icons
         for (short id = 0; id < 10; id++)
-            for (short chnl = 0; chnl < 3; chnl++)
-                setups[getIndex(p, id, Channel(chnl))] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, id, Channel(chnl)), DEFAULT_SETUP);
-        for (short id = 11; id < 16; id++)
-            setups[getIndex(p, id, Channel::Effect)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, id, Channel::Effect), DEFAULT_SETUP);
+            for (short chnl = 0; chnl < 4; chnl++)
+                setups[getIndex(p, id, chnl)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, id, chnl), DEFAULT_SETUP);
+        // effects
+        for (short id = 11; id < 16; id++) {
+            if (id == 12 || id == 15)
+                setups[getIndex(p, id, 4)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, id, 4), DEFAULT_SETUP);
+            else
+                for (short chnl = 4; chnl < 12; chnl++)
+                    setups[getIndex(p, id, chnl)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, id, chnl), DEFAULT_SETUP);
+        }
     }
     // speed
     speed = Mod::get()->getSavedValue<float>("speed", 1);
@@ -341,12 +457,14 @@ $on_mod(Loaded) {
         {"same-dual", false},
         {"rider", false},
         {"editor", false},
+        {"tele-fix", false},
         {"sep-dual", false},
         {"sep-second", false},
         {"sep-glow", false},
         {"prev", true},
         {"blur-bg", false},
-        {"dark-theme", true}
+        {"dark-theme", true},
+        {"???", false}
     };
     for (auto [key, val] : defaultOpts)
         opts[key] = Mod::get()->getSavedValue<bool>(key, val);

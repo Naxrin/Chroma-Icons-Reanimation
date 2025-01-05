@@ -1,6 +1,6 @@
 // This file describes how the layer process direct callback from his buttons and signal from other menu classes inside.
 #include "Layer.hpp"
-
+#include <Geode/ui/GeodeUI.hpp>
 extern std::map<short, ChromaSetup> setups;
 extern std::map<std::string, bool> opts;
 extern float speed;
@@ -62,8 +62,11 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
     }
 
     // check best toggler in workspace
-    else if (event->name == "best")
+    else if (event->name == "best") {
         currentSetup.best = event->value;
+        this->refreshPreview(false);
+    }
+
 
     // never allow on close when dragging slider
     else if (event->name == "drag-slider")
@@ -129,8 +132,8 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
             bool really_changed = this->switchCurrentID(event->value);
             if (really_changed) {
                 // show or hide channel switch arrow
-                fade(m_leftArrowSetupBtn, id < 10);
-                fade(m_rightArrowSetupBtn, id < 10);
+                fade(m_leftArrowSetupBtn, id != 12 && id != 15);
+                fade(m_rightArrowSetupBtn, id != 12 && id != 15);
                 // workspace animation
                 this->m_workspace->runAction(CCSequence::create(
                     CallFuncExt::create([this] () {
@@ -250,7 +253,7 @@ void ChromaLayer::onSwitchPlayer(CCObject* sender) {
         m_playerSetupBtn->toggle(!m_playerItemBtn->isToggled());
 
     // new config
-    currentSetup = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(ptwo, this->id, this->channel), DEFAULT_SETUP);
+    currentSetup = setups[getIndex(ptwo, this->id, (int)this->channel)];
     // if outside setup page, then refresh ui and return
     if (this->face.back() != Face::Setup) {
         m_workspace->refreshUI(currentSetup);
@@ -284,6 +287,10 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
     // easy mode
     m_ezyBundleCell->Fade(opts["easy"]);
 
+    // effect target label
+    fade(this->getChildByID("item-menu")->getChildByTag(7),
+        !opts["easy"], ANIM_TIME_L, !opts["easy"] ? 0.5 : 0.25, !opts["easy"] ? 0.5 : 0.25);
+
     auto btn = static_cast<CCMenuItemToggler*>(sender);
     // not knowing how to deal with spamming ui bug for now @_@
     btn->setEnabled(false);
@@ -300,12 +307,24 @@ void ChromaLayer::onSwitchChannelPage(CCObject* sender) {
     this->refreshPreview(true);
     // get what to do
     int dir = sender->getTag() > 1 ? 1 : -1;
-    this->channel = Channel((int(channel) + dir + 3) % 3);
-    this->m_chnlSetupLabel->setString(chnls[(int)channel].c_str());
+    // new channel
+    if (getIDType(id)) {
+        this->channel = Channel((int(channel) + dir + 4) % 9 + 5);
+        this->target = this->channel;
+        static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(7))
+            ->setString(("- " + items[(int)this->target - 4] + " -").c_str());
+        for (auto btn : m_effBundleCell->btns)
+            btn->setModeTarget(this->target);
+    }
+
+    else
+        this->channel = Channel((int(channel) + dir + 4) % 4);
+    this->m_chnlSetupLabel->setString(((int)this->channel < 5 ? chnls[(int)this->channel] : items[(int)this->channel - 4]).c_str());
+    // unused
     if (sender->getTag() == 3)
         dir = 0;
     // load new setup
-    currentSetup = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(ptwo, this->id, this->channel), DEFAULT_SETUP);
+    currentSetup = setups[getIndex(ptwo, this->id, (int)this->channel)];
     // crazy things
     this->m_workspace->runAction(CCSequence::create(
         CallFuncExt::create([this, dir] () {m_workspace->Fade(false, dir);}),
@@ -355,7 +374,7 @@ void ChromaLayer::onOptionsPage(CCObject*) {
     ));
 }
 
-void ChromaLayer::onInfo(CCObject*) {
+void ChromaLayer::onInfoPage(CCObject*) {
     auto cur = face.back();
     face.push_back(Face::Info);
 
@@ -385,6 +404,30 @@ void ChromaLayer::onInfo(CCObject*) {
     ));
 }
 
+void ChromaLayer::onInfoButtons(CCObject* sender) {
+    Task<bool> task;
+    switch (sender->getTag()) {
+    case 0:
+        system("start https://github.com/Naxrin/Chroma-Icons-Reanimation");
+        return;
+    case 1:
+        task = geode::openInfoPopup(Mod::get()->getID());
+        return;
+    case 10:
+        system("start https://www.youtube.com/@Naxrin");
+        return;
+    case 11:
+        system("start https://x.com/Naxrin19");
+        return;
+    case 12:
+        system("start https://discordapp.com/users/414986613962309633");
+        return;
+    case 13:
+        system("start https://space.bilibili.com/25982878");
+        return;
+    }
+}
+
 void ChromaLayer::onColorDisplayBtn(CCObject* sender) {
     int tag = sender->getTag();
     // ori
@@ -398,26 +441,26 @@ void ChromaLayer::onColorDisplayBtn(CCObject* sender) {
 void ChromaLayer::onCopy(CCObject* sender) {
     switch (sender->getTag()) {
     case 1:
-        this->copied_color = true;
-        this->clipColor = oriColor;
+        this->clipColor.first = true;
+        this->clipColor.second = oriColor;
         this->transistColorBtn(false, false);
         return;
     case 3:
-        this->copied_color = true;
-        this->clipColor = crtColor;
+        this->clipColor.first = true;
+        this->clipColor.second = crtColor;
         this->transistColorBtn(true, false);
         return;
     case 5:
-        this->copied_setup = true;
-        this->clipSetup = currentSetup;
+        this->clipSetup.first = true;
+        this->clipSetup.second = currentSetup;
     }
 }
 
 void ChromaLayer::onPaste(CCObject* sender) {
     if (sender->getTag() == 6) {
-        if (!copied_setup)
+        if (!clipSetup.first)
             return;
-        currentSetup = this->clipSetup;
+        currentSetup = this->clipSetup.second;
         this->refreshPreview(false);
         this->m_workspace->runAction(CCSequence::create(
             CallFuncExt::create([this] () {
@@ -435,9 +478,9 @@ void ChromaLayer::onPaste(CCObject* sender) {
         ));
         return;
     }
-    if (sender->getTag() != 2 || !copied_color)
+    if (sender->getTag() != 2 || !clipColor.first)
         return;
-    crtColor = this->clipColor;
+    crtColor = this->clipColor.second;
     this->transistColorBtn(true, false);
     this->refreshColorPage(4);
     

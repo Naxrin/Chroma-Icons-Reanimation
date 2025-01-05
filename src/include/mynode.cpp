@@ -31,7 +31,8 @@ bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_Menu
     // spr
     int index = tag ? tag - 1 : 0;
     icon = GJItemIcon::createBrowserItem(UnlockType(gametype[index]), garageIconIndex[index]);
-
+    if (gm->m_playerGlow)
+        icon->m_player->setGlowOutline(ccc3(255, 255, 255));
     if (src)
         icon->setScale(0.6);
     else if (tag)
@@ -69,23 +70,35 @@ void PickItemButton::delayFade(int delay, bool in) {
     ));
 }
 
-void PickItemButton::runChroma(float const& phase, float const& progress) {
+void PickItemButton::runChroma(float const& phase, float const& percentage, float const& progress) {
     if (!this->chroma)
         return;
     if (this->getTag() > 10)
         this->effect->setColor(getChroma(
-            setups[getIndex(ptwo, getTag(), Channel::Effect)],
-                gm->colorForIdx(gm->getPlayerColor()), phase, progress));
+            setups[getIndex(ptwo, getTag(), effect->targetMode)],
+                gm->colorForIdx(ptwo ? gm->getPlayerColor2() : gm->getPlayerColor()), phase, percentage, progress));
     else {
+        // main
         icon->m_player->setColor(getChroma(
-            setups[getIndex(ptwo, getTag(), Channel::Main)],
-                gm->colorForIdx(gm->getPlayerColor()), phase, progress));
+            setups[getIndex(ptwo, getTag(), 0)],
+                gm->colorForIdx(ptwo ? gm->getPlayerColor2() : gm->getPlayerColor()), phase, percentage, progress));
+        // second
         icon->m_player->setSecondColor(getChroma(
-            setups[getIndex(ptwo, getTag(), Channel::Secondary)],
-                gm->colorForIdx(gm->getPlayerColor2()), phase + 120 * opts["sep-second"], progress));
+            setups[getIndex(ptwo, getTag(), 1)],
+                gm->colorForIdx(ptwo ? gm->getPlayerColor() : gm->getPlayerColor2()), phase + 120 * opts["sep-second"], percentage, progress));
+        // glow
         if (icon->m_player->m_hasGlowOutline)
-            icon->m_player->setGlowOutline(getChroma(setups[getIndex(ptwo, getTag(), Channel::Glow)],
-                gm->colorForIdx(gm->getPlayerGlowColor()), phase - 120 * opts["sep-glow"], progress));
+            icon->m_player->setGlowOutline(getChroma(setups[getIndex(ptwo, getTag(), 2)],
+                gm->colorForIdx(gm->getPlayerGlowColor()), phase + 240 * opts["sep-glow"], percentage, progress));
+
+        // white
+        auto white = getChroma(setups[getIndex(ptwo, getTag(), 3)], ccc3(255, 255, 255), phase, percentage, progress);
+        if (icon->m_unlockType == UnlockType::Robot)
+            icon->m_player->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(white);
+        else if (icon->m_unlockType == UnlockType::Spider)
+            icon->m_player->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(white);
+        else
+            icon->m_player->m_detailSprite->setColor(white);
     }
 }
 
@@ -101,14 +114,22 @@ void PickItemButton::toggleChroma(bool current) {
     if (this->chroma)
         return;
     // off
-    if (this->getTag() > 10)
-        this->effect->setColor(opts["activate"] ? gm->colorForIdx(gm->getPlayerColor()) : ccc3(127, 127, 127));
+    if (this->getTag() > 9)
+        this->effect->setColor(opts["activate"] ? gm->colorForIdx(ptwo ? gm->getPlayerColor2() : gm->getPlayerColor()) : ccc3(127, 127, 127));
     else {
         auto p = this->icon->m_player;
-        p->setColor(opts["activate"] ? gm->colorForIdx(gm->getPlayerColor()) : ccc3(175, 175, 175));
-        p->setSecondColor(opts["activate"] ? gm->colorForIdx(gm->getPlayerColor2()) : ccc3(255, 255, 255));
+        p->setColor(opts["activate"] ? gm->colorForIdx(ptwo ? gm->getPlayerColor2() : gm->getPlayerColor()) : ccc3(175, 175, 175));
+        p->setSecondColor(opts["activate"] ? gm->colorForIdx(ptwo ? gm->getPlayerColor() : gm->getPlayerColor2()) : ccc3(255, 255, 255));
         if (p->m_hasGlowOutline)
             p->setGlowOutline(opts["activate"] ? gm->colorForIdx(gm->getPlayerGlowColor()) : ccc3(255, 255, 255));
+
+        // white
+        if (icon->m_unlockType == UnlockType::Robot)
+            icon->m_player->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(ccc3(255, 255, 255));
+        else if (icon->m_unlockType == UnlockType::Spider)
+            icon->m_player->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(ccc3(255, 255, 255));
+        else
+            icon->m_player->m_detailSprite->setColor(ccc3(255, 255, 255));
     }
 }
 

@@ -25,7 +25,7 @@ void ChromaLayer::switchTheme() {
     // item labels
     static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(5))->setColor(ccc3(CELL_COLOR));
     static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(6))->setColor(ccc3(CELL_COLOR));
-
+    static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(7))->setColor(ccc3(CELL_COLOR));
     // setup channel switch arrows
     m_leftArrowSetupBtn->setColor(ccc3(CELL_COLOR));
     m_rightArrowSetupBtn->setColor(ccc3(CELL_COLOR));
@@ -72,7 +72,7 @@ void ChromaLayer::refreshColorPage(int type) {
         m_oriColorDisplay->setColor(crtColor);
         // set color title
         m_colorTitle->setString(
-            std::regex_replace(getConfigKey(ptwo, this->id, this->channel),
+            std::regex_replace(getConfigKey(ptwo, this->id, (int)this->channel),
                 std::regex("-"), "  ").c_str());
     }
 
@@ -132,15 +132,24 @@ void ChromaLayer::fadeItemPage() {
     // case Item : return from another face
     // case terminal : init / exit
     bool in = face.back() == Face::Item || face.back() == Face::Init;
-    // title label
-    static_cast<TitleCell*>(this->getChildByID("title-label"))->Fade(in);
+    // title labelthis->getChildByID("item-menu")->getChildByID("title-label")
+    fade(m_titleLabel, in, ANIM_TIME_M, in ? 0.6 : 0.3, in ? 0.6 : 0.3);
+    // prepare effects
+    if (in) {
+        static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(7))
+            ->setString(("- " + items[(int)this->target - 4] + " -").c_str());
+        for (auto btn : m_effBundleCell->btns)
+            btn->setModeTarget(this->target);
+    }
     // item menu
     (opts["easy"] ? m_ezyBundleCell : m_advBundleCell)->Fade(in);
     m_effBundleCell->Fade(in);
     // labels
     fade(m_playerItemBtn, in, ANIM_TIME_L, in ? 1 : 5, in ? 1 : 0.2);
-    fade(this->getChildByID("item-menu")->getChildByTag(5), in, ANIM_TIME_L, in ? 0.7 : 3.5, in ? 0.7 : 0.14);
-    fade(this->getChildByID("item-menu")->getChildByTag(6), in, ANIM_TIME_L, in ? 0.7 : 3.5, in ? 0.7 : 0.14);
+    fade(this->getChildByID("item-menu")->getChildByTag(5), in, ANIM_TIME_L, in ? 0.7 : 0.35, in ? 0.7 : 0.35);
+    fade(this->getChildByID("item-menu")->getChildByTag(6), in, ANIM_TIME_L, in ? 0.7 : 0.35, in ? 0.7 : 0.35);
+    if (!opts["easy"])
+        fade(this->getChildByID("item-menu")->getChildByTag(7), in, ANIM_TIME_L, in ? 0.5 : 0.25, in ? 0.5 : 0.25);
     // easy adv
     fade(m_modeBtn, in, ANIM_TIME_M);
     // speed menu
@@ -165,7 +174,7 @@ void ChromaLayer::fadeSetupPage() {
 
     fade(m_chnlSetupLabel, in, ANIM_TIME_L, 0.32, 0.32);
 
-    if (id < 10) {
+    if (id != 12 && id != 15) {
         fade(m_leftArrowSetupBtn, in);
         fade(m_rightArrowSetupBtn, in);
     }
@@ -221,6 +230,24 @@ void ChromaLayer::fadeOptionsPage() {
 void ChromaLayer::fadeInfoPage() {
     bool in = face.back() == Face::Info;
 
-    fade(this->getChildByID("info-menu")->getChildByID("lazy-label"),
-        in, ANIM_TIME_L, in ? 0.5 : 0.25, in ? 0.5 : 0.25);
+    fade(this->getChildByID("info-menu")->getChildByID("about"),
+        in, ANIM_TIME_L, in ? 0.64 : 0.32, in ? 0.64 : 0.32);
+    fade(this->getChildByID("info-menu")->getChildByID("version"),
+        in, ANIM_TIME_L, in ? 0.3 : 0.15, in ? 0.3 : 0.15);
+    fade(this->getChildByID("info-menu")->getChildByID("manual"),
+        in, ANIM_TIME_L, in ? 0.5 : 0.2, in ? 0.5 : 0.25);
+    fade(this->getChildByID("info-menu")->getChildByID("author"),
+        in, ANIM_TIME_L, in ? 0.5 : 0.2, in ? 0.5 : 0.25);
+
+    // btns
+    for (auto obj: CCArrayExt<CCNode*>(this->getChildByID("info-menu")->getChildByID("manual-menu")->getChildren()))
+        fade(obj, in);
+    for (auto obj: CCArrayExt<CCNode*>(this->getChildByID("info-menu")->getChildByID("author-menu")->getChildren()))
+        fade(obj, in);
+
+    // thanks
+    fade(this->getChildByID("info-menu")->getChildByID("thanks-title"),
+        in, ANIM_TIME_L, in ? 0.5 : 0.2, in ? 0.5 : 0.25);        
+    fade(this->getChildByID("info-menu")->getChildByID("thanks-content"),
+        in, ANIM_TIME_L, in ? 0.4 : 0.2, in ? 0.4 : 0.2);
 }

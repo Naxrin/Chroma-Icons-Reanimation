@@ -17,7 +17,14 @@ enum class Face {
     Warn = 7
 };
 
-// fubao is clever neko
+inline int getIDType(int id) {
+    if (id < 10) return 0;
+    if (id == 12 || id == 15) return 2;
+    return 1;
+}
+
+// fubao is like a clever neko witch
+// miss her so much
 class ChromaLayer : public Popup<>, public ColorPickerDelegate {
 protected:
     /********** VARIENT CENTRAL ***********/
@@ -31,18 +38,23 @@ protected:
     // @note easy mode : common = 0
     // @note adv mode : icons = 1-9
     // @note Effects (11~15?) : trail, wave trail, dash fire, teleport line, ufo shell...
-    short id = -1;
+    short id;
 
-    // current channel in setup page
-    // @note 0-2 = main/second/glow
+    // current item channel in setup page
+    // @note 0-3 = main/second/glow/white
     Channel channel = Channel::Main;
+
+    // current effect target in setup page
+    // @note 4-12 = cube-jetpack
+    Channel target = Channel::Cube;
 
     // current editing color tag in case color page dosen't know what he's working on
     int colorTag = 0;
 
-
     // phase for schedule update
     float phase = 0;
+    // percentage simulator
+    float percentage = 0;
 
     // current config data
     ChromaSetup currentSetup = DEFAULT_SETUP;
@@ -57,11 +69,8 @@ protected:
     // setup scroller
     SetupItemCell* m_currentItem = nullptr;
 
-    bool copied_color = false;
-    ccColor3B clipColor = ccColor3B();
-
-    bool copied_setup = false;
-    ChromaSetup clipSetup = ChromaSetup();
+    std::pair<bool, ccColor3B> clipColor;
+    std::pair<bool, ChromaSetup> clipSetup;
 
     /********** UI THINGS ***********/
 
@@ -92,6 +101,8 @@ protected:
     // paste button
     CCMenuItemSpriteExtra* m_pasteBtn;
 
+    // title
+    CCLabelBMFont* m_titleLabel;
     // player switch
     CCMenuItemToggler* m_playerItemBtn;
     // full icons
@@ -270,7 +281,11 @@ protected:
 
     // launch info page
     // @param sender the options button
-    void onInfo(CCObject* sender);
+    void onInfoPage(CCObject* sender);
+
+    // clicked an info button
+    // @param sender the options button
+    void onInfoButtons(CCObject* sender);
 
     // expand or collapse sub buttons
     void onColorDisplayBtn(CCObject* sender);
