@@ -200,7 +200,7 @@ class $modify(NivelEditorLayer, LevelEditorLayer) {
 #include <Geode/modify/MenuGameLayer.hpp>
 class $modify(MainGameLayer, MenuGameLayer) {
     // reset phase and tell mod central the level type in init
-	bool init() {
+	bool init() override {
         // reset phase
         lvlphase = 0;
         // allow chroma
@@ -352,15 +352,15 @@ class $modify(ChromaPlayer, PlayerObject) {
     }
 
     // spider teleport line i guess
-    void spiderTestJumpInternal(bool unk) {
+    void spiderTestJump(bool unk) {
 
         if (!opts["activate"]) {
-            PlayerObject::spiderTestJumpInternal(unk);
+            PlayerObject::spiderTestJump(unk);
             return;
         }
 
         auto pori = this->getPosition();
-        PlayerObject::spiderTestJumpInternal(unk);
+        PlayerObject::spiderTestJump(unk);
         auto pcur = this->getPosition();
         
         for (auto node : CCArrayExt<CCNode*>(this->getParent()->getChildren())) {
@@ -468,4 +468,5 @@ $on_mod(Loaded) {
     };
     for (auto [key, val] : defaultOpts)
         opts[key] = Mod::get()->getSavedValue<bool>(key, val);
+}
 }
