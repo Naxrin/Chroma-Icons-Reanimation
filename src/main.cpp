@@ -469,4 +469,3 @@ $on_mod(Loaded) {
     for (auto [key, val] : defaultOpts)
         opts[key] = Mod::get()->getSavedValue<bool>(key, val);
 }
-}
