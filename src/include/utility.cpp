@@ -1,7 +1,5 @@
 #include "utility.hpp"
 
-// is player 2
-bool ptwo = false;
 // level
 GJGameLevel* Level;
 // phase for game layer update

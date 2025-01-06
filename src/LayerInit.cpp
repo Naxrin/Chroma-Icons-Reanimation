@@ -454,31 +454,31 @@ bool ChromaLayer::setup() {
 
     sTag ++;
     auto prevOpt = OptionTogglerCell::create("Preview Effects", H, 300, sTag, "prev",
-        "Preview Chroma Effects in menu.");
+        "Preview Chroma Effects inside mod menu.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(prevOpt);
     H += prevOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto uiTitle = OptionTitleCell::create("Interface Options", H, 300, sTag, "interface-title");
+    auto uiTitle = OptionTitleCell::create("InterPage Options", H, 300, sTag, "interPage-title");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(uiTitle);
     H += 40.f;
 
     sTag ++;
     auto sepglowOpt = OptionTogglerCell::create("Seperate Glow Color Phase", H, 300, sTag, "sep-glow",
-        "Set phase of Glow Color keeps 120 degrees delay from Main Color.\nOtherwise Glow Color aligns with Main Color");
+        "Set phase (for Chromatic / Gradient mode) of Glow Color keeps 120 degrees delay from Main Color.\nOtherwise Glow Color aligns with Main Color");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepglowOpt);
     H += sepglowOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto sepsecondOpt = OptionTogglerCell::create("Seperate Secondary Color Phase", H, 300, sTag, "sep-second",
-        "Set phase of Secondary Color keeps 120 degrees lead from Main Color.\nOtherwise Secondary Color aligns with Main Color");
+        "Set phase (for Chromatic / Gradient mode) of Secondary Color keeps 120 degrees lead from Main Color.\nOtherwise Secondary Color aligns with Main Color");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepsecondOpt);
     H += sepsecondOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto sepdualOpt = OptionTogglerCell::create("Seperate Dual Mode Phase", H, 300, sTag, "sep-dual",
-        "Set color phase of P2 keeps 180 degrees away from P1.\n"
-        "Otherwise the two players use the same phase are their color are the same everytime.");
+        "Set color phase (for Chromatic / Gradient mode) of P2 keeps 180 degrees away from P1.\n"
+        "Otherwise the two players just cycles the same phase.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepdualOpt);
     H += sepdualOpt->getContentHeight() + 15.f;
 
@@ -508,9 +508,9 @@ bool ChromaLayer::setup() {
     H += riderOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto samedualOpt = OptionTogglerCell::create("Same Dual Color Mode", H, 300, sTag, "same-dual",
-        "Merge Player 2's color setup with Player 1.\nNOT the same thing with general Same Dual Color!"
-        "You can still preview unmerged P2 setup in this menu.");
+    auto samedualOpt = OptionTogglerCell::create("Same Dual Chroma Setup", H, 300, sTag, "same-dual",
+        "Merge Player 2's chroma setup with Player 1.\nThis only merge your chroma setup, but their default colors may be different!\n"
+        "NOT affecting menu preview.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(samedualOpt);
     H += samedualOpt->getContentHeight() + 15.f;
 
@@ -619,26 +619,16 @@ bool ChromaLayer::setup() {
     infoMenu->addChild(thanksTitleLabel);
 
     auto thanksContentLabel = CCLabelBMFont::create(
-        "@Mat for index login, CCSequence mac build, etc; this guy is my hero\n"
+        "@Mat for index login, CCSequence mac build: This guy is my hero\n"
         "@hiimjustin000 for More Icons mod support\n"
-        "@irryan for internal testing\n"
-        "@clunos for mac test",
+        "@TheSillyDoggo for Blur Background\n"
+        "@irryan&clunos for mod test\n",
         "ErasBold.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
     thanksContentLabel->setPosition(CCPoint(0.f, -110.f));
     thanksContentLabel->setColor(ccc3(127, 127, 127));
     HIDE(thanksContentLabel, 0.2, 0.2);
     thanksContentLabel->setID("thanks-content");
     infoMenu->addChild(thanksContentLabel);
-
-    /*
-    auto lazy = CCLabelBMFont::create(
-        "As I mentioned in Github,\nthis pre-release does NOTHING to ur icons.\n"
-        "I'm too lazy to make this info page in this pre-release.\n"        
-        "See you in official release!\n@_@",
-        "ErasBold.fnt"_spr, 460.f, CCTextAlignment::kCCTextAlignmentCenter);
-    lazy->setID("lazy-label");
-    HIDE(lazy, 0.25, 0.25)
-    infoMenu->addChild(lazy);*/
 
     // update
     this->scheduleUpdate();

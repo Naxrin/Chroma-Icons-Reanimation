@@ -134,6 +134,10 @@ public:
         for (auto btn : this->btns)
             btn->toggleChroma();
     }
+    void switchPlayer() {
+        for (auto btn : this->btns)
+            btn->switchPlayer();
+    }
     static ItemCell* create(int tag) {
         auto node = new ItemCell();
         if (node && node->init(tag)) {

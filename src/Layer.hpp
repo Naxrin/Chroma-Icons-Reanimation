@@ -6,15 +6,8 @@
 #include "blur/CCBlurLayer.hpp"
 
 // interface code in menu
-enum class Face {
-    Terminal = -1,
-    Init = 0,
-    Item = 1,
-    Setup = 3,
-    Color = 4,
-    Options = 5,
-    Info = 6,
-    Warn = 7
+enum class Page {
+    Terminal, Init, Item, Setup, Color, Options, Info, Warn
 };
 
 inline int getIDType(int id) {
@@ -24,7 +17,7 @@ inline int getIDType(int id) {
 }
 
 // fubao is like a clever neko witch
-// miss her so much
+// miss her super much
 class ChromaLayer : public Popup<>, public ColorPickerDelegate {
 protected:
     /********** VARIENT CENTRAL ***********/
@@ -32,13 +25,16 @@ protected:
     // interface status chain
     // @note for initialize the first node is Init, when you're gonna quit the menu we temply add a Terminal node
     // @note if warn page is triggered, warn page will be added firstly
-    std::vector<Face> face;
+    std::vector<Page> pages;
 
     // the identifier of the current modifying icon/effect for setup menu
     // @note easy mode : common = 0
     // @note adv mode : icons = 1-9
     // @note Effects (11~15?) : trail, wave trail, dash fire, teleport line, ufo shell...
     short id;
+
+    // dual player 1/2
+    bool ptwo;
 
     // current item channel in setup page
     // @note 0-3 = main/second/glow/white
@@ -319,6 +315,10 @@ public:
     // process some init animation
     void show() override;
 
+    // not knowing why android directly leave mod menu
+    void keyBackClicked() override {
+        this->onClose(nullptr);
+    }
     // constructor
     static ChromaLayer* create() {
         auto layer = new ChromaLayer();

@@ -1,7 +1,6 @@
 #include "cells.hpp"
 
 extern std::map<std::string, bool> opts;
-extern bool ptwo;
 
 bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     // myself

@@ -1,28 +1,40 @@
 ![image](naxrin.chroma_icons/title.png)
 # <cy>Chroma Icons</c>
-The 2.2 Geode port of **Mega Hack v7 Icon Effect**!
+Reanimation of legacy Chroma Icons for GD 2.204 @ geode 2.x, the 2.2 Geode port of **Mega Hack v7 Icon Effect**!  
 Besides original functions, this mod also has:  
-#### <cy>Intergrated UI</c>
-Enjoy your mod config in new designed integrated mysterious menu!
+#### <cy>New Intergrated Mod Menu</c>
+Enjoy your mod config and preview them in a new designed integrated mysterious menu!
 #### <cy>Set different colors for Gamemodes</c>
-Set them together in easy-mode, or customize various gamemode icons individually in advanced-mode!  
-Switch Easy / Advanced mode in bottom left corner of main menu.
-#### <cy>Seperate Riders</c>
-Optional to set cube riders' color follow their ship/ufo vehicles or the cube's own color;
+Set them together in <cb>easy-mode</c>, or customize various gamemode icons individually in <cr>advanced-mode</c>!  
+Switch <cb>Easy</c> / <cr>Advanced</c> mode in bottom left corner of main menu.
+#### <cy>Optional Vehicle Riders</c>
+Set cube riders' color follow their ship/ufo/jetpack vehicles or remain the cube's own color;
+#### <cy>Mods Compatible</c>
+Max effort made to make this mod compatible with other icon modifying modes, such as **Separate Dual Icons** (Weebify) and **More Icons** (hiimjustin000).
 #### <cy>Ultimate Trigger</c>
-Toggle ON/OFF the whole mod without having to relaunch your game!
+Toggle <cg>ON</c> / <cr>OFF</c> the whole mod anytime you want!  
 
-### <cy>How to Use</c>
-This mod adds its button to Icon **Select Menu** *(GJGarageLayer)* , to **Pause Menu** *(PauseLayer)*, and also **Level Editor Page** *(LevelEditorLayer)*, so you can access the mod menu either in game menu or in playing a level.  
-
-### <cy>Warning:</c>
-Regarding Pointercrate List Team's policy for Mega Hack v7's Icon Effects, some behaviors related with this mod, such as editing Icon Effects in playing a demon list level, is probably <cr>**Not Allowed**</c> for record submission.  
+## <cr>WARNING</c>
+Regarding Pointercrate and some other Lists' policy for Mega Hack v7's Icon Effects, when setting your player icons variable in playing a list level, some chroma patterns may really <cr>**Violate guidlines**</c> and result in your submission getting <cr>**REJECTED**</c>. This mod will NEVER take responsibility for your ignoring this.  
 
 ### <cy>Also Note that:</c>
-I recommend you <cr>Disable</c> all your other related Icon Color modifier mods (e.g. Same Dual Color) to avoid messing up with this one (though I'm not willing to set them conflict to force you disable them);
+- Despite max effort made on compatibility, This mod may very probably conflict with other related Icon Color modifier mods (e.g. Same Dual Color). I'm not willing to set them conflict to force you pick one, But you can take a try yourself, also you can contact me to look into your conflict mods;
+- Spider Teleport Line modifying is yet not supported on Mac ~~cuz PlayerObject::onSpiderJump(bool) is not implemented for Mac yet~~  
 
-### <cy>Bug/Crash Report Contact:</c>
-This mod is still under construction and update, I can not promise/believe this is really wholy perfect with zero bug.  
-Besides under my github repo, you can also contact me via:  
-- Discord: Naxrin#6957 (recommended)  
-- Twitter: @Naxrin19
+## <cy>How to use this mod?</c>
+This mod adds its menu entrance button to:
+- **Icon Select Menu** *(GJGarageLayer)*
+- **Pause Menu** *(PauseLayer)*
+- **Level Editor Page** *(LevelEditorLayer)* (if option *Editor Test* ON)
+so you can access the mod menu either in game menu or in playing a level.  
+Note that:  
+- Whenever you change any chroma pattern (e.g. in a paused level), your setup / option changes will take effect immediately (e.g. once you resume to play).
+- For detailed manual, see you in [ReadMe](https://github.com/Naxrin/Chroma-Icons-Reanimation) in Github repo. I try my best to describle this mod's logic there.  
+
+## <cy>Claim</c>
+- All works related to blur background in this mod are copied from TheSillyDoggo's [Blur BG](https://github.com/TheSillyDoggo/Blur-BG)  
+- Will pull request soon and set that as dependency if Blur BG is added to index later.  
+
+### <cy>Contact me outside Github:</c>
+- Discord: [Naxrin#6957](https://discordapp.com/users/414986613962309633) (recommended)  
+- Twitter: [@Naxrin19](https://x.com/Naxrin19)

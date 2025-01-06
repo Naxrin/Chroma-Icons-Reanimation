@@ -2,12 +2,13 @@
 
 extern std::map<short, ChromaSetup> setups;
 extern std::map<std::string, bool> opts;
-extern bool ptwo;
 
 // UnlockType tags by RobTop
 const static int gametype[9] = {1, 4, 5, 6, 7, 8, 9, 13, 14};
-// IconType name
-const static std::string names[9] = {"icon", "ship", "ball", "ufo", "wave", "robot", "spider", "swing", "jetpack"};
+// IconType name for More Icons
+const static std::string MInames[9] = {"icon", "ship", "ball", "ufo", "wave", "robot", "spider", "swing", "jetpack"};
+// IconType and Colors name for Separate Dual Icons
+const static std::string SDInames[9] = {"cube", "ship", "roll", "bird", "dart", "robot", "spider", "swing", "jetpack"};
 //player mode
 const static int garageIconIndex[9] = {
     gm->getPlayerFrame(), gm->getPlayerShip(), gm->getPlayerBall(),
@@ -18,15 +19,19 @@ const static int garageIconIndex[9] = {
 bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback) {
     this->setTag(tag);
     this->src = src;
-    
+
     // effect
     if (tag > 10) {
         // spr
         effect = GJItemEffect::createEffectItem(tag - 10);
         effect->setScale(src ? 0.75 : 0.85);
+        // init frame color
+        this->setPlayerStatus();
         // init button
         return CCMenuItemSpriteExtra::init(effect, effect, target, callback);
     }
+    // init color
+
     // icon
     // spr
     int index = tag ? tag - 1 : 0;
@@ -39,11 +44,13 @@ bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_Menu
         icon->setScale(0.8);
 
     // more icons compatible
-    if (auto mod = Loader::get()->getLoadedMod("hiimjustin000.more_icons")) {
-        auto name = mod->getSavedValue<std::string>(tag ? names[index] : "icon");
+    if (auto MI = Loader::get()->getLoadedMod("hiimjustin000.more_icons")) {
+        auto name = MI->getSavedValue<std::string>(MInames[index]);
         DispatchEvent<SimplePlayer*, std::string, IconType>(
-            "hiimjustin000.more_icons/simple-player", icon->m_player, name, IconType(index)).post();        
+            "hiimjustin000.more_icons/simple-player", icon->m_player, name, IconType(index)).post();
     }
+    // init frame color
+    this->setPlayerStatus();
 
     // cascade opacity ohh fuck
     icon->setCascadeOpacityEnabled(true);
@@ -58,6 +65,50 @@ bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_Menu
     }
     // init button
     return CCMenuItemSpriteExtra::init(icon, icon, target, callback);
+}
+
+void PickItemButton::setPlayerStatus() {
+    int index = this->getTag() ? this->getTag() - 1 : 0;
+    int f, m, s, g;
+    bool alreadySet = false;
+    
+    // Sep Dual Icons compatible
+    if (auto SDI = Loader::get()->getLoadedMod("weebify.separate_dual_icons")) {
+        if (index < 10) {
+            // update frames
+            f = SDI->getSavedValue<int64_t>(SDInames[index]);
+            this->icon->m_player->updatePlayerFrame(f, IconType(index));            
+        }
+
+        if (ptwo) {
+            // colors
+            m = SDI->getSavedValue<int64_t>("color1");
+            s = SDI->getSavedValue<int64_t>("color2");
+            g = SDI->getSavedValue<int64_t>("colorglow");
+            alreadySet = true;
+        }
+    }
+
+    if (!alreadySet) {
+        m = ptwo ? gm->getPlayerColor2() : gm->getPlayerColor();
+        s = ptwo ? gm->getPlayerColor() : gm->getPlayerColor2();
+        g = gm->getPlayerGlowColor();
+    }
+
+    this->mainColor = gm->colorForIdx(m);
+    this->secondColor = gm->colorForIdx(s);
+    this->glowColor = gm->colorForIdx(g);
+
+    if (index > 9)
+        return;
+    // More Icons compatible
+    if (auto MI = Loader::get()->getLoadedMod("hiimjustin000.more_icons")) {
+        // config
+        auto name = MI->getSavedValue<std::string>(MInames[index] + (ptwo ? "-dual" : ""));
+        // post event
+        DispatchEvent<SimplePlayer*, std::string, IconType>(
+            "hiimjustin000.more_icons/simple-player", icon->m_player, name, IconType(index)).post();
+    }    
 }
 
 void PickItemButton::delayFade(int delay, bool in) {
@@ -75,21 +126,18 @@ void PickItemButton::runChroma(float const& phase, float const& percentage, floa
         return;
     if (this->getTag() > 10)
         this->effect->setColor(getChroma(
-            setups[getIndex(ptwo, getTag(), effect->targetMode)],
-                gm->colorForIdx(ptwo ? gm->getPlayerColor2() : gm->getPlayerColor()), phase, percentage, progress));
+            setups[getIndex(ptwo, getTag(), effect->targetMode)], this->mainColor, phase, percentage, progress));
     else {
         // main
         icon->m_player->setColor(getChroma(
-            setups[getIndex(ptwo, getTag(), 0)],
-                gm->colorForIdx(ptwo ? gm->getPlayerColor2() : gm->getPlayerColor()), phase, percentage, progress));
+            setups[getIndex(ptwo, getTag(), 0)], this->mainColor, phase, percentage, progress));
         // second
         icon->m_player->setSecondColor(getChroma(
-            setups[getIndex(ptwo, getTag(), 1)],
-                gm->colorForIdx(ptwo ? gm->getPlayerColor() : gm->getPlayerColor2()), phase + 120 * opts["sep-second"], percentage, progress));
+            setups[getIndex(ptwo, getTag(), 1)], this->secondColor, phase + 120 * opts["sep-second"], percentage, progress));
         // glow
         if (icon->m_player->m_hasGlowOutline)
-            icon->m_player->setGlowOutline(getChroma(setups[getIndex(ptwo, getTag(), 2)],
-                gm->colorForIdx(gm->getPlayerGlowColor()), phase + 240 * opts["sep-glow"], percentage, progress));
+            icon->m_player->setGlowOutline(getChroma(
+                setups[getIndex(ptwo, getTag(), 2)], this->glowColor, phase + 240 * opts["sep-glow"], percentage, progress));
 
         // white
         auto white = getChroma(setups[getIndex(ptwo, getTag(), 3)], ccc3(255, 255, 255), phase, percentage, progress);
@@ -115,19 +163,21 @@ void PickItemButton::toggleChroma(bool current) {
         return;
     // off
     if (this->getTag() > 9)
-        this->effect->setColor(opts["activate"] ? gm->colorForIdx(ptwo ? gm->getPlayerColor2() : gm->getPlayerColor()) : ccc3(127, 127, 127));
+        this->effect->setColor(opts["activate"] ? this->mainColor : ccc3(127, 127, 127));
     else {
         auto p = this->icon->m_player;
-        p->setColor(opts["activate"] ? gm->colorForIdx(ptwo ? gm->getPlayerColor2() : gm->getPlayerColor()) : ccc3(175, 175, 175));
-        p->setSecondColor(opts["activate"] ? gm->colorForIdx(ptwo ? gm->getPlayerColor() : gm->getPlayerColor2()) : ccc3(255, 255, 255));
+        p->setColor(opts["activate"] ? this->mainColor : ccc3(175, 175, 175));
+        p->setSecondColor(opts["activate"] ? this->secondColor : ccc3(255, 255, 255));
         if (p->m_hasGlowOutline)
-            p->setGlowOutline(opts["activate"] ? gm->colorForIdx(gm->getPlayerGlowColor()) : ccc3(255, 255, 255));
+            p->setGlowOutline(opts["activate"] ? this->glowColor : ccc3(255, 255, 255));
 
         // white
         if (icon->m_unlockType == UnlockType::Robot)
-            icon->m_player->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(ccc3(255, 255, 255));
+            icon->m_player->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)
+                ->setColor(ccc3(255, 255, 255));
         else if (icon->m_unlockType == UnlockType::Spider)
-            icon->m_player->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(ccc3(255, 255, 255));
+            icon->m_player->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)
+                ->setColor(ccc3(255, 255, 255));
         else
             icon->m_player->m_detailSprite->setColor(ccc3(255, 255, 255));
     }

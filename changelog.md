@@ -1,3 +1,37 @@
+# 3.2.0-beta.1
+Finally new project worths being submitted to Geode index...
+### Additions
+- White sprite chroma;
+- Spider Teleport Line returns (except mac);
+- Spider teleport line position align fix;
+- Separately config chroma patterns for different gamemode icons (advanced mode only)
+### Bugfix
+- Separate Dual Icons perfectly compatible;
+- Best option of Progress chroma works now;
+- More stable chroma engine;
+- Better gradient logic;
+- More useful options;
+- Less bugs & Optimized codes.  
+
+# 3.2.0-alpha.2
+### Additions
+- Chroma Engine constructed, now it should really chroma your icons;
+- Menu Preview: preview effect in mod menu (it's optional);
+### Bugfix
+- Fix crash without More Icons installed, this bug is so stupid;
+- Fix display issue of frames in mod menu ~~(by adding Happy Textures as required dependency)~~
+- Optimized mod menu, more effects and more stable;
+- Optimized codes.
+
+# 3.2.0-alpha.1
+Man! What can I say?
+### Notice
+- Windows Only
+- This is only a pre-release of menu UI design, this release will no sense chroma your icons in-game
+- This is not final UI conclusion. Will probably polish it later
+- May perhaps crash your game despite max effort taken to avoid such tragedy. Personally suggest relaunch your game and save your game data before flirting with current menu
+
+#### Legacy Chroma Icons Below
 # 2.2.0
 Besides Geode 4.x port, there are also:
 ### New element

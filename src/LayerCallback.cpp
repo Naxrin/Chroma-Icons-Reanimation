@@ -1,11 +1,12 @@
 // This file describes how the layer process direct callback from his buttons and signal from other menu classes inside.
 #include "Layer.hpp"
 #include <Geode/ui/GeodeUI.hpp>
+
 extern std::map<short, ChromaSetup> setups;
 extern std::map<std::string, bool> opts;
 extern float speed;
-extern bool ptwo;
 std::map<PlayerObject*, int> reset;
+
 /**************** EVENT HANDLER *******************/
 ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
     // activate
@@ -21,16 +22,12 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
         m_effBundleCell->toggleChroma();
 
         // setup item
-        for (auto obj : CCArrayExt<CCObject*>(m_setupAdvScroller->m_contentLayer->getChildren())) {
-            auto cell = static_cast<SetupItemCell*>(obj);
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
             if (cell != m_currentItem)
-                cell->m_btn->toggleChroma();
-        }
-        for (auto obj : CCArrayExt<CCObject*>(m_setupEasyScroller->m_contentLayer->getChildren())) {
-            auto cell = static_cast<SetupItemCell*>(obj);
+                cell->m_btn->toggleChroma(false);
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_setupEasyScroller->m_contentLayer->getChildren()))
             if (cell != m_currentItem)
-                cell->m_btn->toggleChroma();
-        }
+                cell->m_btn->toggleChroma(false);
     }
 
     // switch
@@ -109,26 +106,37 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
     
     // pick an item from item page or setup page
     else if (event->name == "pick") {
+        // spider test jump is not implemenmted for mac yet
+        #ifdef GEODE_IS_MACOS
+        if (event->value == 14) {
+            FLAlertLayer::create(
+                "Ooooops!",
+                "Chroma Spider teleport line is not supported for mac now, plz wait for future update!",
+                "Okay"
+            )->show();
+            return ListenerResult::Stop;            
+        }
+        #endif
         // from item menu icon
-        if (this->face.back() == Face::Item) {
+        if (this->pages.back() == Page::Item) {
             this->switchCurrentID(event->value);
             this->m_workspace->refreshUI(currentSetup, false);
-            this->face.push_back(Face::Setup);
+            this->pages.push_back(Page::Setup);
             this->fadeItemPage();
             fade(m_infoBtn, false, ANIM_TIME_M);
             this->runAction(CCSequence::create(
                 CCDelayTime::create(ANIM_TIME_M),
                 CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeSetupPage)),
                 CallFuncExt::create([this] () {
-                    fade(m_infoBtn, face.back() == Face::Item || face.back() == Face::Options, ANIM_TIME_M);
-                    fade(m_optionsBtn, face.back() == Face::Item || face.back() == Face::Setup || face.back() == Face::Color, ANIM_TIME_M);
-                    fade(m_applyBtn, face.back() == Face::Setup || face.back() == Face::Color, ANIM_TIME_M);
+                    fade(m_infoBtn, pages.back() == Page::Item || pages.back() == Page::Options, ANIM_TIME_M);
+                    fade(m_optionsBtn, pages.back() == Page::Item || pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
+                    fade(m_applyBtn, pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
                 }),
                 nullptr
             ));            
         }
         // from setup menu icon
-        else if (this->face.back() == Face::Setup) {
+        else if (this->pages.back() == Page::Setup) {
             bool really_changed = this->switchCurrentID(event->value);
             if (really_changed) {
                 // show or hide channel switch arrow
@@ -155,11 +163,11 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
 
     // launch color page
     else if (event->name == "color") {
-        auto cur = face.back();
-        face.push_back(Face::Color);
+        auto cur = pages.back();
+        pages.push_back(Page::Color);
         // maybe planning more
         switch (cur) {
-        case Face::Setup:
+        case Page::Setup:
             this->fadeSetupPage();
             break;
         default:
@@ -175,9 +183,9 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
             CCDelayTime::create(ANIM_TIME_M),
             CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeColorPage)),
             CallFuncExt::create([this] () {
-                fade(m_infoBtn, face.back() == Face::Item || face.back() == Face::Options, ANIM_TIME_M);
-                fade(m_optionsBtn, face.back() == Face::Item || face.back() == Face::Setup || face.back() == Face::Color, ANIM_TIME_M);
-                fade(m_applyBtn, face.back() == Face::Setup || face.back() == Face::Color, ANIM_TIME_M);
+                fade(m_infoBtn, pages.back() == Page::Item || pages.back() == Page::Options, ANIM_TIME_M);
+                fade(m_optionsBtn, pages.back() == Page::Item || pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
+                fade(m_applyBtn, pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
             }),
             nullptr
         ));
@@ -207,9 +215,9 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
             Mod::get()->setSavedValue("notify", false);
         // remind next time
         case 1:
-            face.pop_back();
+            pages.pop_back();
             this->fadeWarnPage();
-            face.push_back(Face::Init);
+            pages.push_back(Page::Init);
             this->fadeMainMenu();
             this->fadeItemPage();
             break;
@@ -242,10 +250,10 @@ ListenerResult ChromaLayer::handleColorSignal(SignalEvent<ccColor3B>* event) {
 // switch player
 void ChromaLayer::onSwitchPlayer(CCObject* sender) {
     // save config
-    if (this->face.back() == Face::Setup)
+    if (this->pages.back() == Page::Setup)
         this->refreshPreview(true);
     // flip own p2 value
-    ptwo = !ptwo;
+    this->ptwo = !this->ptwo;
     // flip his twin button
     if (sender->getTag() < 3)
         m_playerItemBtn->toggle(!m_playerSetupBtn->isToggled());
@@ -253,9 +261,21 @@ void ChromaLayer::onSwitchPlayer(CCObject* sender) {
         m_playerSetupBtn->toggle(!m_playerItemBtn->isToggled());
 
     // new config
-    currentSetup = setups[getIndex(ptwo, this->id, (int)this->channel)];
+    currentSetup = setups[getIndex(this->ptwo, this->id, (int)this->channel)];
+
+    // item menu toggle preview
+    m_advBundleCell->switchPlayer();
+    m_ezyBundleCell->switchPlayer();
+    m_effBundleCell->switchPlayer();
+
+    // setup item
+    for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
+        cell->m_btn->switchPlayer();
+    for (auto cell : CCArrayExt<SetupItemCell*>(m_setupEasyScroller->m_contentLayer->getChildren()))
+        cell->m_btn->switchPlayer();
+
     // if outside setup page, then refresh ui and return
-    if (this->face.back() != Face::Setup) {
+    if (this->pages.back() != Page::Setup) {
         m_workspace->refreshUI(currentSetup);
         return;
     }
@@ -316,15 +336,15 @@ void ChromaLayer::onSwitchChannelPage(CCObject* sender) {
         for (auto btn : m_effBundleCell->btns)
             btn->setModeTarget(this->target);
     }
-
     else
         this->channel = Channel((int(channel) + dir + 4) % 4);
+
     this->m_chnlSetupLabel->setString(((int)this->channel < 5 ? chnls[(int)this->channel] : items[(int)this->channel - 4]).c_str());
     // unused
     if (sender->getTag() == 3)
         dir = 0;
     // load new setup
-    currentSetup = setups[getIndex(ptwo, this->id, (int)this->channel)];
+    currentSetup = setups[getIndex(this->ptwo, this->id, (int)this->channel)];
     // crazy things
     this->m_workspace->runAction(CCSequence::create(
         CallFuncExt::create([this, dir] () {m_workspace->Fade(false, dir);}),
@@ -341,21 +361,21 @@ void ChromaLayer::onSwitchChannelPage(CCObject* sender) {
 }
 
 void ChromaLayer::onOptionsPage(CCObject*) {
-    auto cur = face.back();
-    face.push_back(Face::Options);
+    auto cur = pages.back();
+    pages.push_back(Page::Options);
 
     // fade out the old page
     fade(m_optionsBtn, false, ANIM_TIME_M);
     switch (cur) {
-    case Face::Item:
+    case Page::Item:
         this->fadeItemPage();
         fade(m_modeBtn, false, ANIM_TIME_M);
         break;
-    case Face::Setup:
+    case Page::Setup:
         this->fadeSetupPage();
         fade(m_applyBtn, false, ANIM_TIME_M);
         break;
-    case Face::Color:
+    case Page::Color:
         this->fadeColorPage();
         fade(m_applyBtn, false, ANIM_TIME_M);
         break;
@@ -366,27 +386,27 @@ void ChromaLayer::onOptionsPage(CCObject*) {
         CCDelayTime::create(ANIM_TIME_M),
         CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeOptionsPage)),
         CallFuncExt::create([this] () {
-            fade(m_infoBtn, face.back() == Face::Item || face.back() == Face::Options, ANIM_TIME_M);
-            fade(m_optionsBtn, face.back() == Face::Item || face.back() == Face::Setup || face.back() == Face::Color, ANIM_TIME_M);
-            fade(m_applyBtn, face.back() == Face::Setup || face.back() == Face::Color, ANIM_TIME_M);
+            fade(m_infoBtn, pages.back() == Page::Item || pages.back() == Page::Options, ANIM_TIME_M);
+            fade(m_optionsBtn, pages.back() == Page::Item || pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
+            fade(m_applyBtn, pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
         }),
         nullptr
     ));
 }
 
 void ChromaLayer::onInfoPage(CCObject*) {
-    auto cur = face.back();
-    face.push_back(Face::Info);
+    auto cur = pages.back();
+    pages.push_back(Page::Info);
 
     // fade out old page
     fade(m_infoBtn, false, ANIM_TIME_M);
     switch (cur) {
-    case Face::Item:
+    case Page::Item:
         this->fadeItemPage();
         fade(m_optionsBtn, false, ANIM_TIME_M);
         fade(m_modeBtn, false, ANIM_TIME_M);
         break;
-    case Face::Options:
+    case Page::Options:
         this->fadeOptionsPage();
     default:
         break;
@@ -396,9 +416,9 @@ void ChromaLayer::onInfoPage(CCObject*) {
         CCDelayTime::create(ANIM_TIME_M),
         CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeInfoPage)),
         CallFuncExt::create([this] () {
-            fade(m_infoBtn, face.back() == Face::Item || face.back() == Face::Options, ANIM_TIME_M);
-            fade(m_optionsBtn, face.back() == Face::Item || face.back() == Face::Setup || face.back() == Face::Color, ANIM_TIME_M);
-            fade(m_applyBtn, face.back() == Face::Setup || face.back() == Face::Color, ANIM_TIME_M);
+            fade(m_infoBtn, pages.back() == Page::Item || pages.back() == Page::Options, ANIM_TIME_M);
+            fade(m_optionsBtn, pages.back() == Page::Item || pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
+            fade(m_applyBtn, pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
         }),
         nullptr
     ));
@@ -493,7 +513,7 @@ void ChromaLayer::onResc(CCObject* sender) {
 }
 
 void ChromaLayer::onApply(CCObject* sender) {
-    if (face.back() == Face::Color) {
+    if (pages.back() == Page::Color) {
         // color target
         this->getColorTarget()->setColor(crtColor);
         // set setup value
@@ -517,7 +537,7 @@ void ChromaLayer::onApply(CCObject* sender) {
         this->refreshPreview(false);
     }
     // im speechlees of the delay fade design
-    if (face.back() != Face::Item)
+    if (pages.back() != Page::Item)
         this->onClose(nullptr);
 }
 
@@ -526,34 +546,34 @@ void ChromaLayer::onClose(CCObject* sender) {
     if (this->on_slider)
         return;
 
-    auto cur = face.back();
-    face.pop_back();
+    auto cur = pages.back();
+    pages.pop_back();
 
     // fade out current page
     switch (cur) {
-    case Face::Info:
+    case Page::Info:
         this->fadeInfoPage();
         break;
-    case Face::Options:
+    case Page::Options:
         this->fadeOptionsPage();
-        if (face.back() != Face::Item)
+        if (pages.back() != Page::Item)
             fade(m_infoBtn, false, ANIM_TIME_M);
         break;
-    case Face::Color:
+    case Page::Color:
         this->fadeColorPage();
         break;
-    case Face::Setup:
+    case Page::Setup:
         this->fadeSetupPage();
         fade(m_applyBtn, false, ANIM_TIME_M);
         // dump config
         this->refreshPreview(true);
         break;
     // byebye menu
-    case Face::Item:
-        face.pop_back();
-        face.push_back(Face::Terminal);
+    case Page::Item:
+        pages.pop_back();
+        pages.push_back(Page::Terminal);
         this->fadeItemPage();
-        face.pop_back();
+        pages.pop_back();
         this->fadeMainMenu();
         this->runAction(CCFadeTo::create(ANIM_TIME_L, 0));
         m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, 0));
@@ -567,7 +587,7 @@ void ChromaLayer::onClose(CCObject* sender) {
         ));
         return;
     // escape
-    case Face::Warn:
+    case Page::Warn:
         this->fadeWarnPage();
         this->runAction(CCFadeTo::create(ANIM_TIME_L, 0));
         m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, 0));
@@ -586,29 +606,29 @@ void ChromaLayer::onClose(CCObject* sender) {
     }
     
     // fade in the new
-    switch (face.back()) {
-    case Face::Options:
+    switch (pages.back()) {
+    case Page::Options:
         this->runAction(CCSequence::create(
             CCDelayTime::create(ANIM_TIME_M),
             CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeOptionsPage)),
             nullptr
         ));
         break;
-    case Face::Color:
+    case Page::Color:
         this->runAction(CCSequence::create(
             CCDelayTime::create(ANIM_TIME_M),
             CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeColorPage)),
             nullptr
         ));
         break;
-    case Face::Setup:
+    case Page::Setup:
         this->runAction(CCSequence::create(
             CCDelayTime::create(ANIM_TIME_M),
             CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeSetupPage)),
             nullptr
         ));
         break;
-    case Face::Item:
+    case Page::Item:
         this->runAction(CCSequence::create(
             CCDelayTime::create(ANIM_TIME_M),
             CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeItemPage)),
@@ -621,9 +641,9 @@ void ChromaLayer::onClose(CCObject* sender) {
     this->runAction(CCSequence::create(
         CCDelayTime::create(ANIM_TIME_M),
         CallFuncExt::create([this] () {
-            fade(m_infoBtn, face.back() == Face::Item || face.back() == Face::Options, ANIM_TIME_M);
-            fade(m_optionsBtn, face.back() == Face::Item || face.back() == Face::Setup || face.back() == Face::Color, ANIM_TIME_M);
-            fade(m_applyBtn, face.back() == Face::Setup || face.back() == Face::Color, ANIM_TIME_M);
+            fade(m_infoBtn, pages.back() == Page::Item || pages.back() == Page::Options, ANIM_TIME_M);
+            fade(m_optionsBtn, pages.back() == Page::Item || pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
+            fade(m_applyBtn, pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
         }),
         nullptr
     ));

@@ -10,20 +10,33 @@ class PickItemButton : public CCMenuItemSpriteExtra {
 protected:
     // this icon is from setup page or not
     bool src;
+    // is player 2
+    bool ptwo;
     // chroma
     bool chroma = false;
     GJItemIcon* icon = nullptr;
     GJItemEffect* effect = nullptr;
+    // colors
+    ccColor3B mainColor;
+    ccColor3B secondColor;
+    ccColor3B glowColor;
     // init
     bool init(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback);
 public:
+    // set frame and default colors
+    void switchPlayer() {
+        this->ptwo = !ptwo;
+        setPlayerStatus();
+    }
+    // set player status
+    void setPlayerStatus();
     // fade one by one
     void delayFade(int delay, bool in);
     // chroma proxy
     void runChroma(float const& phase, float const& percentage, float const& progress);
     // for current item switch
     void toggleChroma();
-    // toggle on or off chroma, activated means not grey
+    // toggle on or off chroma
     void toggleChroma(bool current);
     // edit mode target (effect only)
     void setModeTarget(Channel tg) {

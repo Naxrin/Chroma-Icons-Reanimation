@@ -3,7 +3,6 @@
 extern std::map<short, ChromaSetup> setups;
 extern std::map<std::string, bool> opts;
 extern float speed;
-extern bool ptwo;
 
 void ChromaLayer::updateSpeedValue(float value) {
     speed = value;
@@ -72,7 +71,7 @@ void ChromaLayer::refreshColorPage(int type) {
         m_oriColorDisplay->setColor(crtColor);
         // set color title
         m_colorTitle->setString(
-            std::regex_replace(getConfigKey(ptwo, this->id, (int)this->channel),
+            std::regex_replace(getConfigKey(this->ptwo, this->id, (int)this->channel),
                 std::regex("-"), "  ").c_str());
     }
 
@@ -114,7 +113,7 @@ void ChromaLayer::transistColorBtn(bool isCrt, bool display) {
 
 // fade main menu
 void ChromaLayer::fadeMainMenu() {
-    bool in = !face.empty();
+    bool in = !pages.empty();
     
     this->getChildByID("main-menu")->runAction(CCSpawn::create(
         CCFadeTo::create(ANIM_TIME_L, in * 255),
@@ -124,14 +123,14 @@ void ChromaLayer::fadeMainMenu() {
 }
 
 void ChromaLayer::fadeWarnPage() {
-    bool in = !face.empty();
+    bool in = !pages.empty();
     m_warnPage->Fade(in);
 }
 
 void ChromaLayer::fadeItemPage() {
-    // case Item : return from another face
+    // case Item : return from another Page
     // case terminal : init / exit
-    bool in = face.back() == Face::Item || face.back() == Face::Init;
+    bool in = pages.back() == Page::Item || pages.back() == Page::Init;
     // title labelthis->getChildByID("item-menu")->getChildByID("title-label")
     fade(m_titleLabel, in, ANIM_TIME_M, in ? 0.6 : 0.3, in ? 0.6 : 0.3);
     // prepare effects
@@ -155,13 +154,13 @@ void ChromaLayer::fadeItemPage() {
     // speed menu
     static_cast<SpeedSliderBundle*>(this->getChildByID("item-menu")->getChildByID("speed-menu"))->Fade(in);
     // init addition
-    if (face.back() == Face::Init)
-        face.push_back(Face::Item);
+    if (pages.back() == Page::Init)
+        pages.push_back(Page::Item);
 
 }
 
 void ChromaLayer::fadeSetupPage() {
-    bool in = face.back() == Face::Setup;
+    bool in = pages.back() == Page::Setup;
     // switch between easy and adv
     if (opts["easy"])
         m_setupEasyScroller->Transition(in, id > 10 ? 16 - id : 6);
@@ -184,7 +183,7 @@ void ChromaLayer::fadeSetupPage() {
     m_workspace->Fade(in);
 }
 void ChromaLayer::fadeColorPage() {
-    bool in = face.back() == Face::Color;
+    bool in = pages.back() == Page::Color;
 
     // color menu title
     fade(m_colorTitle, in, ANIM_TIME_L, in ? 0.7 : 0.35, in ? 0.7 : 0.35);
@@ -221,14 +220,14 @@ void ChromaLayer::fadeColorPage() {
 }
 
 void ChromaLayer::fadeOptionsPage() {
-    bool in = face.back() == Face::Options;
+    bool in = pages.back() == Page::Options;
     // animation
     // move offset not solved, give false for now
     m_optionScroller->Transition(in, 0);
 }
 
 void ChromaLayer::fadeInfoPage() {
-    bool in = face.back() == Face::Info;
+    bool in = pages.back() == Page::Info;
 
     fade(this->getChildByID("info-menu")->getChildByID("about"),
         in, ANIM_TIME_L, in ? 0.64 : 0.32, in ? 0.64 : 0.32);

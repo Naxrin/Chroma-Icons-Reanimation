@@ -3,7 +3,6 @@
 extern std::map<short, ChromaSetup> setups;
 extern std::map<std::string, bool> opts;
 extern float speed;
-extern bool ptwo;
 
 // process some init animation
 void ChromaLayer::show() {
@@ -16,10 +15,10 @@ void ChromaLayer::show() {
     bool warn = Mod::get()->getSavedValue<bool>("notify", true) && PlayLayer::get()
         && PlayLayer::get()->m_level->m_demonDifficulty == 6;
     if (warn) {
-        face.push_back(Face::Warn);
+        pages.push_back(Page::Warn);
         this->fadeWarnPage();
     } else {
-        face.push_back(Face::Init);
+        pages.push_back(Page::Init);
         
         this->fadeMainMenu();
         this->runAction(CCSequence::create(
@@ -108,13 +107,13 @@ CCMenuItemSpriteExtra* ChromaLayer::getColorTarget() {
 
 void ChromaLayer::refreshPreview(bool dump) {
     // dump setup
-    Mod::get()->setSavedValue(getConfigKey(ptwo, this->id, (int)this->channel), currentSetup);
-    setups[getIndex(ptwo, this->id, (int)this->channel)] = currentSetup;
+    Mod::get()->setSavedValue(getConfigKey(this->ptwo, this->id, (int)this->channel), currentSetup);
+    setups[getIndex(this->ptwo, this->id, (int)this->channel)] = currentSetup;
 }
 
 bool ChromaLayer::switchCurrentID(int id) {
     // switch a nonsense
-    if (this->id == id && face.back() == Face::Setup)
+    if (this->id == id && pages.back() == Page::Setup)
         return false;
 
     if (m_currentItem) {
@@ -148,7 +147,7 @@ bool ChromaLayer::switchCurrentID(int id) {
     m_chnlSetupLabel->setString(((int)this->channel < 5 ? chnls[(int)this->channel] : items[(int)this->channel - 4]).c_str());
 
     // load new setup
-    currentSetup = setups[getIndex(ptwo, this->id, (int)this->channel)];
+    currentSetup = setups[getIndex(this->ptwo, this->id, (int)this->channel)];
 
     // locate new current setup item
     int tag = id > 9 ? 16 - id : (opts["easy"] ? 6 : 15 - id);
