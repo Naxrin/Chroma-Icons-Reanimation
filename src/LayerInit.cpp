@@ -12,6 +12,7 @@ bool ChromaLayer::setup() {
     // winSize
     auto winSize = CCDirector::sharedDirector()->getWinSize();
     this->id = opts["easy"] ? 0 : 1;
+
     /********** BG **********/
 
     // bg regarding theme color
@@ -313,13 +314,13 @@ bool ChromaLayer::setup() {
     this->addChild(colorMenu);
 
     // title
-    this->m_colorTitle = CCLabelBMFont::create("Pick a Color", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
+    this->m_colorTitle = CCLabelBMFont::create("Pick a Color", "ErasBold.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
     m_colorTitle->setPosition(CCPoint(0.f, 130.f));
     HIDE(m_colorTitle, 0.35, 0.35)
     m_colorTitle->setTag(5);
     colorMenu->addChild(m_colorTitle);
 
-    this->m_colorItem = CCLabelBMFont::create("target", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
+    this->m_colorItem = CCLabelBMFont::create("target", "ErasBold.fnt"_spr, 300.f, CCTextAlignment::kCCTextAlignmentCenter);
     m_colorItem->setPosition(CCPoint(0.f, 105.f));
     m_colorItem->setColor(ccc3(192, 192, 192));
     HIDE(m_colorItem, 0.2, 0.2)
@@ -509,7 +510,8 @@ bool ChromaLayer::setup() {
 
     sTag ++;
     auto samedualOpt = OptionTogglerCell::create("Same Dual Chroma Setup", H, 300, sTag, "same-dual",
-        "Merge Player 2's chroma setup with Player 1.\nThis only merge your chroma setup, but their default colors may be different!\n"
+        "Merge Player 2's chroma setup with Player 1.\n"
+        "This only merges your chroma setup, but their default colors may be different!\n"
         "NOT affecting menu preview.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(samedualOpt);
     H += samedualOpt->getContentHeight() + 15.f;
@@ -568,7 +570,7 @@ bool ChromaLayer::setup() {
     infoMenu->addChild(menuManual);
 
     int index = 0;
-    std::vector<const char*> manuals = {"githubBtn.png"_spr, "geodeBtn.png"_spr};
+    std::vector<const char*> manuals = {"geodeBtn.png"_spr, "githubBtn.png"_spr};
     for (auto manual : manuals) {
         auto spr = CCSprite::create(manual);
         spr->setScale(0.6);

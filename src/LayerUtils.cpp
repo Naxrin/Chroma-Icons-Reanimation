@@ -105,7 +105,7 @@ CCMenuItemSpriteExtra* ChromaLayer::getColorTarget() {
     return nullptr;
 }
 
-void ChromaLayer::refreshPreview(bool dump) {
+void ChromaLayer::dumpConfig() {
     // dump setup
     Mod::get()->setSavedValue(getConfigKey(this->ptwo, this->id, (int)this->channel), currentSetup);
     setups[getIndex(this->ptwo, this->id, (int)this->channel)] = currentSetup;
@@ -125,7 +125,7 @@ bool ChromaLayer::switchCurrentID(int id) {
         // stop chroma
         m_currentItem->m_btn->toggleChroma(false);
         // dump config
-        this->refreshPreview(true);
+        this->dumpConfig();
     }
     // change channel format
     int n = getIDType(id);
@@ -134,11 +134,11 @@ bool ChromaLayer::switchCurrentID(int id) {
         if (opts["easy"])
             this->channel = id ? Channel::Effect : Channel::Main;
         else
-            this->channel = n == 2 ? Channel::Effect : (n == 1 ? Channel::Cube : Channel::Main);        
+            this->channel = n == 2 ? Channel::Effect : (n == 1 ? Channel::Cube : Channel::Main);
     }
     // change target
     if (n == 1)
-        this->target = Channel::Cube;
+        this->target = this->channel;
     // edit id
     this->id = id;
 
@@ -157,7 +157,7 @@ bool ChromaLayer::switchCurrentID(int id) {
     // tint green
     if (m_currentItem) {
         // tint bg
-        m_currentItem->tint(ANIM_TIME_M, 0, 60, 0);
+        m_currentItem->tint(ANIM_TIME_M, 0, 80, 0);
         // tint gray
         m_currentItem->m_label->runAction(CCEaseExponentialOut::create(
             CCTintTo::create(ANIM_TIME_M, 0, 255, 0)));

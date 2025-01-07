@@ -192,8 +192,7 @@ protected:
     CCMenuItemSpriteExtra* getColorTarget();
 
     //refresh some chroma preview status when setup changed
-    // @param dump save current setup
-    void refreshPreview(bool dump);
+    void dumpConfig();
 
     // save config -> switch current ID and refresh setup page
     // @param id new target id he will switch to.

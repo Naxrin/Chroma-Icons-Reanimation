@@ -61,7 +61,7 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
     // check best toggler in workspace
     else if (event->name == "best") {
         currentSetup.best = event->value;
-        this->refreshPreview(false);
+        this->dumpConfig();
     }
 
 
@@ -76,7 +76,7 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
     if (event->name == "mode") {
         this->currentSetup.mode = event->value;
         this->m_workspace->refreshUI(currentSetup, true);
-        this->refreshPreview(false);
+        this->dumpConfig();
     }
 
     // set duty value
@@ -94,13 +94,13 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
             this->currentSetup.gradient[2 * d - 360] = grad1;
         if (d < 180)
             this->currentSetup.gradient[360 - d] = grad2;
-        this->refreshPreview(false);
+        this->dumpConfig();
     }
 
     // set saturation
     else if (event->name == "satu") {
         this->currentSetup.satu = event->value;
-        this->refreshPreview(false);
+        this->dumpConfig();
     }
 
     
@@ -252,7 +252,7 @@ ListenerResult ChromaLayer::handleColorSignal(SignalEvent<ccColor3B>* event) {
 void ChromaLayer::onSwitchPlayer(CCObject* sender) {
     // save config
     if (this->pages.back() == Page::Setup)
-        this->refreshPreview(true);
+        this->dumpConfig();
     // flip own p2 value
     this->ptwo = !this->ptwo;
     // flip his twin button
@@ -299,10 +299,10 @@ void ChromaLayer::onSwitchPlayer(CCObject* sender) {
 
 // Easy Mode Switch
 void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
-    // 1<->2 3<-->4
+    // flip
     opts["easy"] = !opts["easy"];
     // flip setting value
-    Mod::get()->setSavedValue("easy-mode", opts["easy"]);
+    Mod::get()->setSavedValue("easy", opts["easy"]);
     // full mode
     m_advBundleCell->Fade(!opts["easy"]);
     // easy mode
@@ -311,6 +311,10 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
     // effect target label
     fade(this->getChildByID("item-menu")->getChildByTag(7),
         !opts["easy"], ANIM_TIME_L, !opts["easy"] ? 0.5 : 0.25, !opts["easy"] ? 0.5 : 0.25);
+
+    // switch effect preview target in items menu
+    for (auto effbtn : m_effBundleCell->btns)
+        effbtn->setModeTarget(opts["easy"] ? Channel::Effect : this->target);
 
     auto btn = static_cast<CCMenuItemToggler*>(sender);
     // not knowing how to deal with spamming ui bug for now @_@
@@ -328,18 +332,23 @@ void ChromaLayer::onSwitchChannelPage(CCObject* sender) {
     if (this->id == 12 || this->id == 15 || (opts["easy"] && this->id))
         return;
     // dump settings
-    this->refreshPreview(true);
+    this->dumpConfig();
     // get what to do
     int dir = sender->getTag() > 1 ? 1 : -1;
-    // new channel
-    if (getIDType(id)) {
+    // effect target gamemode changed
+    if (getIDType(this->id)) {
         this->channel = Channel((int(channel) + dir + 4) % 9 + 5);
         this->target = this->channel;
-        static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(7))
-            ->setString(("- " + items[(int)this->target - 4] + " -").c_str());
-        for (auto btn : m_effBundleCell->btns)
-            btn->setModeTarget(this->target);
+
+        // refresh target of setup menu
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren())) {
+            if (cell->m_btn->getTag() > 9)
+                cell->m_btn->setModeTarget(this->target);
+            else
+                break;            
+        }
     }
+    // switch between main/second/glow/white
     else
         this->channel = Channel((int(channel) + dir + 4) % 4);
 
@@ -432,10 +441,10 @@ void ChromaLayer::onInfoButtons(CCObject* sender) {
     Task<bool> task;
     switch (sender->getTag()) {
     case 0:
-        system("start https://github.com/Naxrin/Chroma-Icons-Reanimation");
+        task = geode::openInfoPopup(Mod::get()->getID());
         return;
     case 1:
-        task = geode::openInfoPopup(Mod::get()->getID());
+        system("start https://github.com/Naxrin/Chroma-Icons-Reanimation");
         return;
     case 10:
         system("start https://www.youtube.com/@Naxrin");
@@ -485,7 +494,7 @@ void ChromaLayer::onPaste(CCObject* sender) {
         if (!clipSetup.first)
             return;
         currentSetup = this->clipSetup.second;
-        this->refreshPreview(false);
+        this->dumpConfig();
         this->m_workspace->runAction(CCSequence::create(
             CallFuncExt::create([this] () {
                 m_workspace->Fade(false);
@@ -538,7 +547,7 @@ void ChromaLayer::onApply(CCObject* sender) {
             currentSetup.progress.rbegin()->second = crtColor;
             break;
         }
-        this->refreshPreview(false);
+        this->dumpConfig();
     }
     // im speechlees of the delay fade design
     if (pages.back() != Page::Item)
@@ -570,7 +579,7 @@ void ChromaLayer::onClose(CCObject* sender) {
         this->fadeSetupPage();
         fade(m_applyBtn, false, ANIM_TIME_M);
         // dump config
-        this->refreshPreview(true);
+        this->dumpConfig();
         break;
     // byebye menu
     case Page::Item:

@@ -137,8 +137,9 @@ void ChromaLayer::fadeItemPage() {
     if (in) {
         static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(7))
             ->setString(("- " + items[(int)this->target - 4] + " -").c_str());
+        // refresh item menu target
         for (auto btn : m_effBundleCell->btns)
-            btn->setModeTarget(this->target);
+            btn->setModeTarget(opts["easy"] ? Channel::Effect : this->target);
     }
     // item menu
     (opts["easy"] ? m_ezyBundleCell : m_advBundleCell)->Fade(in);
@@ -156,7 +157,6 @@ void ChromaLayer::fadeItemPage() {
     // init addition
     if (pages.back() == Page::Init)
         pages.push_back(Page::Item);
-
 }
 
 void ChromaLayer::fadeSetupPage() {
@@ -164,8 +164,18 @@ void ChromaLayer::fadeSetupPage() {
     // switch between easy and adv
     if (opts["easy"])
         m_setupEasyScroller->Transition(in, id > 10 ? 16 - id : 6);
-    else
+    else {
         m_setupAdvScroller->Transition(in, id > 10 ? 16 - id : 15 - id);
+        if (in) {
+            // refresh target of setup menu
+            for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren())) {
+                if (cell->m_btn->getTag() > 9)
+                    cell->m_btn->setModeTarget(this->target);
+                else
+                    break;
+            }
+        }
+    }
 
     // player btn
     fade(m_playerSetupBtn, in, ANIM_TIME_L, 0.8, 0.8);
@@ -183,6 +193,7 @@ void ChromaLayer::fadeSetupPage() {
     fade(m_pasteBtn, in, ANIM_TIME_M);
     m_workspace->Fade(in);
 }
+
 void ChromaLayer::fadeColorPage() {
     bool in = pages.back() == Page::Color;
 

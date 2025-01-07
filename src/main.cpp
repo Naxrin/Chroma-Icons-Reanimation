@@ -337,8 +337,6 @@ class $modify(ChromaPlayer, PlayerObject) {
         }
 
         // trail
-        log::error("p2 = {}, streak = {}", m_isSecondPlayer, m_playerStreak);
-
         if (m_playerStreak != 2 && m_playerStreak != 7)
             this->m_regularTrail->setColor(getChroma(setups[getIndex(p, 11, id + 4)],
                 m_playerColor2, lvlphase + od, percentage, reset[this]));
@@ -441,7 +439,7 @@ $on_mod(Loaded) {
             if (id == 12 || id == 15)
                 setups[getIndex(p, id, 4)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, id, 4), DEFAULT_SETUP);
             else
-                for (short chnl = 4; chnl < 12; chnl++)
+                for (short chnl = 4; chnl < 14; chnl++)
                     setups[getIndex(p, id, chnl)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, id, chnl), DEFAULT_SETUP);
         }
     }

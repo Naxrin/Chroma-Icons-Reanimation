@@ -112,7 +112,8 @@ void PickItemButton::runChroma(float const& phase, float const& percentage, floa
         return;
     if (this->getTag() > 10)
         this->effect->setColor(getChroma(
-            setups[getIndex(ptwo, getTag(), effect->targetMode)], this->mainColor, phase, percentage, progress));
+            setups[getIndex(ptwo, getTag(), (this->getTag() == 12 || this->getTag() == 15) ? 4 : effect->targetMode)],
+            this->mainColor, phase, percentage, progress));
     else {
         // main
         icon->m_player->setColor(getChroma(
