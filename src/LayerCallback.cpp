@@ -114,8 +114,7 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
                 "Chroma Spider teleport line is not supported for mac now, plz wait for future update!",
                 "Okay"
             )->show();
-            return ListenerResult::Stop;            
-        }
+            return ListenerResult::Stop;
         #endif
         // from item menu icon
         if (this->pages.back() == Page::Item) {
@@ -140,8 +139,9 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
             bool really_changed = this->switchCurrentID(event->value);
             if (really_changed) {
                 // show or hide channel switch arrow
-                fade(m_leftArrowSetupBtn, id != 12 && id != 15);
-                fade(m_rightArrowSetupBtn, id != 12 && id != 15);
+                bool hideArrows = this->id == 12 || this->id == 15 || (opts["easy"] && this->id);
+                fade(m_leftArrowSetupBtn, !hideArrows);
+                fade(m_rightArrowSetupBtn, !hideArrows);
                 // workspace animation
                 this->m_workspace->runAction(CCSequence::create(
                     CallFuncExt::create([this] () {
@@ -323,6 +323,9 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
 
 // on switch channel page
 void ChromaLayer::onSwitchChannelPage(CCObject* sender) {
+    // no spamming :(
+    if (this->id == 12 || this->id == 15 || (opts["easy"] && this->id))
+        return;
     // dump settings
     this->refreshPreview(true);
     // get what to do

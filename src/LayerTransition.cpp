@@ -173,7 +173,8 @@ void ChromaLayer::fadeSetupPage() {
 
     fade(m_chnlSetupLabel, in, ANIM_TIME_L, 0.32, 0.32);
 
-    if (id != 12 && id != 15) {
+    // display channel switch arrows if necessary
+    if (!(this->id == 12 || this->id == 15 || (opts["easy"] && this->id))) {
         fade(m_leftArrowSetupBtn, in);
         fade(m_rightArrowSetupBtn, in);
     }

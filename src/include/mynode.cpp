@@ -43,13 +43,7 @@ bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_Menu
     else if (tag)
         icon->setScale(0.8);
 
-    // more icons compatible
-    if (auto MI = Loader::get()->getLoadedMod("hiimjustin000.more_icons")) {
-        auto name = MI->getSavedValue<std::string>(MInames[index]);
-        DispatchEvent<SimplePlayer*, std::string, IconType>(
-            "hiimjustin000.more_icons/simple-player", icon->m_player, name, IconType(index)).post();
-    }
-    // init frame color
+    // init frame and color
     this->setPlayerStatus();
 
     // cascade opacity ohh fuck
@@ -70,26 +64,29 @@ bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_Menu
 void PickItemButton::setPlayerStatus() {
     int index = this->getTag() ? this->getTag() - 1 : 0;
     int f, m, s, g;
-    bool alreadySet = false;
     
     // Sep Dual Icons compatible
-    if (auto SDI = Loader::get()->getLoadedMod("weebify.separate_dual_icons")) {
-        if (index < 10) {
-            // update frames
-            f = SDI->getSavedValue<int64_t>(SDInames[index]);
-            this->icon->m_player->updatePlayerFrame(f, IconType(index));            
-        }
-
-        if (ptwo) {
-            // colors
-            m = SDI->getSavedValue<int64_t>("color1");
-            s = SDI->getSavedValue<int64_t>("color2");
-            g = SDI->getSavedValue<int64_t>("colorglow");
-            alreadySet = true;
-        }
+    auto SDI = Loader::get()->getLoadedMod("weebify.separate_dual_icons");
+    // frame
+    if (index < 10) {
+        // update frames 
+        f = (SDI && ptwo) ? SDI->getSavedValue<int64_t>(SDInames[index]) : garageIconIndex[index];
+        this->icon->m_player->updatePlayerFrame(f, IconType(index));
+        // More Icons compatible
+        if (auto MI = Loader::get()->getLoadedMod("hiimjustin000.more_icons")) {
+            // config
+            auto name = MI->getSavedValue<std::string>(MInames[index] + (ptwo ? "-dual" : ""));
+            // post event
+            DispatchEvent<SimplePlayer*, std::string, IconType>(
+                "hiimjustin000.more_icons/simple-player", icon->m_player, name, IconType(index)).post();
+        }           
     }
-
-    if (!alreadySet) {
+    if (SDI && ptwo) {
+        // colors
+        m = SDI->getSavedValue<int64_t>("color1");
+        s = SDI->getSavedValue<int64_t>("color2");
+        g = SDI->getSavedValue<int64_t>("colorglow");
+    } else {
         m = ptwo ? gm->getPlayerColor2() : gm->getPlayerColor();
         s = ptwo ? gm->getPlayerColor() : gm->getPlayerColor2();
         g = gm->getPlayerGlowColor();
@@ -98,17 +95,6 @@ void PickItemButton::setPlayerStatus() {
     this->mainColor = gm->colorForIdx(m);
     this->secondColor = gm->colorForIdx(s);
     this->glowColor = gm->colorForIdx(g);
-
-    if (index > 9)
-        return;
-    // More Icons compatible
-    if (auto MI = Loader::get()->getLoadedMod("hiimjustin000.more_icons")) {
-        // config
-        auto name = MI->getSavedValue<std::string>(MInames[index] + (ptwo ? "-dual" : ""));
-        // post event
-        DispatchEvent<SimplePlayer*, std::string, IconType>(
-            "hiimjustin000.more_icons/simple-player", icon->m_player, name, IconType(index)).post();
-    }    
 }
 
 void PickItemButton::delayFade(int delay, bool in) {
