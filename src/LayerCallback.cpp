@@ -115,6 +115,7 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
                 "Okay"
             )->show();
             return ListenerResult::Stop;
+        }
         #endif
         // from item menu icon
         if (this->pages.back() == Page::Item) {
