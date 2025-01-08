@@ -11,7 +11,7 @@ bool ChromaLayer::setup() {
     this->setID("chroma-icons-central"_spr);
     // winSize
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-    this->id = opts["easy"] ? 0 : 1;
+    this->gamemode = this->history = opts["easy"] ? Gamemode::Icon : Gamemode::Cube;
 
     /********** BG **********/
 
@@ -100,6 +100,7 @@ bool ChromaLayer::setup() {
     m_modeBtn->setTag(3);
     m_modeBtn->setCascadeOpacityEnabled(true);
     m_modeBtn->setCascadeColorEnabled(true);
+    //m_modeBtn->setColor(opts["easy"] ? ccc3(127, 127, 255) : ccc3(255, 127, 127));
     m_modeBtn->setColor(ccc3(CELL_COLOR));    
     m_modeBtn->toggle(opts["easy"]);
     mainMenu->addChild(m_modeBtn);
@@ -575,6 +576,7 @@ bool ChromaLayer::setup() {
         auto spr = CCSprite::create(manual);
         spr->setScale(0.6);
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ChromaLayer::onInfoButtons));
+        btn->setColor(ccc3(CELL_COLOR));
         btn->setTag(index);
         HIDE(btn, 0, 0)
         menuManual->addChild(btn);
@@ -603,6 +605,7 @@ bool ChromaLayer::setup() {
         auto spr = CCSprite::create(author);
         spr->setScale(0.6);
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ChromaLayer::onInfoButtons));
+        btn->setColor(ccc3(CELL_COLOR));
         btn->setTag(10 + index);
         HIDE(btn, 0, 0)
         menuAuthor->addChild(btn);

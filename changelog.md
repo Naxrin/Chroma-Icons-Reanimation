@@ -4,7 +4,7 @@ Finally new project worths being submitted to Geode index...
 - White sprite chroma;
 - Spider Teleport Line returns (except mac);
 - Spider teleport line position align fix;
-- Separately config chroma patterns for different gamemode icons (advanced mode only)
+- Separately config effect chroma patterns for different gamemode icons (advanced mode only)
 ### Bugfix
 - Separate Dual Icons perfectly compatible;
 - Best option of Progress chroma works now;

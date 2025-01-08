@@ -23,11 +23,9 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
 
         // setup item
         for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
-            if (cell != m_currentItem)
-                cell->m_btn->toggleChroma(false);
+            cell->toggleChroma(cell == m_currentItem);
         for (auto cell : CCArrayExt<SetupItemCell*>(m_setupEasyScroller->m_contentLayer->getChildren()))
-            if (cell != m_currentItem)
-                cell->m_btn->toggleChroma(false);
+            cell->toggleChroma(cell == m_currentItem);
     }
 
     // switch
@@ -103,7 +101,6 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
         this->dumpConfig();
     }
 
-    
     // pick an item from item page or setup page
     else if (event->name == "pick") {
         // spider test jump is not implemenmted for mac yet
@@ -119,7 +116,7 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
         #endif
         // from item menu icon
         if (this->pages.back() == Page::Item) {
-            this->switchCurrentID(event->value);
+            this->switchCurrentItem(event->value);
             this->m_workspace->refreshUI(currentSetup, false);
             this->pages.push_back(Page::Setup);
             this->fadeItemPage();
@@ -137,12 +134,12 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
         }
         // from setup menu icon
         else if (this->pages.back() == Page::Setup) {
-            bool really_changed = this->switchCurrentID(event->value);
+            bool really_changed = this->switchCurrentItem(event->value);
             if (really_changed) {
                 // show or hide channel switch arrow
-                bool hideArrows = this->id == 12 || this->id == 15 || (opts["easy"] && this->id);
-                fade(m_leftArrowSetupBtn, !hideArrows);
-                fade(m_rightArrowSetupBtn, !hideArrows);
+                bool showArrows = this->id < 14 && !opts["easy"] || !this->id;
+                fade(m_leftArrowSetupBtn, showArrows);
+                fade(m_rightArrowSetupBtn, showArrows);
                 // workspace animation
                 this->m_workspace->runAction(CCSequence::create(
                     CallFuncExt::create([this] () {
@@ -262,7 +259,7 @@ void ChromaLayer::onSwitchPlayer(CCObject* sender) {
         m_playerSetupBtn->toggle(!m_playerItemBtn->isToggled());
 
     // new config
-    currentSetup = setups[getIndex(this->ptwo, this->id, (int)this->channel)];
+    currentSetup = setups[getIndex(this->ptwo, this->gamemode, this->channel)];
 
     // item menu toggle preview
     m_advBundleCell->switchPlayer();
@@ -271,9 +268,9 @@ void ChromaLayer::onSwitchPlayer(CCObject* sender) {
 
     // setup item
     for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
-        cell->m_btn->switchPlayer();
+        cell->switchPlayer();
     for (auto cell : CCArrayExt<SetupItemCell*>(m_setupEasyScroller->m_contentLayer->getChildren()))
-        cell->m_btn->switchPlayer();
+        cell->switchPlayer();
 
     // if outside setup page, then refresh ui and return
     if (this->pages.back() != Page::Setup) {
@@ -303,6 +300,17 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
     opts["easy"] = !opts["easy"];
     // flip setting value
     Mod::get()->setSavedValue("easy", opts["easy"]);
+    // gamemode
+    if (opts["easy"]) {
+        this->history = this->gamemode;
+        this->gamemode = Gamemode::Icon;
+    } else
+        this->gamemode = this->history;
+
+    // set color
+    //m_modeBtn->setColor(opts["easy"] ? ccc3(127, 127, 255) : ccc3(255, 127, 127));
+    // why ?
+    m_modeBtn->toggle(opts["easy"]);
     // full mode
     m_advBundleCell->Fade(!opts["easy"]);
     // easy mode
@@ -313,8 +321,7 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
         !opts["easy"], ANIM_TIME_L, !opts["easy"] ? 0.5 : 0.25, !opts["easy"] ? 0.5 : 0.25);
 
     // switch effect preview target in items menu
-    for (auto effbtn : m_effBundleCell->btns)
-        effbtn->setModeTarget(opts["easy"] ? Channel::Effect : this->target);
+    m_effBundleCell->setModeTarget(this->gamemode);
 
     auto btn = static_cast<CCMenuItemToggler*>(sender);
     // not knowing how to deal with spamming ui bug for now @_@
@@ -329,36 +336,44 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
 // on switch channel page
 void ChromaLayer::onSwitchChannelPage(CCObject* sender) {
     // no spamming :(
-    if (this->id == 12 || this->id == 15 || (opts["easy"] && this->id))
+    if (!(this->id < 14 && !opts["easy"] || !this->id))
         return;
     // dump settings
     this->dumpConfig();
     // get what to do
     int dir = sender->getTag() > 1 ? 1 : -1;
-    // effect target gamemode changed
-    if (getIDType(this->id)) {
-        this->channel = Channel((int(channel) + dir + 4) % 9 + 5);
-        this->target = this->channel;
 
+    // easy mode
+    if (opts["easy"])
+        this->channel = Channel((int(this->channel) + dir + 9) % 9);
+    // in effects modify, switch gamemode
+    else if (this->id > 9) {
+        this->gamemode = Gamemode((int(this->gamemode) + dir + 8) % 9 + 1);
         // refresh target of setup menu
-        for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren())) {
-            if (cell->m_btn->getTag() > 9)
-                cell->m_btn->setModeTarget(this->target);
-            else
-                break;            
-        }
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
+            if (!cell->setModeTarget(this->gamemode))
+                break;
     }
-    // switch between main/second/glow/white
+    // in icons modify, switch channel
+    else if (this->channel == Channel::Main && dir == -1)
+        this->channel = this->gamemode == Gamemode::Wave ? Channel::WaveTrail : (this->gamemode == Gamemode::Ufo ? Channel::UFOShell : Channel::TPLine);
+    else if (this->channel == Channel::TPLine && dir == 1)
+        this->channel = this->gamemode == Gamemode::Wave ? Channel::WaveTrail : (this->gamemode == Gamemode::Ufo ? Channel::UFOShell : Channel::Main);
+    else if (this->channel == Channel::WaveTrail)
+        this->channel = dir > 0 ? Channel::Main : Channel::TPLine;
+    else if (this->channel == Channel::UFOShell)
+        this->channel = dir > 0 ? Channel::Main : Channel::TPLine;
     else
-        this->channel = Channel((int(channel) + dir + 4) % 4);
+        this->channel = Channel(int(this->channel) + dir);
 
-    this->m_chnlSetupLabel->setString(((int)this->channel < 5 ? chnls[(int)this->channel] : items[(int)this->channel - 4]).c_str());
-    // unused
-    if (sender->getTag() == 3)
-        dir = 0;
     // load new setup
-    currentSetup = setups[getIndex(this->ptwo, this->id, (int)this->channel)];
-    // crazy things
+    currentSetup = setups[getIndex(this->ptwo, this->gamemode, this->channel)];
+
+    // labels
+    m_itemSetupLabel->setString(items[(int)this->gamemode].c_str());
+    m_chnlSetupLabel->setString(chnls[(int)this->channel].c_str());
+
+    // workspace
     this->m_workspace->runAction(CCSequence::create(
         CallFuncExt::create([this, dir] () {m_workspace->Fade(false, dir);}),
         CCDelayTime::create(dir ? ANIM_TIME_M / 3 : 0),

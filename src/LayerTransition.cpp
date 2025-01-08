@@ -15,8 +15,29 @@ void ChromaLayer::switchTheme() {
     // main-menu buttons 
     for (int tag = 1; tag < 6; tag ++)
         if (auto btn = getChildByID("main-menu")->getChildByTag(tag))
+            //if (tag != 3)
             btn->runAction(CCTintTo::create(ANIM_TIME_M, CELL_COLOR));
 
+    // options scroller cells
+    int TAG = m_optionScroller->getTag();
+    int tag = 1;
+    while (tag <= TAG) {
+        if (auto opt = m_optionScroller->m_contentLayer->getChildByTag(tag)) {
+            opt->runAction(CCSequence::create(
+                CCDelayTime::create(0.03*tag-0.03),
+                CallFuncExt::create([this, opt, tag, TAG]() {
+                    if (tag == TAG)
+                        static_cast<BaseCell*>(opt)->tint(ANIM_TIME_M, 80 * (!opts["activate"]), 80 * opts["activate"], 0);
+                    else
+                        static_cast<BaseCell*>(opt)->switchTheme();
+                }),
+                nullptr
+            ));
+            tag ++;
+        } else
+            break;
+    }
+    
     // items page
     for (auto obj : CCArrayExt<BaseCell*>(m_cells))
         obj->switchTheme();
@@ -42,25 +63,11 @@ void ChromaLayer::switchTheme() {
     // color pick menu arrow
     m_mysteriousArrow->setColor(ccc3(CELL_COLOR));
 
-    // options scroller cells
-    int TAG = m_optionScroller->getTag();
-    int tag = 1;
-    while (tag <= TAG) {
-        if (auto opt = m_optionScroller->m_contentLayer->getChildByTag(tag)) {
-            opt->runAction(CCSequence::create(
-                CCDelayTime::create(0.03*tag-0.03),
-                CallFuncExt::create([this, opt, tag, TAG]() {
-                    if (tag == TAG)
-                        static_cast<BaseCell*>(opt)->tint(ANIM_TIME_M, 80 * (!opts["activate"]), 80 * opts["activate"], 0);
-                    else
-                        static_cast<BaseCell*>(opt)->switchTheme();
-                }),
-                nullptr
-            ));
-            tag ++;
-        } else
-            break;
-    }
+    // info menu
+    for (auto btn : CCArrayExt<CCMenuItemSpriteExtra*>(this->getChildByID("info-menu")->getChildByID("manual-menu")->getChildren()))
+        btn->setColor(ccc3(CELL_COLOR));
+    for (auto btn : CCArrayExt<CCMenuItemSpriteExtra*>(this->getChildByID("info-menu")->getChildByID("author-menu")->getChildren()))
+        btn->setColor(ccc3(CELL_COLOR)); 
 }
 
 void ChromaLayer::refreshColorPage(int type) {
@@ -71,7 +78,7 @@ void ChromaLayer::refreshColorPage(int type) {
         m_oriColorDisplay->setColor(crtColor);
         // set color title
         m_colorTitle->setString(
-            std::regex_replace(getConfigKey(this->ptwo, this->id, (int)this->channel),
+            std::regex_replace(getConfigKey(this->ptwo, this->gamemode, this->channel),
                 std::regex("-"), "  ").c_str());
     }
 
@@ -134,12 +141,11 @@ void ChromaLayer::fadeItemPage() {
     // title labelthis->getChildByID("item-menu")->getChildByID("title-label")
     fade(m_titleLabel, in, ANIM_TIME_M, in ? 0.6 : 0.3, in ? 0.6 : 0.3);
     // prepare effects
-    if (in) {
+    if (in && !opts["easy"]) {
         static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(7))
-            ->setString(("- " + items[(int)this->target - 4] + " -").c_str());
+            ->setString(fmt::format("- {} -", items[(int)this->gamemode]).c_str());
         // refresh item menu target
-        for (auto btn : m_effBundleCell->btns)
-            btn->setModeTarget(opts["easy"] ? Channel::Effect : this->target);
+        m_effBundleCell->setModeTarget(this->gamemode);
     }
     // item menu
     (opts["easy"] ? m_ezyBundleCell : m_advBundleCell)->Fade(in);
@@ -166,15 +172,11 @@ void ChromaLayer::fadeSetupPage() {
         m_setupEasyScroller->Transition(in, id > 10 ? 16 - id : 6);
     else {
         m_setupAdvScroller->Transition(in, id > 10 ? 16 - id : 15 - id);
-        if (in) {
+        if (in)
             // refresh target of setup menu
-            for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren())) {
-                if (cell->m_btn->getTag() > 9)
-                    cell->m_btn->setModeTarget(this->target);
-                else
+            for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
+                if (!cell->setModeTarget(this->gamemode))
                     break;
-            }
-        }
     }
 
     // player btn
@@ -184,10 +186,9 @@ void ChromaLayer::fadeSetupPage() {
     fade(m_chnlSetupLabel, in, ANIM_TIME_L, 0.32, 0.32);
 
     // display channel switch arrows if necessary
-    if (!(this->id == 12 || this->id == 15 || (opts["easy"] && this->id))) {
-        fade(m_leftArrowSetupBtn, in);
-        fade(m_rightArrowSetupBtn, in);
-    }
+    bool showArrows = this->id < 14 && !opts["easy"] || !this->id;
+    fade(m_leftArrowSetupBtn, in && showArrows);
+    fade(m_rightArrowSetupBtn, in && showArrows);
 
     fade(m_copyBtn, in, ANIM_TIME_M);
     fade(m_pasteBtn, in, ANIM_TIME_M);

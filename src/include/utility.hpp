@@ -28,16 +28,6 @@ using namespace geode::prelude;
 
 /********** Useful Const Value *************/
 
-// pick icon name in my own mod
-static std::string items[] = {
-    "Icon", "Cube", "Ship", "Ball", "Ufo", "Wave", "Robot", "Spider", "Swing", "Jetpack", // 0~9
-    "Ghost", "Trail", "Wave Trail", "Dash Fire", "TP Line", "UFO Shell" // 10~15
-};
-
-// channel names
-static std::string chnls[] = {
-    "Main", "Secondary", "Glow", "White", "Effect"
-};
 
 // game manager
 static GameManager* gm = GameManager::sharedState();
@@ -47,13 +37,28 @@ void fade(CCNode* node, bool in, float time = ANIM_TIME_L, float scaleX = -1, fl
 // fade utility (CCMenuItem)
 void fade(CCMenuItem* node, bool in, float time = ANIM_TIME_L, float scaleX = -1, float scaleY = -1, int opacity = -1);
 
+/********** Item Channel Enumerate Class *************/
+
+// Icon is for easy mode common
+enum class Gamemode {
+    Icon, Cube, Ship, Ball, Ufo, Wave, Robot, Spider, Swing, Jetpack
+};
+// pick icon name in my own mod
+static std::string items[] = {
+    "Icon", "Cube", "Ship", "Ball", "Ufo", "Wave", "Robot", "Spider", "Swing", "Jetpack", // 0~9
+};
+
 // channels of a single game mode (common, icon, ...)
 // ghost~Tele are effect channels, ghost is preserved for future update
 // effect is just wave trail and ufo shell
 enum class Channel {
-    Main, Secondary, Glow, White, Effect, Cube, Ship, Ball, Ufo, Wave, Robot, Spider, Swing, Jetpack
+    Main, Secondary, Glow, White, Trail, DashFire, TPLine, WaveTrail, UFOShell, Ghost
 };
 
+// channel names regarding enum class above
+static std::string chnls[] = {
+    "Main", "Secondary", "Glow", "White", "Trail", "Dash Fire", "TP Line", "Wave Trail", "UFO Shell", "Ghost"
+};
 
 /********** SETUP AND SERIELIZE ***********/
 typedef std::map<int, ccColor3B> mapline;
@@ -83,14 +88,13 @@ struct ChromaSetup {
 
 // default chroma setup for this mod
 #define DEFAULT_SETUP ChromaSetup{\
-    .mode = 0, .satu = 50, .best = false, .color = ccc3(255, 255, 255),\
+    .mode = 2, .satu = 50, .best = false, .color = ccc3(255, 255, 255),\
     .gradient = {{0, ccc3(255, 255, 255)}, {180, ccc3(255, 255, 255)}},\
     .progress = {{0, ccc3(255, 255, 255)}, {100, ccc3(255, 255, 255)}} }
 
 /*********** serialize chromasetup **********/
 template<>
 struct matjson::Serialize<ChromaSetup> {
-
     // load json file
     // for int value we take the remainder to avoid out of range issue
     static Result<ChromaSetup> fromJson(matjson::Value const& value) {
@@ -144,17 +148,13 @@ public:
     }
 };
 
-enum class EffectType {
-    Ghost, Trail, WaveTrail, DashFire, Teleport, Shell
-};
-
 class GJItemEffect : public CCSprite {
 public:
-    EffectType type;
+    Channel effectType;
     // 4~12
-    int targetMode = 4;
+    Gamemode targetMode = Gamemode::Icon;
     CCSprite* m_cover;
-    static GJItemEffect* createEffectItem(int effectID);
+    static GJItemEffect* createEffectItem(int id);
 };
 
 struct myColorHSV {
@@ -164,35 +164,22 @@ struct myColorHSV {
 };
 
 // chroma engine
-ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, float progress, bool reset = false);
+ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress, bool reset = false);
 
 // get index for in-level pointer
 // @param p2 is player 2
-// @param id Icon/Effect ID regarding ChromaLayer's index (0~9, 10~15)
-// @param channel for icons they are main/second/glow, for effects they are icon targets index or just effect(10)
-// @return short int result 10000100
-inline short getIndex(bool p2, int id, int channel = 4) {
-    return (short)p2 << 10 | id << 5 | channel;
+// @param id Gamemode ID regarding ChromaLayer's index 0~9
+// @param channel main/second/glow/...
+// @return short int result index
+inline short getIndex(bool p2, Gamemode id, Channel channel) {
+    return (short)p2 << 10 | (int)id << 5 | (int)channel;
 }
 
 // get config key for mod save
 // @param p2 is player 2
-// @param id Icon/Effect ID regarding ChromaLayer's index (0~9, 11~15)
-// @param channel for icons they are main/second/glow, for effects they are icon targets index or just effect(10)
+// @param id Gamemode ID regarding ChromaLayer's index 0~9
+// @param channel main/second/glow/...
 // @return string result
-inline std::string getConfigKey(bool p2, int id, int channel = 4) {
-    // get string
-    std::string p = p2 ? "P2" : "P1";
-    // concatenate
-    if (id > 9) {
-        // wave trail / ufo shell
-        if (id == 12 || id == 15)
-            return p + "-" + items[id];
-        // should separate for icons
-        else
-            return p + "-" + items[id] + "-" + items[channel - 4];
-    }
-    // icons
-    else
-        return p + "-" + items[id] + "-" + chnls[channel];
+inline std::string getConfigKey(bool p2, Gamemode id, Channel channel) {
+    return fmt::format("{}-{}-{}", p2 ? "P2" : "P1", items[(int)id], chnls[(int)channel]);
 }

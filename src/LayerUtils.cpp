@@ -28,21 +28,19 @@ void ChromaLayer::show() {
         ));
     }
 
+    for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
+        if (!cell->setModeTarget(this->gamemode))
+            break;
+
     // toggle preview
     m_advBundleCell->toggleChroma();
     m_ezyBundleCell->toggleChroma();
     m_effBundleCell->toggleChroma();
-    // setup item
-    for (auto obj : CCArrayExt<CCObject*>(m_setupAdvScroller->m_contentLayer->getChildren())) {
-        auto cell = static_cast<SetupItemCell*>(obj);
-        if (cell != m_currentItem)
-            cell->m_btn->toggleChroma(false);
-    }
-    for (auto obj : CCArrayExt<CCObject*>(m_setupEasyScroller->m_contentLayer->getChildren())) {
-        auto cell = static_cast<SetupItemCell*>(obj);
-        if (cell != m_currentItem)
-            cell->m_btn->toggleChroma(false);
-    }
+    // setup items
+    for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
+        cell->toggleChroma(cell == m_currentItem);
+    for (auto cell : CCArrayExt<SetupItemCell*>(m_setupEasyScroller->m_contentLayer->getChildren()))
+        cell->toggleChroma(cell == m_currentItem);
     // run base function
     Popup::show();
     float opacity = 196.f;
@@ -66,22 +64,16 @@ void ChromaLayer::update(float d) {
     this->percentage = fmod(percentage + 10 * d, 100.f);
     if (m_currentItem)
         // setup menu selected
-        m_currentItem->m_btn->runChroma(phase, percentage, 50);
+        m_currentItem->runChroma(phase, percentage, 50);
 
     // skip
     if (!(opts["activate"] && opts["prev"]))
         return;
 
     // item menu
-    if (!m_advBundleCell->btns.empty())
-        for (auto btn : m_advBundleCell->btns)
-            btn->runChroma(phase, percentage, 50);
-    if (!m_ezyBundleCell->btns.empty())
-        for (auto btn : m_ezyBundleCell->btns)
-            btn->runChroma(phase, percentage, 50);
-    if (!m_effBundleCell->btns.empty())
-        for (auto btn : m_effBundleCell->btns)
-            btn->runChroma(phase, percentage, 50);
+    m_advBundleCell->runChroma(phase, percentage, 50);
+    m_ezyBundleCell->runChroma(phase, percentage, 50);
+    m_effBundleCell->runChroma(phase, percentage, 50);
 }
 
 CCMenuItemSpriteExtra* ChromaLayer::getColorTarget() {
@@ -107,47 +99,47 @@ CCMenuItemSpriteExtra* ChromaLayer::getColorTarget() {
 
 void ChromaLayer::dumpConfig() {
     // dump setup
-    Mod::get()->setSavedValue(getConfigKey(this->ptwo, this->id, (int)this->channel), currentSetup);
-    setups[getIndex(this->ptwo, this->id, (int)this->channel)] = currentSetup;
+    Mod::get()->setSavedValue(getConfigKey(this->ptwo, this->gamemode, this->channel), currentSetup);
+    setups[getIndex(this->ptwo, this->gamemode, this->channel)] = currentSetup;
 }
 
-bool ChromaLayer::switchCurrentID(int id) {
+bool ChromaLayer::switchCurrentItem(int id) {
     // switch a nonsense
     if (this->id == id && pages.back() == Page::Setup)
         return false;
 
     if (m_currentItem) {
-        // tint bg
-        m_currentItem->switchTheme();
-        // tint gray
-        m_currentItem->m_label->runAction(CCEaseExponentialOut::create(
-            CCTintTo::create(ANIM_TIME_M, 127, 127, 127)));
-        // stop chroma
-        m_currentItem->m_btn->toggleChroma(false);
+        // unselect
+        m_currentItem->select(false);
         // dump config
         this->dumpConfig();
     }
-    // change channel format
-    int n = getIDType(id);
-    // have to change channel
-    if (getIDType(this->id) != n) {
-        if (opts["easy"])
-            this->channel = id ? Channel::Effect : Channel::Main;
-        else
-            this->channel = n == 2 ? Channel::Effect : (n == 1 ? Channel::Cube : Channel::Main);
+    // to effect
+    if (id > 9) {
+        this->channel = Channel(id - 7);
+        if (!opts["easy"]) {
+            // force convert gamemode
+            if (id == 14)
+                this->gamemode = Gamemode::Wave;
+            else if (id == 15)
+                this->gamemode = Gamemode::Ufo;            
+        }
     }
-    // change target
-    if (n == 1)
-        this->target = this->channel;
-    // edit id
+    // to icon
+    else {
+        this->gamemode = Gamemode(id);
+        // from effect / from the two special channels
+        if (this->id > 9 || this->channel == Channel::WaveTrail || this->channel == Channel::UFOShell)
+            this->channel = Channel::Main;
+    }
     this->id = id;
 
-    // labels
-    m_itemSetupLabel->setString(items[id].c_str());
-    m_chnlSetupLabel->setString(((int)this->channel < 5 ? chnls[(int)this->channel] : items[(int)this->channel - 4]).c_str());
-
     // load new setup
-    currentSetup = setups[getIndex(this->ptwo, this->id, (int)this->channel)];
+    currentSetup = setups[getIndex(this->ptwo, this->gamemode, this->channel)];
+
+    // labels
+    m_itemSetupLabel->setString(items[(int)this->gamemode].c_str());
+    m_chnlSetupLabel->setString(chnls[(int)this->channel].c_str());
 
     // locate new current setup item
     int tag = id > 9 ? 16 - id : (opts["easy"] ? 6 : 15 - id);
@@ -155,15 +147,9 @@ bool ChromaLayer::switchCurrentID(int id) {
     m_currentItem = static_cast<SetupItemCell*>((opts["easy"] ? m_setupEasyScroller : m_setupAdvScroller)->m_contentLayer->getChildByTag(tag));
     // scroll the scroller to dest position
     // tint green
-    if (m_currentItem) {
-        // tint bg
-        m_currentItem->tint(ANIM_TIME_M, 0, 80, 0);
-        // tint gray
-        m_currentItem->m_label->runAction(CCEaseExponentialOut::create(
-            CCTintTo::create(ANIM_TIME_M, 0, 255, 0)));
-        // start chroma
-        m_currentItem->m_btn->toggleChroma(true);
-    }
+    if (m_currentItem)
+        // select
+        m_currentItem->select(true);
     else
         log::error("m_currentItem not found: id = {}", id);
     return true;

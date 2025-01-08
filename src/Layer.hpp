@@ -10,12 +10,6 @@ enum class Page {
     Terminal, Init, Item, Setup, Color, Options, Info, Warn
 };
 
-inline int getIDType(int id) {
-    if (id < 10) return 0;
-    if (id == 12 || id == 15) return 2;
-    return 1;
-}
-
 // fubao is like a clever neko witch
 // miss her super much
 class ChromaLayer : public Popup<>, public ColorPickerDelegate {
@@ -27,22 +21,25 @@ protected:
     // @note if warn page is triggered, warn page will be added firstly
     std::vector<Page> pages;
 
-    // the identifier of the current modifying icon/effect for setup menu
-    // @note easy mode : common = 0
-    // @note adv mode : icons = 1-9
-    // @note Effects (11~15?) : trail, wave trail, dash fire, teleport line, ufo shell...
-    short id;
-
     // dual player 1/2
     bool ptwo;
 
-    // current item channel in setup page
-    // @note 0-3 = main/second/glow/white
-    Channel channel = Channel::Main;
+    // the identifier of the current modifying icon/effect for setup menu
+    // @note easy mode : common = 0
+    // @note adv mode : icons = 1-9
+    // @note Effects (11~15) : trail, wave trail, dash fire, teleport line, ufo shell...
+    int id;
 
-    // current effect target in setup page
-    // @note 4-12 = cube-jetpack
-    Channel target = Channel::Cube;
+    // current gamemode in setup page
+    // @note icon-jetpack = 0-9
+    Gamemode gamemode;
+
+    // record adv mode gamemode when switching to ez mode
+    Gamemode history;
+
+    // current item channel in setup page
+    // @note main/second/glow/white
+    Channel channel = Channel::Main;
 
     // current editing color tag in case color page dosen't know what he's working on
     int colorTag = 0;
@@ -197,7 +194,7 @@ protected:
     // save config -> switch current ID and refresh setup page
     // @param id new target id he will switch to.
     // @return true if the value is really changed
-    bool switchCurrentID(int id);
+    bool switchCurrentItem(int id);
 
     // ColorPickerDelegate function override
     // @param color new color from the picker

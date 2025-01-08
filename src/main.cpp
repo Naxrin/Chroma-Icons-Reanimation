@@ -264,16 +264,16 @@ class $modify(ChromaPlayer, PlayerObject) {
         short o2 = opts["sep-second"] ? 120 : 0;
         short o3 = opts["sep-glow"] ? 240 : 0;
         // easy-mode
-        short id = this->getStatusID();
+        Gamemode status = this->getStatusID();
 
         // get the chroma pattern result firstly
-        ccColor3B main = getChroma(setups[getIndex(p, id, 0)],
+        ccColor3B main = getChroma(setups[getIndex(p, status, Channel::Main)],
             m_playerColor1, lvlphase + od, percentage, progress, reset[this]);
-        ccColor3B secondary = getChroma(setups[getIndex(p, id, 1)],
+        ccColor3B secondary = getChroma(setups[getIndex(p, status, Channel::Secondary)],
             m_playerColor2, lvlphase + od + o2, percentage, progress, reset[this]);
-        ccColor3B glow = getChroma(setups[getIndex(p, id, 2)],
+        ccColor3B glow = getChroma(setups[getIndex(p, status, Channel::Glow)],
             m_glowColor, lvlphase + od + o3, percentage, progress, reset[this]);
-        ccColor3B white = getChroma(setups[getIndex(p, id, 3)],
+        ccColor3B white = getChroma(setups[getIndex(p, status, Channel::White)],
             ccc3(255, 255, 255), lvlphase + od, percentage, progress, reset[this]);
 
         // icons
@@ -283,16 +283,16 @@ class $modify(ChromaPlayer, PlayerObject) {
 
         // icons with vehicles
         if (m_isShip || m_isBird) {
-            isRider = opts["rider"] && id;
+            isRider = opts["rider"] && (int)status;
             // icon
-            this->m_iconSprite->setColor(isRider ? getChroma(setups[getIndex(p,  1, 0)],
+            this->m_iconSprite->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::Main)],
                 m_playerColor1, lvlphase + od, percentage, reset[this]) : main);
-            this->m_iconSpriteSecondary->setColor(isRider ? getChroma(setups[getIndex(p, 1, 1)],
+            this->m_iconSpriteSecondary->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::Secondary)],
                 m_playerColor2, lvlphase + od + o2, percentage, reset[this]) : secondary);
             if (m_hasGlow)
-                this->m_iconGlow->setColor(isRider ? getChroma(setups[getIndex(p, 1, 2)],
+                this->m_iconGlow->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::Glow)],
                     m_glowColor, lvlphase + od + o3, percentage, reset[this]) : glow);
-            this->m_iconSpriteWhitener->setColor(isRider ? getChroma(setups[getIndex(p, 1, 3)],
+            this->m_iconSpriteWhitener->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::White)],
                 ccc3(255, 255, 255), lvlphase + od, percentage, reset[this]) : white);
             // vehicle
             this->m_vehicleSprite->setColor(main);
@@ -338,19 +338,19 @@ class $modify(ChromaPlayer, PlayerObject) {
 
         // trail
         if (m_playerStreak != 2 && m_playerStreak != 7)
-            this->m_regularTrail->setColor(getChroma(setups[getIndex(p, 11, id + 4)],
+            this->m_regularTrail->setColor(getChroma(setups[getIndex(p, status, Channel::Trail)],
                 m_playerColor2, lvlphase + od, percentage, reset[this]));
         // wave trail
         if (this->m_isDart)
-            this->m_waveTrail->setColor(getChroma(setups[getIndex(p, 12)],
+            this->m_waveTrail->setColor(getChroma(setups[getIndex(p, status, Channel::WaveTrail)],
                 gm->getGameVariable("0096") ? m_playerColor2 : m_playerColor1, lvlphase + od, percentage, reset[this]));
         // dash fire
         if (this->m_isDashing)
-            this->m_dashFireSprite->setColor(getChroma(setups[getIndex(p, 13, id + 4)],
+            this->m_dashFireSprite->setColor(getChroma(setups[getIndex(p, status, Channel::DashFire)],
                 gm->getGameVariable("0062") ? m_playerColor1 : m_playerColor2, lvlphase + od, percentage, reset[this]));
         // ufo shell
         if (this->m_isBird)
-            this->m_birdVehicle->setColor(getChroma(setups[getIndex(p, 15)],
+            this->m_birdVehicle->setColor(getChroma(setups[getIndex(p, status, Channel::UFOShell)],
                 ccc3(255, 255, 255), lvlphase + od, percentage, reset[this]));
 
         // confirm it's really reset
@@ -380,7 +380,7 @@ class $modify(ChromaPlayer, PlayerObject) {
                     continue;
                 // confirm position
                 if (detectTPline(tele, pori, pcur))
-                    tele->setColor(getChroma(setups[getIndex(this->m_isSecondPlayer && !opts["same-dual"], 14, this->getStatusID() + 4)],
+                    tele->setColor(getChroma(setups[getIndex(this->m_isSecondPlayer && !opts["same-dual"], this->getStatusID(), Channel::TPLine)],
                         m_playerColor1, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress, reset[this]));
             }
         }
@@ -413,16 +413,16 @@ class $modify(ChromaPlayer, PlayerObject) {
     }
     #endif
 
-    short getStatusID() {
-        if (opts["easy"]) return 0;
-        if (this->m_isShip) return Level && Level->isPlatformer() ? 9 : 2;
-        else if (this->m_isBall) return 3;
-        else if (this->m_isBird) return 4;
-        else if (this->m_isDart) return 5;
-        else if (this->m_isRobot) return 6;
-        else if (this->m_isSpider) return 7;
-        else if (this->m_isSwing) return 8;
-        return 1;
+    Gamemode getStatusID() {
+        if (opts["easy"]) return Gamemode::Icon;
+        if (this->m_isShip) return Level && Level->isPlatformer() ? Gamemode::Jetpack : Gamemode::Ship;
+        else if (this->m_isBall) return Gamemode::Ball;
+        else if (this->m_isBird) return Gamemode::Ufo;
+        else if (this->m_isDart) return Gamemode::Wave;
+        else if (this->m_isRobot) return Gamemode::Robot;
+        else if (this->m_isSpider) return Gamemode::Spider;
+        else if (this->m_isSwing) return Gamemode::Swing;
+        return Gamemode::Cube;
     }
 };
 
@@ -431,17 +431,15 @@ $on_mod(Loaded) {
     // load setups
     for (short p = 0; p < 2; p++) {
         // icons
-        for (short id = 0; id < 10; id++)
-            for (short chnl = 0; chnl < 4; chnl++)
-                setups[getIndex(p, id, chnl)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, id, chnl), DEFAULT_SETUP);
-        // effects
-        for (short id = 11; id < 16; id++) {
-            if (id == 12 || id == 15)
-                setups[getIndex(p, id, 4)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, id, 4), DEFAULT_SETUP);
-            else
-                for (short chnl = 4; chnl < 14; chnl++)
-                    setups[getIndex(p, id, chnl)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, id, chnl), DEFAULT_SETUP);
-        }
+        for (short gmid = 0; gmid < 10; gmid++)
+            for (short chnl = 0; chnl < 7; chnl++)
+                setups[getIndex(p, Gamemode(gmid), Channel(chnl))] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode(gmid), Channel(chnl)), DEFAULT_SETUP);
+        // wave trail
+        setups[getIndex(p, Gamemode::Icon, Channel::WaveTrail)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode::Icon, Channel::WaveTrail), DEFAULT_SETUP);
+        setups[getIndex(p, Gamemode::Wave, Channel::WaveTrail)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode::Wave, Channel::WaveTrail), DEFAULT_SETUP);
+        // ufo shell
+        setups[getIndex(p, Gamemode::Icon, Channel::UFOShell)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode::Icon, Channel::UFOShell), DEFAULT_SETUP);
+        setups[getIndex(p, Gamemode::Ufo, Channel::UFOShell)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode::Ufo, Channel::UFOShell), DEFAULT_SETUP);
     }
     // speed
     speed = Mod::get()->getSavedValue<float>("speed", 1);

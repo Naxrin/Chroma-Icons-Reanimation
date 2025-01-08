@@ -53,6 +53,7 @@ public:
     }
 };
 
+// preserved unused class
 class TitleCell : public BaseCell {
 protected:
     CCLabelBMFont* m_title;
@@ -121,15 +122,19 @@ public:
 // This cell works for item menu as a bunch of items
 class ItemCell : public BaseCell {
 protected:
-    // tag = 6~9: p1i p1e p2i p2e
+    // buttons
+    std::vector<PickItemButton*> btns;
+    // tag = 1/2/3 -> adv/easy/effect
     bool init(int tag);
     void onPickItem(CCObject* sender) {
         SignalEvent("pick", sender->getTag()).post();
     }
 public:
-    bool p2 = false;
-    std::vector<PickItemButton*> btns;
     void Fade(bool) override;
+    void runChroma(float const& phase, float const& percentage, int const& progress) {
+        for (auto btn : this->btns)
+            btn->runChroma(phase, percentage, progress);
+    }
     void toggleChroma() {
         for (auto btn : this->btns)
             btn->toggleChroma();
@@ -137,6 +142,11 @@ public:
     void switchPlayer() {
         for (auto btn : this->btns)
             btn->switchPlayer();
+    }
+    void setModeTarget(Gamemode gamemode) {
+        // refresh item menu target
+        for (auto btn : this->btns)
+            btn->setModeTarget(gamemode);
     }
     static ItemCell* create(int tag) {
         auto node = new ItemCell();
@@ -152,20 +162,49 @@ public:
 // This cell works as a in setup menu left part
 class SetupItemCell : public BaseCell {
 protected:
-    bool p2 = false;
-    int id = 0;
-
-    bool init(int id, float Y, int tag);
+    // just his button's tag
+    // 0-9 -> icon 10~15 -> effect
+    int index;
+    // button
+    CCLabelBMFont* m_label = nullptr;
+    // label
+    PickItemButton* m_btn = nullptr;    
+    // init
+    bool init(int index, float Y, int tag);
+    // click the button
     void onPickItem(CCObject* sender) {
-        SignalEvent("pick", this->id).post();
+        SignalEvent("pick", this->index).post();
     }
 public:
-    ChromaSetup setup;
-    CCLabelBMFont* m_label = nullptr;
-    PickItemButton* m_btn = nullptr;
-    static SetupItemCell* create(int id, float Y, int tag) {
+    void switchPlayer() {
+        this->m_btn->switchPlayer();
+    }
+    void toggleChroma(bool on) {
+        this->m_btn->toggleChroma(on);
+    }
+    void runChroma(float phase, float percentage, int progress) {
+        this->m_btn->runChroma(phase, percentage, progress);
+    }
+    void select(bool current) {
+        // stop chroma
+        this->m_btn->toggleChroma(current);
+        // tint gray
+        this->m_label->runAction(CCEaseExponentialOut::create(
+            current ? CCTintTo::create(ANIM_TIME_M, 0, 255, 0) : CCTintTo::create(ANIM_TIME_M, 127, 127, 127)));
+        if (current)
+            this->tint(ANIM_TIME_M, 0, 80, 0);
+        else
+            // tint bg
+            this->switchTheme();
+    }
+    bool setModeTarget(Gamemode gamemode) {
+        if (index > 9)
+            this->m_btn->setModeTarget(gamemode);
+        return index > 9;
+    }
+    static SetupItemCell* create(int index, float Y, int tag) {
         auto node = new SetupItemCell();
-        if (node && node->init(id, Y, tag)) {
+        if (node && node->init(index, Y, tag)) {
             node->autorelease();
             return node;
         };
@@ -176,8 +215,6 @@ public:
 
 class SetupOptionCell : public BaseCell {
 protected:
-    //int id;
-    //Channel chnl;
     //std::string key;
     ChromaSetup setup;
     // i hate cascading his opacity

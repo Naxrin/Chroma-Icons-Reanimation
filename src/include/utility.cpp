@@ -82,14 +82,14 @@ matjson::Value MaptoJson(mapline const& map) {
     return json;
 }
 
-GJItemEffect* GJItemEffect::createEffectItem(int effectID) {
+GJItemEffect* GJItemEffect::createEffectItem(int id) {
     auto base = new GJItemEffect();
     if (base && base->initWithFile("effect_base.png"_spr)) {
         // cascade opacity
         base->setCascadeOpacityEnabled(true);
-
+        base->effectType = Channel(id - 7);
         // add cover
-        std::string str = "effect_"_spr + std::to_string(effectID) + ".png";
+        std::string str = fmt::format("{}_{}.png","effect"_spr , id - 10);
         base->m_cover = CCSprite::create(str.c_str());
         auto size = base->getContentSize();
         base->m_cover->setPosition(CCPoint(size.width / 2, size.height / 2));
@@ -187,7 +187,7 @@ inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpo
     });
 }*/
 
-ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, float progress, bool reset) {
+ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress, bool reset) {
     if (reset)
         return defaultVal;
 

@@ -33,14 +33,22 @@ public:
     // fade one by one
     void delayFade(int delay, bool in);
     // chroma proxy
-    void runChroma(float const& phase, float const& percentage, float const& progress);
+    void runChroma(float const& phase, float const& percentage, int const& progress);
     // for current item switch
     void toggleChroma();
     // toggle on or off chroma
     void toggleChroma(bool current);
     // edit mode target (effect only)
-    void setModeTarget(Channel tg) {
-        this->effect->targetMode = (int)tg;
+    void setModeTarget(Gamemode gamemode) {
+        if (this->effect->effectType == Channel::WaveTrail && (int)gamemode) {
+            this->effect->targetMode = Gamemode::Wave;
+            return;
+        }
+        if (this->effect->effectType == Channel::UFOShell && (int)gamemode) {
+            this->effect->targetMode = Gamemode::Ufo;
+            return;
+        }
+        this->effect->targetMode = gamemode;
     }
 
     // constructor for effects

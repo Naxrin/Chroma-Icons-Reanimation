@@ -324,19 +324,19 @@ void ItemCell::Fade(bool in) {
     }
 }
 
-bool SetupItemCell::init(int id, float Y, int tag) {
+bool SetupItemCell::init(int index, float Y, int tag) {
     if (!CCMenu::init())
         return false;
 
     if (!BaseCell::setup(CCPoint(60.f, Y), CCSize(90.f, 24.f), tag, "sheet"))
         return false;
 
-    this->id = id;
+    this->index = index;
 
-    m_label = CCLabelBMFont::create(items[id].c_str(), "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_label = CCLabelBMFont::create((index > 9 ? chnls[index - 7] : items[index]).c_str(), "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_label->setScale(0.4);
     // wave trail label is too long
-    if (id == 12)
+    if (index == 12)
         m_label->setScaleX(0.35);
     m_label->setPosition(CCPoint(60.f, 12.f));
     m_label->setContentSize(CCSize(60.f, 24.f));
@@ -346,7 +346,7 @@ bool SetupItemCell::init(int id, float Y, int tag) {
     this->addChild(m_label);
 
     // btn
-    m_btn = PickItemButton::create(id, true, this, menu_selector(SetupItemCell::onPickItem));
+    m_btn = PickItemButton::create(index, true, this, menu_selector(SetupItemCell::onPickItem));
     m_btn->setPosition(CCPoint(14.f, 12.f));
     this->addChild(m_btn);
 
