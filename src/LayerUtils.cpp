@@ -122,7 +122,7 @@ bool ChromaLayer::switchCurrentItem(int id) {
             if (id == 14)
                 this->gamemode = Gamemode::Wave;
             else if (id == 15)
-                this->gamemode = Gamemode::Ufo;            
+                this->gamemode = Gamemode::Ufo;
         }
     }
     // to icon

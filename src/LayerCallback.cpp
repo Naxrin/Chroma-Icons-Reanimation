@@ -307,6 +307,7 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
     } else
         this->gamemode = this->history;
 
+    log::error("gamemode = {}", (int)gamemode);
     // set color
     //m_modeBtn->setColor(opts["easy"] ? ccc3(127, 127, 255) : ccc3(255, 127, 127));
     // why ?
