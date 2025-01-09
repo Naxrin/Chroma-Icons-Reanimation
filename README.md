@@ -1,6 +1,6 @@
 The title image is playing The Golden and will appear later and later...  
 
-# <center>$${\color{yellow}YellowChroma Icons Reanimate Project}$$</center>
+# <center><verb>$${\color{yellow}Chroma \space Icons \space Reanimate \space Project}$$<\verb></center>
 So as you can see, former [Chroma Icons](https://github.com/Naxrin/Chroma-Icons) is gonna return.
 In this new project, I rewrite almost the whole mod, not only the menu, but also the chroma engine.
 
