@@ -1,35 +1,49 @@
 The title image is playing The Golden and will appear later and later...  
 
 <h1 align="center">$$\text{\color{yellow}Chroma Icons Reanimate Project}$$</h1>
-So as you can see, former [Chroma Icons](https://github.com/Naxrin/Chroma-Icons) is gonna return.
+So as you can see, former [Chroma Icons](https://github.com/Naxrin/Chroma-Icons) returns.  
 In this new project, I rewrite almost the whole mod, not only the menu, but also the chroma engine.
 
-Besides 2.2 port of **Mega Hack Icon Effect**, this mod aims to provide a complete solution to your expect on your player related things.
-### <font color = "yellow">Intergrated UI</font>
+Besides 2.2 port of **Mega Hack Icon Effect**, this mod aims to provide a complete solution on your player related sprites' color pattern.
+<h3>$$\text{\color{yellow}Integrated Mod Menu}$$</h3>
 Enjoy your mod config in new designed integrated mysterious menu;
-### <font color = "yellow">Set different colors for Gamemodes</font>
-Set them together in easy-mode, or customize various gamemode icons individually in advanced-mode!  
+<h3>$$\text{\color{yellow}Chroma Separately for Gamemodes}$$</h3>
+Set them together in Easy-Mode, or customize various gamemode icons individually in Advanced-Mode!  
 Switch Easy / Advanced mode by clicking the (toggler) button at the bottom left corner of main menu.
-### <font color = "yellow">Seperate Riders</font>
-Optional to set cube riders' color follow their ship/ufo vehicles or the cube's own color;
-### <font color = "yellow">Ultimate Trigger</font>
-Toggle ON/OFF the whole mod without having to relaunch your game!
+<h3>$$\text{\color{yellow}Separate Riders}$$</h3>
+Optional to set cube riders' color follow their ship / ufo / jetpack vehicles or the cube's own color;
+<h3>$$\text{\color{yellow}Ultimate Switch}$$</h3>
+Toggle ON / OFF the whole mod without having to relaunch your game!
 
-## <font color = "red">Warning:</font>
+<h2>$$\text{\color{red}WARNING}$$</h2>
 Regarding Pointercrate List Team's policy for Mega Hack v7's Icon Effects, some behaviors related with this mod, such as editing Icon Effects in playing a demon list level, is probably <font color = "red">**Not Allowed**</font> for record submission.  
 
-### <font color = "yellow">Also Note that:</font>
+<h3>$$\text{\color{yellow}Also Note That:}$$</h3>
 Despite max effort made on compatibility, This mod may very probably conflict with other related Icon Color modifier mods (e.g. Same Dual Color). I'm not willing to set them conflict to force you pick one, But you can take a try yourself;
 
-## <font color = "yellow">How to use this mod?</font>
-This mod adds its menu entrance button to **Icon Select Menu** *(GJGarageLayer)* , **Pause Menu** *(PauseLayer)*, and also **Level Editor Page** *(LevelEditorLayer)* if the option is toggled on, so you can access the mod menu either in game menu or in playing a level.  
-If you change any chroma pattern in a paused level, this mod will take effect once you return to play.
-### <font color = "yellow">Home Page</font>
+<h2>$$\text{\color{yellow}What Does this mod do?}$$</h2>
+
+This mod adds its menu entrance button to:  
+- **Icon Select Menu** *(GJGarageLayer)*
+- **Pause Menu** *(PauseLayer)*
+- **Level Editor Page** *(LevelEditorLayer)* (if the option Editor Test ON),  
+so you can access the mod menu either in game menu or in playing a level.  
+If you change any chroma pattern in a paused level, this mod will take effect once you return to play.  
+
+<h3>$$\text{\color{yellow}Save Data System}$$</h3>
+Besides some individual options, This mod will introduce a matrix-like save-data as follows:  
+
+In this chart, each cell marked circle represents to the sprite part for this gamemode, for the first row, "Icon" Means All Gamemodes; cells marked cross represents to nonsense (e.g. Robot mode doesn't need Wave Trail, so the cell at Row 6 Col 8 is marked cross)  
+Once you launched GD with Chroma Icons loaded, This mod will initialize all cells marked circle with a default chroma pattern (<code>ChromaSetup</code> in codes), you can config this pattern in the menu; then, in playing a level, this mod loads the config row of your current gamemode, and your player icon sprite parts and effects will get chroma separately regarding the chroma pattern for them inside the loaded row. That's the basic logic of this mod.  
+As mentioned above, his mod allows Easy-Mode and Advanced-Mode, They 
+
+<h3>$$\text{\color{yellow}Home Page}$$</h3>
 Here you can preview how this mod affects your icons. Once you hope to edit the chroma patterns of any gamemode icon / effect, just click it and enter the Setup Page.  
 Besides gamemode icons, there are also five in-game effect buttons below icons menu, they stand for Regular Trail, Wave Trail, Dash Fire, Teleport Line (not working for now), and your UFO shell. New chroma icons allow you to chrome those in-game icon effect.  
-#### <font color = "yellow">Player Switch</font>
-click the player 1 / Player 2 text label (yes this is a button), you will switch between modifying chroma patterns of your main player or dual player 2.
-#### <font color = "yellow">Easy / Advanced Mode</font>
+<h4>$$\text{\color{yellow}What Does this mod do?}$$</h4>
+click the player 1 / Player 2 text label (yes this is a button), you will switch between modifying chroma patterns of your main player or dual player 2.  
+
+<h4>$$\text{\color{yellow}Easy / Advanced Mode}$$</h4>
 Comparing legacy Chroma Icons for 2.204, his mod introduce **Easy Mode** and **Advanced Mode** instead of "Apply to Common" in legacy mode.  
 You can switch between modes by clicking the demon face button at left bottom.  
 If the Preview Effect option is off, button items will display default-like (just like those inside your profile page),
