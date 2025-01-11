@@ -1,3 +1,7 @@
+# 3.2.0-beta.2
+Fix the bug that Mac version banned Wave Trail rather than spider teleport line (stupid bug)  
+Better ReadMe  
+  
 # 3.2.0-beta.1
 Finally new project worths being submitted to Geode index...
 ### Additions
@@ -12,7 +16,7 @@ Finally new project worths being submitted to Geode index...
 - Better gradient logic;
 - More useful options;
 - Less bugs & Optimized codes.  
-
+  
 # 3.2.0-alpha.2
 ### Additions
 - Chroma Engine constructed, now it should really chroma your icons;

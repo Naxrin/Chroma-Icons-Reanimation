@@ -5,7 +5,7 @@
 		"android": "2.2074",
 		"mac": "2.2074"
 	},
-	"version": "v3.2.0-beta.1",
+	"version": "v3.2.0-beta.2",
 	"id": "naxrin.chroma_icons",
 	"name": "Chroma Icons",
 	"developer": "Naxrin",
@@ -15,7 +15,6 @@
 		"sprites": [
 			"resources/*.png",
 			"resources/font/*.png"
-
 		],
 		"files": [
 			"resources/font/*.fnt",

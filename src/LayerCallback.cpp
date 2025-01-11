@@ -105,7 +105,7 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
     else if (event->name == "pick") {
         // spider test jump is not implemenmted for mac yet
         #ifdef GEODE_IS_MACOS
-        if (event->value == 14) {
+        if (event->value == 13) {
             FLAlertLayer::create(
                 "Ooooops!",
                 "Chroma Spider teleport line is not supported for mac now, plz wait for future update!",
@@ -306,7 +306,7 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
         this->gamemode = Gamemode::Icon;
     } else
         this->gamemode = this->history;
-    
+
     // set color
     //m_modeBtn->setColor(opts["easy"] ? ccc3(127, 127, 255) : ccc3(255, 127, 127));
     // why ?
