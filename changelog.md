@@ -1,3 +1,8 @@
+# 3.2.0-beta.3
+Fix the *Interface* pronounce issue (batch replace mistake)  
+Fix menu stuck when hit esc on menu launch
+**There are some other unknown bugs, I set the mod to RelWithDebInfo so you can plz report your crashlog of this new update**  
+  
 # 3.2.0-beta.2
 Fix the bug that Mac version banned Wave Trail rather than spider teleport line (stupid bug)  
 Better ReadMe  

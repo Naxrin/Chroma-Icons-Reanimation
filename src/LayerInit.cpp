@@ -461,7 +461,7 @@ bool ChromaLayer::setup() {
     H += prevOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto uiTitle = OptionTitleCell::create("InterPage Options", H, 300, sTag, "interPage-title");
+    auto uiTitle = OptionTitleCell::create("Interface Options", H, 300, sTag, "interface-title");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(uiTitle);
     H += 40.f;
 
