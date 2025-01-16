@@ -358,9 +358,6 @@ class $modify(ChromaPlayer, PlayerObject) {
             reset[this] --;
     }
 
-    // spider teleport line i guess
-    // this is not for mac now
-    #ifndef GEODE_IS_MACOS
     void spiderTestJumpInternal(bool unk) {
 
         if (!opts["activate"]) {
@@ -411,7 +408,6 @@ class $modify(ChromaPlayer, PlayerObject) {
             tele->setPosition(posfix);
         return true;
     }
-    #endif
 
     Gamemode getStatusID() {
         if (opts["easy"]) return Gamemode::Icon;

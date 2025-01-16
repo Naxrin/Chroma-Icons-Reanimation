@@ -103,17 +103,6 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
 
     // pick an item from item page or setup page
     else if (event->name == "pick") {
-        // spider test jump is not implemenmted for mac yet
-        #ifdef GEODE_IS_MACOS
-        if (event->value == 13) {
-            FLAlertLayer::create(
-                "Ooooops!",
-                "Chroma Spider teleport line is not supported for mac now, plz wait for future update!",
-                "Okay"
-            )->show();
-            return ListenerResult::Stop;
-        }
-        #endif
         // from item menu icon
         if (this->pages.back() == Page::Item) {
             this->switchCurrentItem(event->value);
