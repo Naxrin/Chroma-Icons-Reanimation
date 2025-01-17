@@ -228,15 +228,6 @@ void OptionTogglerCell::onOption(CCObject* sender) {
     yes = !yes;
     // set value
     Mod::get()->setSavedValue(this->getID(), yes);
-    // spider test jump is not implemenmted for mac yet
-    #ifdef GEODE_IS_MACOS
-    FLAlertLayer::create(
-        "Sry!",
-        "spiderTestJump function is not implemented on mac for now, so this option is just nonsense here! plz wait for future update!",
-        "Alright"
-    )->show();
-    return;
-    #endif
     // option
     opts[this->getID()] = yes;  
     // post signal
