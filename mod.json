@@ -5,12 +5,12 @@
 		"android": "2.2074",
 		"mac": "2.2074"
 	},
-	"version": "v3.2.0-beta.3",
+	"version": "v3.2.0-beta.4",
 	"id": "naxrin.chroma_icons",
 	"name": "Chroma Icons",
 	"developer": "Naxrin",
 	"description": "Chroma Everything of Your Icons!",
-	"repository":"https://github.com/Naxrin/Chroma-Icons",
+	"repository":"https://github.com/Naxrin/Chroma-Icons-Reanimation",
 	"resources": {
 		"sprites": [
 			"resources/*.png",

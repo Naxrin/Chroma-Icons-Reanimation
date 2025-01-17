@@ -437,94 +437,96 @@ bool ChromaLayer::setup() {
     int sTag = 0;
 
     sTag ++;
-    auto questionMarkOpt = OptionTogglerCell::create("???", H, 300, sTag, "???",
+    auto questionMarkOpt = OptionTogglerCell::create("???", H, sTag, "???",
         "?????");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(questionMarkOpt);
     H += questionMarkOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto darkOpt = OptionTogglerCell::create("Dark Theme", H, 300, sTag, "dark-theme",
+    auto darkOpt = OptionTogglerCell::create("Dark Theme", H, sTag, "dark-theme",
         "Deep Dark Fantasy...");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(darkOpt);
     H += darkOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto blurOpt = OptionTogglerCell::create("Blur Background", H, 300, sTag, "blur-bg",
+    auto blurOpt = OptionTogglerCell::create("Blur Background", H, sTag, "blur-bg",
         "Add a gaussian blur effect to the background. Give it up if you feel this effect can't worth your device lag.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(blurOpt);
     H += blurOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto prevOpt = OptionTogglerCell::create("Preview Effects", H, 300, sTag, "prev",
+    auto prevOpt = OptionTogglerCell::create("Preview Effects", H, sTag, "prev",
         "Preview Chroma Effects inside mod menu.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(prevOpt);
     H += prevOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto uiTitle = OptionTitleCell::create("Interface Options", H, 300, sTag, "interface-title");
+    auto uiTitle = OptionTitleCell::create("Interface Options", H, sTag, "interface-title");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(uiTitle);
     H += 40.f;
 
     sTag ++;
-    auto sepglowOpt = OptionTogglerCell::create("Seperate Glow Color Phase", H, 300, sTag, "sep-glow",
+    auto sepglowOpt = OptionTogglerCell::create("Separate Glow Color Phase", H, sTag, "sep-glow",
         "Set phase (for Chromatic / Gradient mode) of Glow Color keeps 120 degrees delay from Main Color.\nOtherwise Glow Color aligns with Main Color");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepglowOpt);
     H += sepglowOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto sepsecondOpt = OptionTogglerCell::create("Seperate Secondary Color Phase", H, 300, sTag, "sep-second",
+    auto sepsecondOpt = OptionTogglerCell::create("Separate Secondary Color Phase", H, sTag, "sep-second",
         "Set phase (for Chromatic / Gradient mode) of Secondary Color keeps 120 degrees lead from Main Color.\nOtherwise Secondary Color aligns with Main Color");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepsecondOpt);
     H += sepsecondOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto sepdualOpt = OptionTogglerCell::create("Seperate Dual Mode Phase", H, 300, sTag, "sep-dual",
+    auto sepdualOpt = OptionTogglerCell::create("Separate Dual Mode Phase", H, sTag, "sep-dual",
         "Set color phase (for Chromatic / Gradient mode) of P2 keeps 180 degrees away from P1.\n"
         "Otherwise the two players just cycles the same phase.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepdualOpt);
     H += sepdualOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto phaseTitle = OptionTitleCell::create("Phase Options", H, 300, sTag, "phase-title");
+    auto phaseTitle = OptionTitleCell::create("Phase Options", H, sTag, "phase-title");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(phaseTitle);
     H += 40.f;
 
     sTag ++;
-    auto teleOpt = OptionTogglerCell::create("Align TP line fix", H, 300, sTag, "tele-fix",
-        "Not related to icons chroma though, this option will fix spider teleport jump (or player triggering purple rings / pad) "
+    auto teleOpt = OptionTogglerCell::create("Align Spider TP Line", H, sTag, "tele-fix",
+        "Not related to icons chroma though, this option will fix spider teleport jump (or just triggering a purple ring / pad) "
         "effect line strictly to the center point between the player positions before and after being teleported.\n");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(teleOpt);
     H += teleOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto editorOpt = OptionTogglerCell::create("Editor Test", H, 300, sTag, "editor",
-        "Apply to Editor Playtest. Will also add a button in your editor menu if activated.\n"
-        "But I do not promise your device will not lag.");
+    auto editorOpt = OptionTogglerCell::create("Editor Test", H, sTag, "editor",
+        "Apply to Editor Playtest. Will also add a button in your editor page if checked.\n"
+        "But I do not promise your device will not lag there.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(editorOpt);
     H += editorOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto riderOpt = OptionTogglerCell::create("Seperate Riders", H, 300, sTag, "rider",
-        "Set the cube rider of ship/ufo/jetpack will follow Cube mode's color.\nOtherwise she follow her vehicle's color.");
+    auto riderOpt = OptionTogglerCell::create("Seperate Riders", H, sTag, "rider",
+        "If checked, the cube rider of ship / ufo / jetpack will follow Cube mode's color."
+        "\nOtherwise she follow her vehicle's color.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(riderOpt);
     H += riderOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto samedualOpt = OptionTogglerCell::create("Same Dual Chroma Setup", H, 300, sTag, "same-dual",
-        "Merge Player 2's chroma setup with Player 1.\n"
-        "This only merges your chroma setup, but their default colors may be different!\n"
+    auto samedualOpt = OptionTogglerCell::create("Symmetric Chroma Pattern", H, sTag, "same-dual",
+        "Let Player 2 follow P1's chroma pattern in playing.\n"
+        "This only merges your chroma pattern, but their default colors may be different!\n"
         "NOT affecting menu preview.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(samedualOpt);
     H += samedualOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto generalTitle = OptionTitleCell::create("General Options", H, 300, sTag, "general-title");
+    auto generalTitle = OptionTitleCell::create("General Options", H, sTag, "general-title");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(generalTitle);
     H += 40.f;
 
     sTag ++;
-    auto switchOpt = OptionTogglerCell::create("Switch", H, 300, sTag, "activate",
-        "Ultimate Switch of this mod.\nIf disabled, all icons (except picked item in setup page) in this menu will be set to grey-white and ignore preview effects.");
+    auto switchOpt = OptionTogglerCell::create("Switch", H, sTag, "activate",
+        "Ultimate Switch of this mod.\n"
+        "If disabled, all item icons (except current tab in setup page) in the mod menu will be set to grey-white and ignore Preview Effects option.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(switchOpt);
     H += switchOpt->getContentHeight() + 15.f;
 
@@ -625,7 +627,7 @@ bool ChromaLayer::setup() {
 
     auto thanksContentLabel = CCLabelBMFont::create(
         "@Mat for index login, CCSequence mac build: This guy is my hero\n"
-        "@hiimjustin000 for More Icons mod support\n"
+        "@hiimjustin000 for More Icons mod support & mac spider jump\n"
         "@TheSillyDoggo for Blur Background\n"
         "@irryan&clunos for mod test\n",
         "ErasBold.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);

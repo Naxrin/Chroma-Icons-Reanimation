@@ -80,11 +80,11 @@ protected:
     CCLabelBMFont* m_title;
 
     // Option Title
-    bool init(const char* text, float y, float width, int tag, std::string id);
+    bool init(const char* text, float y, int tag, std::string id);
 public:
-    static OptionTitleCell* create(const char* title, float y, float width, int tag, std::string id) {
+    static OptionTitleCell* create(const char* title, float y, int tag, std::string id) {
         auto node = new OptionTitleCell();
-        if (node && node->init(title, y, width, tag, id)) {
+        if (node && node->init(title, y, tag, id)) {
             node->autorelease();
             return node;
         };
@@ -102,15 +102,15 @@ protected:
     CCLabelBMFont* m_hint;
 
     // Option Toggle
-    bool init(const char* title, float y, float width, int tag, std::string id, const char* desc);
+    bool init(const char* title, float y, int tag, std::string id, const char* desc);
 public:
     // for switch animation
     void onOption(CCObject*);
     void Fade(bool) override;
     
-    static OptionTogglerCell* create(const char* title, float y, float width, int tag, std::string id, const char* desc) {
+    static OptionTogglerCell* create(const char* title, float y, int tag, std::string id, const char* desc) {
         auto node = new OptionTogglerCell();
-        if (node && node->init(title, y, width, tag, id, desc)) {
+        if (node && node->init(title, y, tag, id, desc)) {
             node->autorelease();
             return node;
         };
@@ -118,6 +118,28 @@ public:
         return nullptr;
     }
 };
+
+/*
+class OptionSliderCell : public BaseCell {
+protected:
+    bool yes;
+    SliderBundleBase bundle;
+
+    // Option Float
+    bool init(const char* title, float y, int tag, std::string id, const char* desc);
+public:
+    void Fade(bool) override;
+    
+    static OptionSliderCell* create(const char* title, float y, int tag, std::string id, const char* desc) {
+        auto node = new OptionSliderCell();
+        if (node && node->init(title, y, tag, id, desc)) {
+            node->autorelease();
+            return node;
+        };
+        CC_SAFE_DELETE(node);
+        return nullptr;
+    }
+};*/
 
 // This cell works for item menu as a bunch of items
 class ItemCell : public BaseCell {

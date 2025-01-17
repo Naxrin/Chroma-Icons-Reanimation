@@ -146,7 +146,7 @@ class $modify(GameLayer, PlayLayer) {
         // allow chroma
         layerType = LayerType::PlayLayer;
         reset.clear();
-        // log
+        // progress
         progress = level->m_normalPercent.value();
         return PlayLayer::init(level, useReplay, dontCreateObjects);
     }
@@ -221,7 +221,7 @@ class $modify(MainGameLayer, MenuGameLayer) {
 
     void resetPlayer() {
         if (opts["???"])
-            progress = std::rand() / 100;
+            progress = std::rand() % 100;
         MenuGameLayer::resetPlayer();
     }
 };
@@ -292,14 +292,16 @@ class $modify(ChromaPlayer, PlayerObject) {
             if (m_hasGlow)
                 this->m_iconGlow->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::Glow)],
                     m_glowColor, lvlphase + od + o3, percentage, reset[this]) : glow);
-            this->m_iconSpriteWhitener->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::White)],
-                ccc3(255, 255, 255), lvlphase + od, percentage, reset[this]) : white);
+            if (this->m_iconSpriteWhitener)
+                this->m_iconSpriteWhitener->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::White)],
+                    ccc3(255, 255, 255), lvlphase + od, percentage, reset[this]) : white);
             // vehicle
             this->m_vehicleSprite->setColor(main);
             this->m_vehicleSpriteSecondary->setColor(secondary);
             if (m_hasGlow)
                 this->m_vehicleGlow->setColor(glow);
-            this->m_vehicleSpriteWhitener->setColor(white);
+            if (this->m_vehicleSpriteWhitener)
+                this->m_vehicleSpriteWhitener->setColor(white);
         }
         // robot
         else if (m_isRobot) {
@@ -308,7 +310,8 @@ class $modify(ChromaPlayer, PlayerObject) {
                 part->setColor(main);
                 part->getChildByType<CCSprite>(0)->setColor(secondary);
                 if (part->getTag() == 1)
-                    part->getChildByType<CCSprite>(1)->setColor(white);
+                    if (auto w = part->getChildByType<CCSprite>(1))
+                        w->setColor(white);
             }
             if (m_hasGlow)
                 for (auto spr: CCArrayExt<CCSprite*>(this->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByType<CCSprite>(0)->getChildren()))
@@ -321,7 +324,8 @@ class $modify(ChromaPlayer, PlayerObject) {
                 part->setColor(main);
                 part->getChildByType<CCSprite>(0)->setColor(secondary);
                 if (part->getTag() == 1)
-                    part->getChildByType<CCSprite>(1)->setColor(white);
+                    if (auto w = part->getChildByType<CCSprite>(1))
+                        w->setColor(white);
             }
             if (m_hasGlow)
                 for (auto spr: CCArrayExt<CCSprite*>(this->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByType<CCSprite>(0)->getChildren()))
@@ -333,7 +337,8 @@ class $modify(ChromaPlayer, PlayerObject) {
             this->m_iconSpriteSecondary->setColor(secondary);
             if (m_hasGlow)
                 this->m_iconGlow->setColor(glow);
-            this->m_iconSpriteWhitener->setColor(white);
+            if (this->m_iconSpriteWhitener)
+                this->m_iconSpriteWhitener->setColor(white);
         }
 
         // trail

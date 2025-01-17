@@ -4,6 +4,12 @@
 #include "utility.hpp"
 #include <Geode/ui/TextInput.hpp>
 
+inline float limiter(float target, float min = 0, float max = 1) {
+    if (target > max) return max;
+    if (target < min) return min;
+    return target;
+}
+
 /********** UI ***********/
 
 class PickItemButton : public CCMenuItemSpriteExtra {
@@ -14,7 +20,9 @@ protected:
     bool ptwo;
     // chroma
     bool chroma = false;
+    // icon sprite (gamemode tab only)
     GJItemIcon* icon = nullptr;
+    // effect sprite (effect tab only)
     GJItemEffect* effect = nullptr;
     // colors
     ccColor3B mainColor;
@@ -63,79 +71,100 @@ public:
     }
 };
 
-// a feedback logic design of a slider + input
+// a node with feedback logic design of a slider + input
 class SliderBundleBase : public CCMenu, public TextInputDelegate, public SliderDelegate {
 protected:
+    // topic
+    std::string topic;
     // value
     float value;
     // max value, -1 if up to infinity
     float max;
-    // init
-    bool init(const char* name, float value, float max);
-public:
-    // nodes
+    // min value
+    float min;
+    // is int
+    bool is_int;
+    // label
     CCLabelBMFont* m_label = nullptr;
+    // inputer
     TextInput* m_inputer = nullptr;
+    // slider
     Slider* m_slider = nullptr;
+    // left arrow
     CCMenuItemSpriteExtra* m_btnLeft = nullptr;
-    CCMenuItemSpriteExtra* m_btnRight = nullptr;
+    // right arrow
+    CCMenuItemSpriteExtra* m_btnRight = nullptr;    
+    // value to slider (this may return a value out of 1~0 range, unfiltered)
+    std::function<float (float)> toSlider;
+    // slider to value
+    std::function<float (float)> fromSlider;
+    // init
+    bool init(std::string topic, const char* title, float value, float max, float min, bool is_int, bool has_arrow, \
+        float labelScale,  float sliderScale, float inputerScale, float arrowScale, float sliderPosX, float inputerPosX, float labelWidth, float inputerWidth, float arrowDistance,\
+        std::function<float (float)> toSlider, std::function<float (float)> fromSlider);
+public:
     // update value from text input
-    void textChanged(CCTextInputNode* p) override;
+    void textChanged(CCTextInputNode* p) override {
+        std::string input = p->getString();
+        if (input != "")
+            this->setVal(limiter(stof(input)), 1);
+    }
     // check value > max case
-    void textInputClosed(CCTextInputNode* p) override;
+    void textInputClosed(CCTextInputNode* p) override {
+        std::string input = p->getString();
+        if (input == "")
+            input = "0";
+        this->setVal(limiter(stof(input), min, max), 1);
+        postEvent();
+    }
     // change chroma frequency by slider
-    inline void onSlider(CCObject*);
+    void onSlider(CCObject* sender) {
+        this->setVal(this->fromSlider(m_slider->getValue()), -1);
+    }
     // on arrow
-    void onArrow(CCObject*);
+    void onArrow(CCObject* sender) {
+        float delta = sender->getTag() == 2 ? 0.1 : -0.1;
+        float news = limiter(this->toSlider(value) + delta);
+        this->setVal(this->fromSlider(news));
+        postEvent();
+    }
+    // mute onClose
     void sliderBegan(Slider *p) override {
         SignalEvent("drag-slider", true).post();
     };
-    //void sliderBegan(Slider *p) {log::info("slider began");};
+    // unmute onClose and post event
     void sliderEnded(Slider *p) override {
         SignalEvent("drag-slider", false).post();
+        this->setVal(this->fromSlider(m_slider->getValue()));
         postEvent();
     };
-    // value -> slider
-    inline virtual float Val2Slider(float value) {
-        return value > 1 ? 1 : value;
-    }
-    // slider -> value
-    inline virtual float Slider2Val(float value) {
-        return value;
-    }
     // post event
-    virtual void postEvent() = 0;
-
-    inline float getVal() {
+    void postEvent() {
+        if (this->is_int)
+            SignalEvent(this->topic, (int)value).post();
+        else
+            SignalEvent(this->topic, value).post();
+    }
+    float getVal() {
         return this->value;
     }
-    inline void setVal(float value) {
-        this->value = value;
-        m_inputer->setString(cocos2d::CCString::createWithFormat("%.2f", static_cast<float>(value))->getCString());
-        m_slider->setValue(Val2Slider(value));
-    }
+    void setVal(float value, short mode = 0);
+    // i hate cascading opacity
+    void helpFade(bool in);
 };
 
 // speed slider in main menu
 class SpeedSliderBundle : public SliderBundleBase {
 protected:
-    bool init(CCPoint pos, const char* name, float val, float max, int tag, std::string id);
-    float Val2Slider(float value) override {
-        return sqrt(value/5) > 1 ? 1 : round(sqrt(value/5) * 100) / 100;
-    }
-    float Slider2Val(float s) override {
-        return 5 * s * s;
-    }
-    void postEvent() override {
-        Mod::get()->setSavedValue("speed", this->value);
-        SignalEvent<float>("speed", this->value).post();
-    }
+    // init
+    bool init();
 public:
+    // fade with item menu
     void Fade(bool in);
 
     static SpeedSliderBundle* create(float val) {
         auto node = new SpeedSliderBundle();
-        if (node && node->init(CCPoint(0, -120.f), "Frequency", val, -1, 10, "speed-menu")) {
+        if (node && node->init()) {
             node->autorelease();
             return node;
         };
@@ -154,14 +183,11 @@ enum class OptionLineType {
 };
 
 // Setup Option Line, not a cell
-class SetupOptionLine : public CCMenu, public TextInputDelegate, public SliderDelegate {
+class SetupOptionLine : public SliderBundleBase {
 protected:
-    // value
-    int value = 0;
-    // max value, -1 if up to infinity
-    float max = 0;
     // init
     bool init(OptionLineType type, int mode, int tag);
+    // toggler callback
     void onToggle(CCObject*) {
         // mode
         if (type == OptionLineType::Title)
@@ -173,44 +199,21 @@ protected:
     void onPickColor(CCObject* sender) {
         SignalEvent("color", sender->getTag()).post();
     };
-    // update value from text input
-    void textChanged(CCTextInputNode* p) override;
-    // check value > max case
-    void textInputClosed(CCTextInputNode* p) override;
-    // signal
-    void sliderBegan(Slider *p) override {
-        SignalEvent("drag-slider", true).post();
-    };
-    // change chroma frequency by slider
-    void sliderEnded(Slider *p) override {
-        SignalEvent("drag-slider", false).post();
-        SignalEvent(mode == 3 ? "duty" :"satu", value).post();
-    };
-    inline void onSlider(CCObject*);
-    // on arrow
-    void onArrow(CCObject*);
-    // value -> slider
-    inline float Val2Slider(int value) {
-        return (float)value / max;
-    }
-    // slider -> value
-    inline int Slider2Val(float value) {
-        return (int)round(value * max);
-    }
 public:
+    // line ui type
     OptionLineType type;
+    // the mode this line points to
     int mode;
-    // UI
-    CCLabelBMFont* m_label = nullptr;
+    // title (title line only)
     CCLabelBMFont* m_title = nullptr;
+    // toggler (shared)
     CCMenuItemToggler* m_toggler = nullptr;
+    // color picker
     CCMenuItemSpriteExtra* m_colpk = nullptr;
+    // color picker1
     CCMenuItemSpriteExtra* m_colpk1 = nullptr;
-    CCMenuItemSpriteExtra* m_colpk2 = nullptr;    
-    TextInput* m_inputer = nullptr;
-    Slider* m_slider = nullptr;
-    CCMenuItemSpriteExtra* m_btnLeft = nullptr;
-    CCMenuItemSpriteExtra* m_btnRight = nullptr;
+    // color picker2
+    CCMenuItemSpriteExtra* m_colpk2 = nullptr;
     // toggle the toggler and set/tint the label' color
     void toggleTitle(bool yes, bool fade = false) {
         if (m_toggler)
@@ -218,18 +221,6 @@ public:
         if (type == OptionLineType::Title && m_title)
             // green or gray
             m_title->runAction(CCTintTo::create(fade*ANIM_TIME_M, 127-127*yes, 127+128*yes, 127-127*yes));
-    }
-    // i hate cascading opacity
-    void helpFade(bool in);
-    inline int getVal() {
-        return this->value;
-    }
-    inline void setVal(int value) {
-        this->value = value;
-        if (m_inputer)
-            m_inputer->setString(cocos2d::CCString::createWithFormat("%i", value)->getCString());
-        if (m_slider)
-            m_slider->setValue(Val2Slider(value));
     }
 
     static SetupOptionLine* create(OptionLineType type, int mode, int tag) {

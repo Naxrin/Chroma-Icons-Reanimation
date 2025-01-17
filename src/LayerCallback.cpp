@@ -571,7 +571,7 @@ void ChromaLayer::onApply(CCObject* sender) {
 
 void ChromaLayer::onClose(CCObject* sender) {
     // mute on dragging slider
-    if (this->on_slider || pages.back() == Page::Init)
+    if (this->on_slider || this->pages.back() == Page::Init)
         return;
 
     auto cur = pages.back();

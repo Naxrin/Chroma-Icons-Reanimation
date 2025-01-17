@@ -152,14 +152,14 @@ void TitleCell::Fade(bool in) {
 }
 
 // title option
-bool OptionTitleCell::init(const char* text, float y, float width, int tag, std::string id) {
+bool OptionTitleCell::init(const char* text, float y, int tag, std::string id) {
     // parent
     if (!CCMenu::init())
         return false;
 
     m_title = CCLabelBMFont::create(text, "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentCenter);
     m_title->setScale(0.5);
-    m_title->setContentSize(CCSize(width, 20.f));
+    m_title->setContentSize(CCSize(300.f, 20.f));
     m_title->setWidth(340.f);
     m_title->setAnchorPoint(CCPoint(0.5, 0.5));
     m_title->setColor(ccc3(64, 192, 255));
@@ -167,16 +167,16 @@ bool OptionTitleCell::init(const char* text, float y, float width, int tag, std:
     addChild(m_title);
 
     // setup
-    if (!BaseCell::setup(CCPoint(160.f, y-10.f), CCSize(width, 20.f), tag, id))
+    if (!BaseCell::setup(CCPoint(160.f, y-10.f), CCSize(300.f, 20.f), tag, id))
         return false;
 
     // set subnode position
-    m_title->setPosition(CCPoint(width/2, 10.f));
+    m_title->setPosition(CCPoint(150.f, 10.f));
     return true;
 }
 
 // toggler option
-bool OptionTogglerCell::init(const char* title, float y, float width, int tag, std::string id, const char* desc) {
+bool OptionTogglerCell::init(const char* title, float y, int tag, std::string id, const char* desc) {
     if (!CCMenu::init())
         return false;
 
@@ -184,7 +184,7 @@ bool OptionTogglerCell::init(const char* title, float y, float width, int tag, s
     // add hint first to see the height
     m_hint = CCLabelBMFont::create(desc, "ErasLight.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_hint->setScale(0.7);
-    m_hint->setWidth(width - 10.f);
+    m_hint->setWidth(290.f);
     m_hint->setAnchorPoint(CCPoint(0.f, 0.f));
     m_hint->setColor({255, 255, 0});
     m_hint->setID("hint");
@@ -198,7 +198,7 @@ bool OptionTogglerCell::init(const char* title, float y, float width, int tag, s
 
     m_label = CCLabelBMFont::create(title, "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_label->setScale(0.45);
-    m_label->setContentSize(CCSize(width - 25.f, 20.f));
+    m_label->setContentSize(CCSize(275.f, 20.f));
     m_label->setWidth(340.f);
     m_label->setAnchorPoint(CCPoint(0.f, 0.5));
     m_label->setID("label");
@@ -228,8 +228,17 @@ void OptionTogglerCell::onOption(CCObject* sender) {
     yes = !yes;
     // set value
     Mod::get()->setSavedValue(this->getID(), yes);
+    // spider test jump is not implemenmted for mac yet
+    #ifdef GEODE_IS_MACOS
+    FLAlertLayer::create(
+        "Sry!",
+        "spiderTestJump function is not implemented on mac for now, so this option is just nonsense here! plz wait for future update!",
+        "Alright"
+    )->show();
+    return;
+    #endif
     // option
-    opts[this->getID()] = yes;
+    opts[this->getID()] = yes;  
     // post signal
     SignalEvent<bool>(this->getID(), yes).post();
 
@@ -254,6 +263,7 @@ void OptionTogglerCell::Fade(bool in) {
     else
         btn->setEnabled(false);
 }
+
 bool ItemCell::init(int tag) {
     if (!CCMenu::init())
         return false;
@@ -439,8 +449,8 @@ void SetupOptionCell::refreshUI(ChromaSetup setup, bool fade) {
 void SetupOptionCell::Fade(bool in, int dir) {
     this->setPosition(CCPoint(50.f + 200 * dir * in, 0.f));
     BaseCell::Fade(in);
-    static_cast<SetupOptionLine*>(getChildByID("satu"))->helpFade(in);
-    static_cast<SetupOptionLine*>(getChildByID("duty"))->helpFade(in);
+    static_cast<SliderBundleBase*>(getChildByID("satu"))->helpFade(in);
+    static_cast<SliderBundleBase*>(getChildByID("duty"))->helpFade(in);
     // move
     if (dir)
         this->runAction(CCEaseExponentialOut::create(

@@ -11,23 +11,26 @@ using namespace geode::prelude;
 // used for transition between pages
 // @note 0 - 0.5
 #define ANIM_TIME_L Mod::get()->getSavedValue<float>("anim-speed", 0.4)
+
 // used in delay between old page fades out and new page fades in
 // @note 0 - 0.24
 #define ANIM_TIME_M 0.6 * Mod::get()->getSavedValue<float>("anim-speed", 0.4)
+
 // used in scroller cell delay adn item cell enter delay
 // @note 0 - 0.05
-#define ANIM_TIME_GAP 0//.1 * Mod::get()->getSavedValue<float>("anim-speed", 0.4)
+#define ANIM_TIME_GAP 0.06 * Mod::get()->getSavedValue<float>("anim-speed", 0.4)
 
+// used for cell color
 #define CELL_COLOR Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0, \
                     Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0, \
                     Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0
 
+// used for bg color
 #define BG_COLOR Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255, \
                     Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255, \
                     Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255
 
 /********** Useful Const Value *************/
-
 
 // game manager
 static GameManager* gm = GameManager::sharedState();
@@ -39,6 +42,7 @@ void fade(CCMenuItem* node, bool in, float time = ANIM_TIME_L, float scaleX = -1
 
 /********** Item Channel Enumerate Class *************/
 
+// A single game mode (common, icon, ...)
 // Icon is for easy mode common
 enum class Gamemode {
     Icon, Cube, Ship, Ball, Ufo, Wave, Robot, Spider, Swing, Jetpack
@@ -48,9 +52,7 @@ static std::string items[] = {
     "Icon", "Cube", "Ship", "Ball", "Ufo", "Wave", "Robot", "Spider", "Swing", "Jetpack", // 0~9
 };
 
-// channels of a single game mode (common, icon, ...)
-// ghost~Tele are effect channels, ghost is preserved for future update
-// effect is just wave trail and ufo shell
+// Ghost is preserved for future update
 enum class Channel {
     Main, Secondary, Glow, White, Trail, DashFire, TPLine, WaveTrail, UFOShell, Ghost
 };
@@ -134,9 +136,9 @@ struct matjson::Serialize<ChromaSetup> {
     }
 };
 
-
 /********** EVENT ***********/
-// Integrated Event Signal Emitter
+
+// Integrated Event Signal Emitter for mod menu
 template<typename T>
 class SignalEvent : public Event {
 public:
@@ -150,6 +152,7 @@ public:
 
 class GJItemEffect : public CCSprite {
 public:
+    // register effectType
     Channel effectType;
     // 4~12
     Gamemode targetMode = Gamemode::Icon;
@@ -164,6 +167,12 @@ struct myColorHSV {
 };
 
 // chroma engine
+// param setup the chroma pattern it refers to
+// defaultVal for mode 0
+// phase current phase
+// percentage current level percentage
+// progress current level progress
+// reset true if a player should be reset to default
 ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress, bool reset = false);
 
 // get index for in-level pointer

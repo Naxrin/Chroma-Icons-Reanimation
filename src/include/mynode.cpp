@@ -159,137 +159,130 @@ void PickItemButton::toggleChroma(bool current) {
 
         // white
         if (icon->m_unlockType == UnlockType::Robot)
-            icon->m_player->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)
-                ->setColor(ccc3(255, 255, 255));
+            if (auto spr = icon->m_player->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1))
+                spr->setColor(ccc3(255, 255, 255));
         else if (icon->m_unlockType == UnlockType::Spider)
-            icon->m_player->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)
-                ->setColor(ccc3(255, 255, 255));
-        else
+            if (auto spr = icon->m_player->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1))
+                spr->setColor(ccc3(255, 255, 255));
+        else if (icon->m_player->m_detailSprite)
             icon->m_player->m_detailSprite->setColor(ccc3(255, 255, 255));
     }
 }
 
-bool SliderBundleBase::init(const char* name, float value, float max) {
-    if (!CCMenu::init())
-        return false;
+bool SliderBundleBase::init(std::string topic, const char* title, float value, float max, float min, bool is_int, bool has_arrow, \
+    float labelScale, float sliderScale, float inputerScale, float arrowScale, float sliderPosX, float inputerPosX, float labelWidth, float inputerWidth, float arrowDistance,\
+    std::function<float (float)> toSlider, std::function<float (float)> fromSlider) {
+
+    this->topic = topic;
 
     this->max = max;
+    this->min = min;
+    this->is_int = is_int;
+
+    this->toSlider = toSlider;
+    this->fromSlider = fromSlider;
+
     this->ignoreAnchorPointForPosition(false);
     this->setVisible(false);
-
     // label
-    m_label = CCLabelBMFont::create(name, "ErasBold.fnt"_spr, 140.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_label = CCLabelBMFont::create(title, "ErasBold.fnt"_spr, labelWidth, CCTextAlignment::kCCTextAlignmentLeft);
     m_label->setPosition(CCPoint(0.f, 10.f));
     m_label->setAnchorPoint(CCPoint(0.f, 0.5));
-    this->addChild(m_label);    
+    m_label->setScale(labelScale);
+    this->addChild(m_label);
 
     // inputer
-    this->m_inputer = TextInput::create(60.f, name, "ErasBold.fnt"_spr);
-    m_inputer->setFilter("1234567890.");
+    this->m_inputer = TextInput::create(inputerWidth, title, "ErasBold.fnt"_spr);
+    m_inputer->setPosition(CCPoint(inputerPosX, 10.f));
+    m_inputer->setScale(inputerScale);
+    m_inputer->setFilter(fmt::format("1234567890{}{}", this->is_int ? "" : ".", this->min < 0 ? "-" : ""));
     m_inputer->setDelegate(this);
     m_inputer->getChildByType<CCScale9Sprite>(0)->setVisible(false);
     m_inputer->setID("text-input");
     this->addChild(m_inputer);
 
-    // arrow left
-    auto arrowLeft = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-    arrowLeft->setScale(0.3);
-    arrowLeft->setFlipX(true);
-    m_btnLeft = CCMenuItemSpriteExtra::create(arrowLeft, this, menu_selector(SliderBundleBase::onArrow));
-    m_btnLeft->setTag(1);    
-    this->addChild(m_btnLeft);
-
-    // arrow right
-    auto arrowRight = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-    arrowRight->setScale(0.3);
-    m_btnRight = CCMenuItemSpriteExtra::create(arrowRight, this, menu_selector(SliderBundleBase::onArrow));
-    m_btnRight->setTag(2);
-    this->addChild(m_btnRight);
-
     // slider
-    this->m_slider = Slider::create(this, menu_selector(SliderBundleBase::onSlider), 0.6);
+    this->m_slider = Slider::create(this, menu_selector(SliderBundleBase::onSlider), sliderScale);
+    m_slider->setPosition(CCPoint(sliderPosX, 10.f));
     m_slider->m_delegate = this;
     this->addChild(m_slider);
 
+    if (has_arrow) {
+        // arrow left
+        auto sprLeft = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+        sprLeft->setScale(arrowScale);
+        sprLeft->setFlipX(true);
+        m_btnLeft = CCMenuItemSpriteExtra::create(sprLeft, this, menu_selector(SliderBundleBase::onArrow));
+        m_btnLeft->setPosition(CCPoint(inputerPosX - arrowDistance, 10.f));
+        m_btnLeft->setTag(1);
+        this->addChild(m_btnLeft);
+
+        // arrow right
+        auto sprRight = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+        sprRight->setScale(arrowScale);
+        m_btnRight = CCMenuItemSpriteExtra::create(sprRight, this, menu_selector(SliderBundleBase::onArrow));
+        m_btnRight->setPosition(CCPoint(inputerPosX + arrowDistance, 10.f));
+        m_btnRight->setTag(2);
+        this->addChild(m_btnRight);        
+    }
+
+    // init value
     this->setVal(value);
     return true;
 }
 
-void SliderBundleBase::textChanged(CCTextInputNode* p) {
-    std::string input = p->getString();
-    if (input != "")
-        m_slider->setValue(Val2Slider(stof(input)));
-}
-
-void SliderBundleBase::textInputClosed(CCTextInputNode* p) {
-    std::string input = p->getString();
-    if (input == "")
-        input = cocos2d::CCString::createWithFormat("%.2f", static_cast<float>(value))->getCString();
-    else {
-        value = stof(input);
-        if (max > 0 && value > max)
-            value = max;
-        input = cocos2d::CCString::createWithFormat("%.2f", static_cast<float>(value))->getCString();
+void SliderBundleBase::setVal(float value, short mode) {
+    if (!mode)
+        this->value = value;
+    if (mode < 1 && m_inputer) {
+        // inputer
+        if (this->is_int)
+            m_inputer->setString(std::to_string((int)value));            
+        else {
+            std::ostringstream stream;
+            stream << std::fixed << std::setprecision(2) << value;
+            m_inputer->setString(stream.str());
+        }
     }
-    p->setString(input);
-    postEvent();
+    if (mode > -1 && m_slider)  {
+        // slider
+        float unfiltered = this->toSlider(value);
+        m_slider->setValue(limiter(unfiltered));
+    }
 }
 
-void SliderBundleBase::onSlider(CCObject* sender) {
-    value = round(Slider2Val(m_slider->getValue()) * 100) / 100;
-    m_inputer->setString(cocos2d::CCString::createWithFormat("%.2f", static_cast<float>(value))->getCString());
+void SliderBundleBase::helpFade(bool in) {
+    if (m_slider != nullptr) {
+        m_slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+        m_slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+        m_slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+    }
+    if (m_inputer != nullptr)
+        m_inputer->getChildByType<CCTextInputNode>(0)->getChildByType<CCLabelBMFont>(0)->runAction(
+            CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
 }
 
-
-void SliderBundleBase::onArrow(CCObject* sender) {
-    float delta = sender->getTag() == 2 ? 0.1 : -0.1;
-    float s = m_slider->getValue();
-    s += delta;
-    s = s > 1 ? 1 : (s < 0 ? 0 : s);
-    
-    value = Slider2Val(s);
-    if (max > 0 && value > max) {
-        value = max;
-        m_slider->setValue(Val2Slider(max));
-    } else
-        m_slider->setValue(s);
-
-    m_inputer->setString(cocos2d::CCString::createWithFormat("%.2f", static_cast<float>(value))->getCString());
-    postEvent();
-}
-
-bool SpeedSliderBundle::init(CCPoint pos, const char* name, float val, float max, int tag, std::string id) {
-    if (!SliderBundleBase::init(name, val, max))
+bool SpeedSliderBundle::init() {
+    if (!CCMenu::init())
         return false;
+    if (!SliderBundleBase::init("speed", "Frequency", Mod::get()->getSavedValue<float>("speed", 1), 360, 0, false, true,
+        0.6, 0.6, 0.8, 0.3, 160.f, 275.f, 140.f, 60.f, 35.f,
+        [](float value) -> float { return limiter(sqrt(value/5)); },
+        [](float s) -> float { return 5 * s * s; }
+    )) return false;
 
-    this->setID(id);
-    this->setPosition(pos);
+    this->setID("speed-menu");
+    this->setPosition(CCPoint(0, -120.f));
     this->setAnchorPoint(CCPoint(0.5, 0.5));
     this->setContentSize(CCSize(320.f, 20.f));
     this->setScale(5, 0.2);
-
-    // label
-    m_label->setScale(0.6);
-    // inputer
-    m_inputer->setPosition(CCPoint(275.f, 10.f));
-    m_inputer->setScale(0.8);
-    // slider
-    m_slider->setPosition(CCPoint(160.f, 10.f));
-    // arrows
-    m_btnLeft->setPosition(CCPoint(240.f, 10.f));
-    m_btnRight->setPosition(CCPoint(310.f, 10.f));
-
     return true;
 }
 
 void SpeedSliderBundle::Fade(bool in) {
     fade(this, in, ANIM_TIME_M, in ? 1 : 5, in ? 1 : 0.2);
     // manually cascade opacity
-    m_slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    m_slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    m_slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    m_inputer->getChildByType<CCTextInputNode>(0)->getChildByType<CCLabelBMFont>(0)->runAction(
-        CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+    this->helpFade(in);
 }
 
 const char* titles[5] = {"Default", "Static", "Chromatic", "Gradient", "Progress"};
@@ -318,7 +311,8 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
     // customize
     switch (type) {
     case OptionLineType::Title:
-        this->setContentHeight(25.f);    
+        // special height
+        this->setContentHeight(25.f);
 
         this->m_title = CCLabelBMFont::create(titles[mode], "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
         m_title->setScale(0.5);
@@ -398,106 +392,22 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         this->addChild(label);
         break;
     case OptionLineType::Slider:
-        this->max = mode == 3 ? 99 : 100;
-        // label
         this->setID(mode == 3 ? "duty" :"satu");
-        m_label = CCLabelBMFont::create(mode == 3 ? "Duty %" :"Saturation", "ErasBold.fnt"_spr, 140.f, CCTextAlignment::kCCTextAlignmentLeft);
-        m_label->setPosition(CCPoint(10.f, 10.f));
-        m_label->setAnchorPoint(CCPoint(0.f, 0.5));
-        m_label->setScale(0.4);
-        this->addChild(m_label);    
-
-        // inputer
-        m_inputer = TextInput::create(40.f, mode == 3 ? "duty" :"satu", "ErasBold.fnt"_spr);
-        m_inputer->setPosition(CCPoint(200.f, 10.f));
-        m_inputer->setScale(0.5);
-        m_inputer->setFilter("1234567890");
-        m_inputer->setDelegate(this);
-        m_inputer->getChildByType<CCScale9Sprite>(0)->setVisible(false);
-        m_inputer->setID("text-input");
-        this->addChild(m_inputer);
-
-        // arrow left
-        auto arrowLeft = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-        arrowLeft->setScale(0.15);
-        arrowLeft->setFlipX(true);
-        m_btnLeft = CCMenuItemSpriteExtra::create(arrowLeft, this, menu_selector(SetupOptionLine::onArrow));
-        m_btnLeft->setPosition(CCPoint(175.f, 10.f));
-        m_btnLeft->setTag(1);
-        this->addChild(m_btnLeft);
-
-        // arrow right
-        auto arrowRight = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-        arrowRight->setScale(0.15);
-        m_btnRight = CCMenuItemSpriteExtra::create(arrowRight, this, menu_selector(SetupOptionLine::onArrow));
-        m_btnRight->setPosition(CCPoint(225.f, 10.f));
-        m_btnRight->setTag(2);
-        this->addChild(m_btnRight);
-
-        // slider
-        m_slider = Slider::create(this, menu_selector(SetupOptionLine::onSlider), 0.4);
-        m_slider->setPosition(CCPoint(120.f, 10.f));
-        m_slider->m_delegate = this;
-        m_slider->setID("slider");
-        this->addChild(m_slider);
-
+        if (mode == 3)
+            return SliderBundleBase::init("duty", "Duty %", 50, 99, 0, true, true,
+                0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 40.f, 25.f,
+                [](float value) -> float { return value / 99; },
+                [](float s) -> float { return 99 * s; }
+            );
+        else
+            return SliderBundleBase::init("satu", "Saturation", 50, 100, 0, true, true,
+                0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 40.f, 25.f,
+                [](float value) -> float { return value / 100; },
+                [](float s) -> float { return 100 * s; }
+            );
         break;
     }
     return true;
-}
-
-void SetupOptionLine::helpFade(bool in) {
-    if (m_slider) {
-        m_slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-        m_slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-        m_slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    }
-    if (m_inputer)
-        m_inputer->getChildByType<CCTextInputNode>(0)->getChildByType<CCLabelBMFont>(0)->runAction(
-            CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));     
-}
-
-void SetupOptionLine::textChanged(CCTextInputNode* p) {
-    std::string input = p->getString();
-    if (input != "")
-        m_slider->setValue(Val2Slider(stoi(input)));
-}
-
-void SetupOptionLine::textInputClosed(CCTextInputNode* p) {
-    std::string input = p->getString();
-    if (input == "")
-        input = std::to_string(value);
-    else {
-        value = stoi(input);
-        if (max > 0 && value > max)
-            value = max;
-        input = std::to_string(value);
-    }
-    p->setString(input);
-    SignalEvent(mode == 3 ? "duty" :"satu", value).post();
-}
-
-void SetupOptionLine::onSlider(CCObject* sender) {
-    value = Slider2Val(m_slider->getValue());
-    m_inputer->setString(std::to_string(value));
-}
-
-void SetupOptionLine::onArrow(CCObject* sender) {
-
-    float delta = sender->getTag() == 2 ? 0.1 : -0.1;
-    float s = m_slider->getValue();
-    s += delta;
-    s = s > 1 ? 1 : (s < 0 ? 0 : s);
-    
-    value = Slider2Val(s);
-    if (max > 0 && value > max) {
-        value = max;
-        m_slider->setValue(Val2Slider(max));
-    } else
-        m_slider->setValue(s);
-
-    m_inputer->setString(std::to_string(value));
-    SignalEvent(mode == 3 ? "duty" :"satu", value).post();
 }
 
 float MyContentLayer::getSomething(float Y, float H) {
@@ -513,105 +423,6 @@ float MyContentLayer::getSomething(float Y, float H) {
     else
         return p1 > 25 ? 1 : 0.04*p1;
 }
-/*
-void ScrollLayerPlus::Transition(bool in, int move) {
-    auto m_realCL = static_cast<MyContentLayer*>(m_contentLayer);
-    // move to top plz
-    if (in) {
-        if (move)
-            m_realCL->setPositionY(move > 5 ? 210.f - 40.f * move : 0.f);
-        else
-            this->moveToTop();
-    }
-    // animation        
-    int m = this->getTag();
-    int tag = in ? m : 1;
-    float delay = 0;
-    
-    float X = this->m_contentLayer->getContentWidth() / 2;
-
-    // fade buttons
-    while (tag > 0 && tag <= m) {
-        if (auto opt = static_cast<BaseCell*>(m_contentLayer->getChildByTag(tag))) {
-            // casted contentLayer
-            
-            // start
-            float y0 = m_realCL->Ystd.at(tag-1) - (in && move ? 0.f : 0);
-            float tg0 = m_realCL->getSomething(y0, opt->getContentHeight());
-            // dest
-            float y1 = m_realCL->Ystd.at(tag-1) - (in || !move ? 0 : 0.f);
-            float tg1 = m_realCL->getSomething(y1, opt->getContentHeight());
-            opt->stopInnerAction();
-
-            //log::warn("start tag = {} y0 = {} tg0 = {} y1 = {} tg1 = {}", tag, y0, tg0, y1, tg1);
-            // we won't see them at all
-            if ((in && !tg1) || (!in && !tg0)) {
-                // place it in the dest status
-                opt->setPosition(CCPoint(X, y1));
-                opt->setVisible(false);
-                opt->setScale(0.5);
-                opt->setOpacity(0);
-                tag += in ? -1 : 1;
-                continue;
-            }
-            // set it in the start status
-            opt->setPosition(CCPoint(X, y0));
-            opt->setVisible(true);
-            opt->setScale(in ? 0.25 + 0.25 * tg0 : 0.5 + 0.5 * tg0);
-            opt->setOpacity(in ? 0 : 255 * tg0);
-
-            float newScale = in ? 0.5 + 0.5 * tg1 : 0.25 + 0.25 * tg1;
-
-            auto actIn = CCSequence::create(
-                CCDelayTime::create(delay),
-                CCSpawn::create(
-                    CCEaseExponentialOut::create(CCScaleTo::create(ANIM_TIME_M, 0.5 + 0.5 * tg1)),
-                    CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255 * tg1)),
-                    CCEaseExponentialOut::create(CCMoveTo::create(ANIM_TIME_M, CCPoint(X, y1))),
-                    nullptr
-                ),
-                CallFuncExt::create([opt, tg1] () {
-                    opt->setVisible(true);
-                    opt->setOpacity(255 * tg1);
-                }),
-                nullptr
-            );
-            auto actOut = CCSequence::create(
-                CCDelayTime::create(delay),
-                CCSpawn::create(
-                    CCEaseExponentialOut::create(CCScaleTo::create(ANIM_TIME_M, tg1 > tg0 ? 0.25 + 0.25 * tg0 : 0.25 + 0.25 * tg1)),
-                    CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 0)),
-                    CCEaseExponentialOut::create(CCMoveTo::create(ANIM_TIME_M, CCPoint(X, y1))),
-                    nullptr
-                ),
-                CallFuncExt::create([opt] () {
-                    opt->setVisible(false);
-                    opt->setOpacity(0);
-                }),
-                nullptr
-            );
-            opt->runActionPlus(in ? actIn : actOut);
-
-            tag += in ? -1 : 1;
-            delay += ANIM_TIME_GAP;
-        } else
-            break;
-    }
-    // stop former fade to avoid spam issue
-    if (actionFade)
-        this->stopAction(actionFade);
-    if (in)
-        this->setVisible(true);
-    else {
-        actionFade = CCSequence::create(
-            CCDelayTime::create(delay + ANIM_TIME_M),
-            CallFuncExt::create([this](void) { this->setVisible(false); }),
-            nullptr
-        );
-        this->runAction(actionFade);
-    }
-}
-*/
 
 void ScrollLayerPlus::Transition(bool in, int move) {
     auto m_realCL = static_cast<MyContentLayer*>(m_contentLayer);

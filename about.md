@@ -1,6 +1,6 @@
 ![image](naxrin.chroma_icons/title.png)
 # <cy>Chroma Icons</c>
-Reanimation of legacy Chroma Icons for GD 2.204 @ geode 2.x, the 2.2 Geode port of **Mega Hack v7 Icon Effect**!  
+Reanimation of legacy Chroma Icons for GD 2.204 @ geode 2.x!  
 Besides original functions, this mod also has:  
 #### <cy>New Intergrated Mod Menu</c>
 Enjoy your mod config and preview them in a new designed integrated mysterious menu!
