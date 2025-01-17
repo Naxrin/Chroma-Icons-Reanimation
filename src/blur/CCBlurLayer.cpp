@@ -83,8 +83,6 @@ void CCBlurLayer::visit()
 
 void CCBlurLayer::draw()
 {
-    #ifndef GEODE_IS_MACOS
-    
     if (blurStrength == 0)
         return CCLayerColor::draw();
 
@@ -139,8 +137,6 @@ void CCBlurLayer::draw()
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     glBindVertexArray(0);
-
-    #endif
 }
 
 Result<std::string> Shader::compile(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath) {
@@ -370,8 +366,6 @@ void cleanupPostProcess() {
     ppShaderRadius = 0;
 }
 
-#ifdef GEODE_IS_WINDOWS
-
 #include <Geode/modify/CCEGLViewProtocol.hpp>
 
 class $modify(CCEGLViewProtocol) {
@@ -383,8 +377,6 @@ class $modify(CCEGLViewProtocol) {
         setupPostProcess();
     }
 };
-
-#endif
 
 class $modify(GameManager) {
     void reloadAllStep5() {
