@@ -1,5 +1,5 @@
 ### Warning
-Despite most effort on stability, Old versions od this mod may perhaps randomly crash your game in playing a level, and I cannot promise this update has completely fixed it. Take it if you are challenging your new hardest level or something.
+Despite most effort on stability, Old versions may perhaps randomly crash your game in playing a level, and I cannot promise this update has completely fixed it. Take it if you are challenging your new hardest level or something.
 
 # 3.2.0
 Hoping this release never crash our geometry dash, best wishes
