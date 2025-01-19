@@ -139,7 +139,7 @@ bool ChromaLayer::setup() {
     auto labelP2 = CCLabelBMFont::create("Player 2", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     labelP2->setScale(0.7);
     this->m_playerItemBtn = CCMenuItemToggler::create(labelP1, labelP2, this, menu_selector(ChromaLayer::onSwitchPlayer));
-    m_playerItemBtn->setPosition(CCPoint(0, 100.f));
+    m_playerItemBtn->setPosition(CCPoint(0, 95.f));
     m_playerItemBtn->setTag(4);
     m_playerItemBtn->setCascadeOpacityEnabled(true);
     m_playerItemBtn->setCascadeColorEnabled(true);
@@ -147,25 +147,32 @@ bool ChromaLayer::setup() {
     m_playerItemBtn->setEnabled(false);
     itemMenu->addChild(m_playerItemBtn);
 
-    auto labelIcon = CCLabelBMFont::create("Player Icons", "ErasWhite.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
-    labelIcon->setPosition(CCPoint(0.f, 70.f));
-    HIDE(labelIcon, 0.35, 0.35)
-    labelIcon->setColor(ccc3(CELL_COLOR));
-    labelIcon->setTag(5);
-    itemMenu->addChild(labelIcon);
+    auto labelEzyIcon = CCLabelBMFont::create("Click this Player Icon to Start", "ErasWhite.fnt"_spr, 360.f, CCTextAlignment::kCCTextAlignmentCenter);
+    labelEzyIcon->setPosition(CCPoint(0.f, 60.f));
+    HIDE(labelEzyIcon, 0.35, 0.35)
+    labelEzyIcon->setColor(ccc3(CELL_COLOR));
+    labelEzyIcon->setTag(5);
+    itemMenu->addChild(labelEzyIcon);
 
-    auto labelEffect = CCLabelBMFont::create("In-Game Effects", "ErasWhite.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
-    labelEffect->setPosition(CCPoint(0.f, -25.f));
+    auto labelAdvIcon = CCLabelBMFont::create("Player Icons", "ErasWhite.fnt"_spr, 360.f, CCTextAlignment::kCCTextAlignmentCenter);
+    labelAdvIcon->setPosition(CCPoint(0.f, 55.f));
+    HIDE(labelAdvIcon, 0.35, 0.35)
+    labelAdvIcon->setColor(ccc3(CELL_COLOR));
+    labelAdvIcon->setTag(6);
+    itemMenu->addChild(labelAdvIcon);
+
+    auto labelEffect = CCLabelBMFont::create("In-Game Effects", "ErasWhite.fnt"_spr, 360.f, CCTextAlignment::kCCTextAlignmentCenter);
+    labelEffect->setPosition(CCPoint(0.f, -35.f));
     HIDE(labelEffect, 0.35, 0.35)
     labelEffect->setColor(ccc3(CELL_COLOR));
-    labelEffect->setTag(6);
+    labelEffect->setTag(7);
     itemMenu->addChild(labelEffect);
 
     auto labelTarget = CCLabelBMFont::create("- Cube -", "ErasWhite.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
-    labelTarget->setPosition(CCPoint(0.f, -80.f));
+    labelTarget->setPosition(CCPoint(0.f, -90.f));
     HIDE(labelTarget, 0.25, 0.25);
     labelTarget->setColor(ccc3(CELL_COLOR));
-    labelTarget->setTag(7);
+    labelTarget->setTag(8);
     itemMenu->addChild(labelTarget);
 
     auto menuSpeed = SpeedSliderBundle::create(speed);

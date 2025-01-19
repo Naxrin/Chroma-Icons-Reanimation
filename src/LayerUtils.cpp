@@ -103,9 +103,9 @@ void ChromaLayer::dumpConfig() {
     setups[getIndex(this->ptwo, this->gamemode, this->channel)] = currentSetup;
 }
 
-bool ChromaLayer::switchCurrentItem(int id) {
+bool ChromaLayer::switchCurrentItem(int tab) {
     // switch a nonsense
-    if (this->id == id && pages.back() == Page::Setup)
+    if (this->tab == tab && pages.back() == Page::Setup)
         return false;
 
     if (m_currentItem) {
@@ -115,24 +115,24 @@ bool ChromaLayer::switchCurrentItem(int id) {
         this->dumpConfig();
     }
     // to effect
-    if (id > 9) {
-        this->channel = Channel(id - 7);
+    if (tab > 9) {
+        this->channel = Channel(tab - 7);
         if (!opts["easy"]) {
             // force convert gamemode
-            if (id == 14)
+            if (tab == 14)
                 this->gamemode = Gamemode::Wave;
-            else if (id == 15)
+            else if (tab == 15)
                 this->gamemode = Gamemode::Ufo;
         }
     }
     // to icon
     else {
-        this->gamemode = Gamemode(id);
+        this->gamemode = Gamemode(tab);
         // from effect / from the two special channels
-        if (this->id > 9 || this->channel == Channel::WaveTrail || this->channel == Channel::UFOShell)
+        if (this->tab > 9 || this->channel == Channel::WaveTrail || this->channel == Channel::UFOShell)
             this->channel = Channel::Main;
     }
-    this->id = id;
+    this->tab = tab;
 
     // load new setup
     currentSetup = setups[getIndex(this->ptwo, this->gamemode, this->channel)];
@@ -142,7 +142,7 @@ bool ChromaLayer::switchCurrentItem(int id) {
     m_chnlSetupLabel->setString(chnls[(int)this->channel].c_str());
 
     // locate new current setup item
-    int tag = id > 9 ? 16 - id : (opts["easy"] ? 6 : 15 - id);
+    int tag = tab > 9 ? 16 - tab : (opts["easy"] ? 6 : 15 - tab);
     // loate current item
     m_currentItem = static_cast<SetupItemCell*>((opts["easy"] ? m_setupEasyScroller : m_setupAdvScroller)->m_contentLayer->getChildByTag(tag));
     // scroll the scroller to dest position
@@ -151,7 +151,7 @@ bool ChromaLayer::switchCurrentItem(int id) {
         // select
         m_currentItem->select(true);
     else
-        log::error("m_currentItem not found: id = {}", id);
+        log::error("m_currentItem not found: tab = {}", tab);
     return true;
 }
 

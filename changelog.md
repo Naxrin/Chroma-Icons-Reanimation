@@ -1,3 +1,17 @@
+### Warning
+Despite most effort on stability, Old versions od this mod may perhaps randomly crash your game in playing a level, and I cannot promise this update has completely fixed it. Take it if you are challenging your new hardest level or something.
+
+# 3.2.0
+Hoping this release never crash our geometry dash, best wishes
+### Bugfix
+- Better UI text, to make the mod menu more user-friendly
+- in-game playing more safe (robot / spider nullptr check)
+- Warning Page rebuilt (avoid possible crash)
+### ToDo
+- Ghost Trail chroma
+- More Color pick options
+- More chroma pattern options (chromatic phase, brightness, ...)
+  
 # 3.2.0-beta.4
 spider teleport line on Mac comes (thanks to @hiimjustin000)  
 Fix white robot / spider sprite chroma crashing the game (I hope)  

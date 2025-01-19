@@ -46,24 +46,10 @@ bool WarnCell::init() {
     m_title->setScale(0.8);
     this->addChild(m_title);
 
-    m_text = TextArea::create(
-        "       It seems like you are playing an extreme demon, perhaps even a list demon."
-        " Grateful for your enjoying this mod though, I have to remind you:\n"
-        "       Regarding Pointercrate or some other lists' policy, <cy>despite time-varient player color may be allowed,"
-        " changing the player color in halfway run of a list demon</c> <cr>WILL PROBABLY GET REJECTED</c> <cy>for submission.</c>\n"
-        "       If list points is one of the reasons you are right here, are you still gonna access Chroma Menu now?",
-        "ErasWhite.fnt"_spr, 0.5, 500.f, CCPoint(0.f, 0.5), 18.f, false);
-    m_text->setPosition(CCPoint(218.f, 190.f));
-    m_text->setContentSize(CCSize(400.f, 140.f));
-    // wtf here
-    int index = 0;
-    for (auto obj: CCArrayExt<CCLabelBMFont*>(m_text->m_label->m_lines)) {
-        if (index < 2)
-            obj->setPositionY(obj->getPositionY() + 6.f);
-        if (index < 5)
-            obj->setPositionY(obj->getPositionY() + 6.f);
-        index ++;
-    }
+    m_text = CCSprite::create("warning.png"_spr); // fmt::format("warning.png"_spr, Mod::get()->getSavedValue<bool>("dark-theme", true) ? "black" : "white"
+    m_text->setPosition(CCPoint(210.f, 170.f));
+    m_text->setScale(0.94);
+    //m_text->setContentSize(CCSize(400.f, 120.f));
     this->addChild(m_text);
 
     auto labConfirm = CCLabelBMFont::create("YES ALWAYS", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
@@ -262,7 +248,7 @@ bool ItemCell::init(int tag) {
     // effect
     if (tag == 3) {
         // setup
-        if (!BaseCell::setup(CCPoint(0.f, -55.f), CCSize(150.f, 24.f), tag, "effect-sheet"))
+        if (!BaseCell::setup(CCPoint(0.f, -65.f), CCSize(150.f, 24.f), tag, "effect-sheet"))
             return false;
 
         for (int item = 11; item < 16; item ++) {
@@ -278,7 +264,7 @@ bool ItemCell::init(int tag) {
     // easy mode icons
     else if (tag == 2) {
         // setup
-        if (!BaseCell::setup(CCPoint(0.f, 20.f), CCSize(50.f, 50.f), tag, "easy-sheet"))
+        if (!BaseCell::setup(CCPoint(0.f, 10.f), CCSize(50.f, 50.f), tag, "easy-sheet"))
             return false;
         // btn
         auto btn = PickItemButton::create(0, false, this, menu_selector(ItemCell::onPickItem));
@@ -292,7 +278,7 @@ bool ItemCell::init(int tag) {
     // advanced icons
     else {
         // setup
-        if (!BaseCell::setup(CCPoint(0.f, 20.f), CCSize(400.f, 34.f), tag, "advanced-sheet"))
+        if (!BaseCell::setup(CCPoint(0.f, 10.f), CCSize(400.f, 34.f), tag, "advanced-sheet"))
             return false;
         // full mode icons
         for (int status = 1; status < 10; status ++) {

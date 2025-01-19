@@ -46,6 +46,7 @@ void ChromaLayer::switchTheme() {
     static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(5))->setColor(ccc3(CELL_COLOR));
     static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(6))->setColor(ccc3(CELL_COLOR));
     static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(7))->setColor(ccc3(CELL_COLOR));
+    static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(8))->setColor(ccc3(CELL_COLOR));
     // setup channel switch arrows
     m_leftArrowSetupBtn->setColor(ccc3(CELL_COLOR));
     m_rightArrowSetupBtn->setColor(ccc3(CELL_COLOR));
@@ -142,7 +143,7 @@ void ChromaLayer::fadeItemPage() {
     fade(m_titleLabel, in, ANIM_TIME_M, in ? 0.6 : 0.3, in ? 0.6 : 0.3);
     // prepare effects
     if (in && !opts["easy"]) {
-        static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(7))
+        static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(8))
             ->setString(fmt::format("- {} -", items[(int)this->gamemode]).c_str());
         // refresh item menu target
         m_effBundleCell->setModeTarget(this->gamemode);
@@ -152,10 +153,10 @@ void ChromaLayer::fadeItemPage() {
     m_effBundleCell->Fade(in);
     // labels
     fade(m_playerItemBtn, in, ANIM_TIME_L, in ? 1 : 5, in ? 1 : 0.2);
-    fade(this->getChildByID("item-menu")->getChildByTag(5), in, ANIM_TIME_L, in ? 0.7 : 0.35, in ? 0.7 : 0.35);
-    fade(this->getChildByID("item-menu")->getChildByTag(6), in, ANIM_TIME_L, in ? 0.7 : 0.35, in ? 0.7 : 0.35);
+    fade(this->getChildByID("item-menu")->getChildByTag(opts["easy"] ? 5 : 6), in, ANIM_TIME_L, in ? 0.7 : 0.35, in ? 0.7 : 0.35);
+    fade(this->getChildByID("item-menu")->getChildByTag(7), in, ANIM_TIME_L, in ? 0.7 : 0.35, in ? 0.7 : 0.35);
     if (!opts["easy"])
-        fade(this->getChildByID("item-menu")->getChildByTag(7), in, ANIM_TIME_L, in ? 0.5 : 0.25, in ? 0.5 : 0.25);
+        fade(this->getChildByID("item-menu")->getChildByTag(8), in, ANIM_TIME_L, in ? 0.5 : 0.25, in ? 0.5 : 0.25);
     // easy adv
     fade(m_modeBtn, in, ANIM_TIME_M);
     // speed menu
@@ -169,9 +170,9 @@ void ChromaLayer::fadeSetupPage() {
     bool in = pages.back() == Page::Setup;
     // switch between easy and adv
     if (opts["easy"])
-        m_setupEasyScroller->Transition(in, id > 10 ? 16 - id : 6);
+        m_setupEasyScroller->Transition(in, tab > 10 ? 16 - tab : 6);
     else {
-        m_setupAdvScroller->Transition(in, id > 10 ? 16 - id : 15 - id);
+        m_setupAdvScroller->Transition(in, tab > 10 ? 16 - tab : 15 - tab);
         if (in)
             // refresh target of setup menu
             for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
@@ -186,7 +187,7 @@ void ChromaLayer::fadeSetupPage() {
     fade(m_chnlSetupLabel, in, ANIM_TIME_L, 0.32, 0.32);
 
     // display channel switch arrows if necessary
-    bool showArrows = this->id < 14 && !opts["easy"] || !this->id;
+    bool showArrows = this->tab < 14 && !opts["easy"] || !this->tab;
     fade(m_leftArrowSetupBtn, in && showArrows);
     fade(m_rightArrowSetupBtn, in && showArrows);
 

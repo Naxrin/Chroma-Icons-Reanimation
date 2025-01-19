@@ -239,13 +239,9 @@ class $modify(ChromaPlayer, PlayerObject) {
     void update(float d) override {
         // base
         this->PlayerObject::update(d);
+        //auto pos = this->getPosition();
+        //log::info("Position = {}, {}", pos.x, pos.y);
 
-        // color test
-        //m_colorRelated = ccc3(100, 100, 100);
-        //m_colorRelated2 = ccc3(200, 200, 200);
-        //m_secondColorRelated = ccc3(50, 50, 50);
-        //m_flashRelated3 = ccc3(150, 150, 150);
-        //return;
         // only chroma the visible two
         if ((!opts["activate"] && !reset[this]) || !this->isVisible() || this->m_isDead)
             return;
@@ -257,8 +253,17 @@ class $modify(ChromaPlayer, PlayerObject) {
             else
                 return;
         }
-        // get some phase offsets
-        // as sending negative phase value to getChroma(...) is not allowed, all of them should really be positive
+
+        // set chroma color
+        this->processChroma();
+        // confirm it's really reset
+        if (reset[this])
+            reset[this] --;
+    }
+
+    // get some phase offsets then set chroma color
+    // as sending negative phase value to getChroma(...) is not allowed, all of them should really be positive
+    void processChroma() {
         bool p = this->m_isSecondPlayer && !opts["same-dual"];
         short od = this->m_isSecondPlayer && (opts["sep-dual"]) ? 180 : 0;
         short o2 = opts["sep-second"] ? 120 : 0;
@@ -305,8 +310,10 @@ class $modify(ChromaPlayer, PlayerObject) {
         }
         // robot
         else if (m_isRobot) {
+            if (!m_robotSprite) return;
             auto arr = this->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->m_spriteParts;
             for (auto part : CCArrayExt<CCSpritePart*>(arr)) {
+                if (!m_robotSprite) return;
                 part->setColor(main);
                 part->getChildByType<CCSprite>(0)->setColor(secondary);
                 if (part->getTag() == 1)
@@ -319,8 +326,10 @@ class $modify(ChromaPlayer, PlayerObject) {
         }
         // spider
         else if (m_isSpider) {
+            if (!m_spiderSprite) return;
             auto arr = this->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->m_spriteParts;
             for (auto part : CCArrayExt<CCSpritePart*>(arr)) {
+                if (!m_spiderSprite) return;
                 part->setColor(main);
                 part->getChildByType<CCSprite>(0)->setColor(secondary);
                 if (part->getTag() == 1)
@@ -356,15 +365,11 @@ class $modify(ChromaPlayer, PlayerObject) {
         // ufo shell
         if (this->m_isBird)
             this->m_birdVehicle->setColor(getChroma(setups[getIndex(p, status, Channel::UFOShell)],
-                ccc3(255, 255, 255), lvlphase + od, percentage, reset[this]));
-
-        // confirm it's really reset
-        if (reset[this])
-            reset[this] --;
+                ccc3(255, 255, 255), lvlphase + od, percentage, reset[this]));        
     }
 
+    // spider teleport line i guess
     void spiderTestJumpInternal(bool unk) {
-
         if (!opts["activate"]) {
             PlayerObject::spiderTestJump(unk);
             return;
@@ -389,7 +394,6 @@ class $modify(ChromaPlayer, PlayerObject) {
     }
 
     bool detectTPline(CCSprite *tele, CCPoint &pori, CCPoint &pcur) {
-        //log::error("isSideWay = {}", m_isSideways);
         CCPoint pos = tele->getPosition();
         CCPoint posfix;
         // horizental tp

@@ -15,7 +15,8 @@ Max effort made to make this mod compatible with other icon modifying modes, suc
 Toggle <cg>ON</c> / <cr>OFF</c> the whole mod anytime you want!  
 
 ## <cr>WARNING</c>
-Regarding Pointercrate and some other Lists' policy for Mega Hack v7's Icon Effects, when setting your player icons variable in playing a list level, some chroma patterns may really <cy>**Violate guidelines**</c> and result in your submission getting <cr>**REJECTED**</c>. This mod will NEVER take responsibility for your ignoring this.  
+- Despite most effort on stability, Old versions od this mod may perhaps randomly crash your game in playing a level, and I cannot promise this update has completely fixed it. Take it if you are challenging your new hardest level or something.
+- Regarding Pointercrate and some other Lists' policy for Mega Hack v7's Icon Effects, when setting your player icons variable in playing a list level, some chroma patterns may really <cy>**Violate guidelines**</c> and result in your submission getting <cr>**REJECTED**</c>. This mod will NEVER take responsibility for your ignoring this.  
 
 ### <cy>Also Note that:</c>
 - Despite effort made on compatibility, This mod may very probably conflict with other related Icon Color modifier mods (e.g. Same Dual Color). I'm not willing to set them conflict to force you pick one, But you can take a try yourself, also you can contact me to look into your conflict mods;

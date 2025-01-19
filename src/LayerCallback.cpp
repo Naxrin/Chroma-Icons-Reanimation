@@ -126,7 +126,7 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
             bool really_changed = this->switchCurrentItem(event->value);
             if (really_changed) {
                 // show or hide channel switch arrow
-                bool showArrows = this->id < 14 && !opts["easy"] || !this->id;
+                bool showArrows = this->tab < 14 && !opts["easy"] || !this->tab;
                 fade(m_leftArrowSetupBtn, showArrows);
                 fade(m_rightArrowSetupBtn, showArrows);
                 // workspace animation
@@ -302,11 +302,15 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
     m_modeBtn->toggle(opts["easy"]);
     // full mode
     m_advBundleCell->Fade(!opts["easy"]);
+    fade(this->getChildByID("item-menu")->getChildByTag(6),
+        !opts["easy"], ANIM_TIME_L, !opts["easy"] ? 0.7 : 0.35, !opts["easy"] ? 0.7 : 0.35);
     // easy mode
     m_ezyBundleCell->Fade(opts["easy"]);
+    fade(this->getChildByID("item-menu")->getChildByTag(5),
+        opts["easy"], ANIM_TIME_L, opts["easy"] ? 0.7 : 0.35, opts["easy"] ? 0.7 : 0.35);
 
     // effect target label
-    fade(this->getChildByID("item-menu")->getChildByTag(7),
+    fade(this->getChildByID("item-menu")->getChildByTag(8),
         !opts["easy"], ANIM_TIME_L, !opts["easy"] ? 0.5 : 0.25, !opts["easy"] ? 0.5 : 0.25);
 
     // switch effect preview target in items menu
@@ -325,7 +329,7 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
 // on switch channel page
 void ChromaLayer::onSwitchChannelPage(CCObject* sender) {
     // no spamming :(
-    if (!(this->id < 14 && !opts["easy"] || !this->id))
+    if (!(this->tab < 14 && !opts["easy"] || !this->tab))
         return;
     // dump settings
     this->dumpConfig();
@@ -336,7 +340,7 @@ void ChromaLayer::onSwitchChannelPage(CCObject* sender) {
     if (opts["easy"])
         this->channel = Channel((int(this->channel) + dir + 9) % 9);
     // in effects modify, switch gamemode
-    else if (this->id > 9) {
+    else if (this->tab > 9) {
         this->gamemode = Gamemode((int(this->gamemode) + dir + 8) % 9 + 1);
         // refresh target of setup menu
         for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))

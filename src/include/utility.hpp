@@ -90,7 +90,7 @@ struct ChromaSetup {
 
 // default chroma setup for this mod
 #define DEFAULT_SETUP ChromaSetup{\
-    .mode = 2, .satu = 50, .best = false, .color = ccc3(255, 255, 255),\
+    .mode = 0, .satu = 50, .best = false, .color = ccc3(255, 255, 255),\
     .gradient = {{0, ccc3(255, 255, 255)}, {180, ccc3(255, 255, 255)}},\
     .progress = {{0, ccc3(255, 255, 255)}, {100, ccc3(255, 255, 255)}} }
 

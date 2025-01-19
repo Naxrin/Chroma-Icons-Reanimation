@@ -38,10 +38,13 @@ bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_Menu
     icon = GJItemIcon::createBrowserItem(UnlockType(gametype[index]), garageIconIndex[index]);
     if (gm->m_playerGlow)
         icon->m_player->setGlowOutline(ccc3(255, 255, 255));
+    // setup page
     if (src)
         icon->setScale(0.6);
     else if (tag)
         icon->setScale(0.8);
+    else
+        icon->setScale(1.15);
 
     // init frame and color
     this->setPlayerStatus();
@@ -100,9 +103,7 @@ void PickItemButton::setPlayerStatus() {
 void PickItemButton::delayFade(int delay, bool in) {
     this->runAction(CCSequence::create(
         CCDelayTime::create(0.01 + ANIM_TIME_GAP*(1+delay)),
-        CallFuncExt::create([this, in](void) {
-            fade(this, in, ANIM_TIME_L);
-        }),
+        CallFuncExt::create([this, in](void) { fade(this, in); }),
         nullptr
     ));
 }
@@ -128,9 +129,11 @@ void PickItemButton::runChroma(float const& phase, float const& percentage, int 
         // white
         auto white = getChroma(setups[getIndex(ptwo, Gamemode(getTag()), Channel::White)], ccc3(255, 255, 255), phase, percentage, progress);
         if (icon->m_unlockType == UnlockType::Robot)
-            icon->m_player->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(white);
+            if (auto spr = icon->m_player->m_robotSprite)
+                spr->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(white);
         else if (icon->m_unlockType == UnlockType::Spider)
-            icon->m_player->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(white);
+            if (auto spr = icon->m_player->m_spiderSprite)
+                spr->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(white);
         else
             icon->m_player->m_detailSprite->setColor(white);
     }

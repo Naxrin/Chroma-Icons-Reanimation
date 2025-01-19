@@ -28,7 +28,7 @@ protected:
     // @note easy mode : common = 0
     // @note adv mode : icons = 1-9
     // @note Effects (11~15) : trail, wave trail, dash fire, teleport line, ufo shell...
-    int id;
+    int tab;
 
     // current gamemode in setup page
     // @note icon-jetpack = 0-9
@@ -192,9 +192,9 @@ protected:
     void dumpConfig();
 
     // save config -> switch current ID and refresh setup page
-    // @param id new target id he will switch to.
+    // @param tab new target id he will switch to.
     // @return true if the value is really changed
-    bool switchCurrentItem(int id);
+    bool switchCurrentItem(int tab);
 
     // ColorPickerDelegate function override
     // @param color new color from the picker

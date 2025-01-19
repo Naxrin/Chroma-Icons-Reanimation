@@ -27,7 +27,7 @@ public:
 class WarnCell : public BaseCell {
 protected:
     CCLabelBMFont* m_title;
-    TextArea* m_text;
+    CCSprite* m_text;
     CCMenuItemSpriteExtra* m_btnConfirm;
     CCMenuItemSpriteExtra* m_btnRemind;
     CCMenuItemSpriteExtra* m_btnEscape;
@@ -39,7 +39,7 @@ protected:
 public:
     void Fade(bool in) override {
         BaseCell::Fade(in);
-        fade(m_text, in);
+        fade(m_text, in, ANIM_TIME_L, in ? 0.94 : 0.47, in ? 0.94 : 0.47);
     }
 
     static WarnCell* create() {
