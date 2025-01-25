@@ -229,14 +229,16 @@ inline std::string toIndexStr(int index) {
     return (index < 10 ? "0" : "") + std::to_string(index);
 }
 
+#ifndef GEODE_IS_MACOS
 #include <Geode/modify/GhostTrailEffect.hpp>
 class $modify(OptionalGhostTrail, GhostTrailEffect) {
+    // generate robtop's ghost trail only when my own proxy is off
     void trailSnapshot(float p) {
-        log::warn("snapshot");
         if (!opts["activate"] || opts["dis-ghost"])
             GhostTrailEffect::trailSnapshot(p);
     }
 };
+#endif
 
 // My god, this mod finally starts to chroma your icons as definitely expected from here on
 #include <Geode/modify/PlayerObject.hpp>
@@ -322,7 +324,8 @@ class $modify(ChromaPlayer, PlayerObject) {
 
     // update override, chroma icons regarding current setup
     void update(float d) override {
-        // log::error("counter = {} + {}", m_fields->ghost_counter, d);
+        // ghost trail proxy
+        #ifndef GEODE_IS_MACOS
         m_fields->ghost_counter += d;
         if (m_fields->ghost_counter > 3) {
             // enabled ghost and using my proxy
@@ -330,7 +333,7 @@ class $modify(ChromaPlayer, PlayerObject) {
                 this->generateChromaGhostTrail();
             m_fields->ghost_counter = fmod(m_fields->ghost_counter, 3);
         }
-
+        #endif
         // base
         this->PlayerObject::update(d);
         // run chroma of other sprites

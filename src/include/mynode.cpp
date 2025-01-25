@@ -173,11 +173,9 @@ void PickItemButton::toggleChroma(bool current) {
 
         // white
         if (icon->m_unlockType == UnlockType::Robot)
-            if (auto spr = icon->m_player->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1))
-                spr->setColor(ccc3(255, 255, 255));
+            icon->m_player->m_robotSprite->m_extraSprite->setColor(ccc3(255, 255, 255));
         else if (icon->m_unlockType == UnlockType::Spider)
-            if (auto spr = icon->m_player->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1))
-                spr->setColor(ccc3(255, 255, 255));
+            icon->m_player->m_spiderSprite->m_extraSprite->setColor(ccc3(255, 255, 255));
         else if (icon->m_player->m_detailSprite)
             icon->m_player->m_detailSprite->setColor(ccc3(255, 255, 255));
     }

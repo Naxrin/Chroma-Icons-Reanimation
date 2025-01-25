@@ -4,8 +4,8 @@ Despite most effort on stability, Old versions od this mod may perhaps randomly 
 # 3.3.0
 Hoping this release never crash our geometry dash, best wishes
 ### Addition
-- Ghost Trail chroma
-- Ghost trail generator rewrite fix (optional)
+- Ghost Trail chroma (except mac for now)
+- Ghost trail generator rewrite fix (optional) (except mac for now)
 - Some perhaps useful options
 ### Bugfix
 - Better UI text, to make the mod menu more user-friendly
