@@ -1,14 +1,17 @@
 ### Warning
-Despite most effort on stability, Old versions may perhaps randomly crash your game in playing a level, and I cannot promise this update has completely fixed it. Take it if you are challenging your new hardest level or something.
+Despite most effort on stability, Old versions od this mod may perhaps randomly crash your game in playing a level, and I cannot promise this update has completely fixed it. Take it in mind if you are challenging your new hardest level or something matters your life.
 
-# 3.2.0
+# 3.3.0
 Hoping this release never crash our geometry dash, best wishes
+### Addition
+- Ghost Trail chroma
+- Ghost trail generator rewrite fix (optional)
+- Some perhaps useful options
 ### Bugfix
 - Better UI text, to make the mod menu more user-friendly
-- in-game playing more safe (robot / spider nullptr check)
+- in-game playing more safe (I hope)
 - Warning Page rebuilt (avoid possible crash)
 ### ToDo
-- Ghost Trail chroma
 - More Color pick options
 - More chroma pattern options (chromatic phase, brightness, ...)
   

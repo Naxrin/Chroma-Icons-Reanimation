@@ -10,32 +10,40 @@ const static std::string MInames[9] = {"icon", "ship", "ball", "ufo", "wave", "r
 // IconType and Colors name for Separate Dual Icons
 const static std::string SDInames[9] = {"cube", "ship", "roll", "bird", "dart", "robot", "spider", "swing", "jetpack"};
 //player mode
-const static int garageIconIndex[9] = {
-    gm->getPlayerFrame(), gm->getPlayerShip(), gm->getPlayerBall(),
-    gm->getPlayerBird(), gm->getPlayerDart(), gm->getPlayerRobot(),
-    gm->getPlayerSpider(), gm->getPlayerSwing(), gm->getPlayerJetpack(),
-};
+inline int garageIconIndex(int index) {
+    switch (index) {
+    case 8: return gm->getPlayerJetpack();
+    case 7: return gm->getPlayerSwing();
+    case 6: return gm->getPlayerSpider();
+    case 5: return gm->getPlayerRobot();
+    case 4: return gm->getPlayerDart();
+    case 3: return gm->getPlayerBird();
+    case 2: return gm->getPlayerBall();
+    case 1: return gm->getPlayerShip();
+    default: return gm->getPlayerFrame();
+    }
+}
 
 bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback) {
     this->setTag(tag);
     this->src = src;
 
     // effect
-    if (tag > 10) {
+    if (tag > 9) {
         // spr
         effect = GJItemEffect::createEffectItem(tag);
         effect->setScale(src ? 0.75 : 0.85);
         // init frame color
         this->setPlayerStatus();
         // set type
-        effect->effectType = Channel(tag - 7);
+        effect->effectType = Channel(tag - 6);
         // init button
         return CCMenuItemSpriteExtra::init(effect, effect, target, callback);
     }
     // icon
     // spr
     int index = tag ? tag - 1 : 0;
-    icon = GJItemIcon::createBrowserItem(UnlockType(gametype[index]), garageIconIndex[index]);
+    icon = GJItemIcon::createBrowserItem(UnlockType(gametype[index]), garageIconIndex(index));
     if (gm->m_playerGlow)
         icon->m_player->setGlowOutline(ccc3(255, 255, 255));
     // setup page
@@ -71,10 +79,15 @@ void PickItemButton::setPlayerStatus() {
     // Sep Dual Icons compatible
     auto SDI = Loader::get()->getLoadedMod("weebify.separate_dual_icons");
     // frame
-    if (index < 10) {
+    if (index < 9) {
         // update frames 
-        f = (SDI && ptwo) ? SDI->getSavedValue<int64_t>(SDInames[index]) : garageIconIndex[index];
+        f = (SDI && ptwo) ? SDI->getSavedValue<int64_t>(SDInames[index]) : garageIconIndex(index);
         this->icon->m_player->updatePlayerFrame(f, IconType(index));
+        if (index == 5)
+            this->icon->m_player->m_robotSprite->updateFrame(f);
+        if (index == 6)
+            this->icon->m_player->m_spiderSprite->updateFrame(f);
+            
         // More Icons compatible
         if (auto MI = Loader::get()->getLoadedMod("hiimjustin000.more_icons")) {
             // config
@@ -129,11 +142,9 @@ void PickItemButton::runChroma(float const& phase, float const& percentage, int 
         // white
         auto white = getChroma(setups[getIndex(ptwo, Gamemode(getTag()), Channel::White)], ccc3(255, 255, 255), phase, percentage, progress);
         if (icon->m_unlockType == UnlockType::Robot)
-            if (auto spr = icon->m_player->m_robotSprite)
-                spr->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(white);
+            icon->m_player->m_robotSprite->m_extraSprite->setColor(white);
         else if (icon->m_unlockType == UnlockType::Spider)
-            if (auto spr = icon->m_player->m_spiderSprite)
-                spr->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1)->getChildByType<CCSprite>(1)->setColor(white);
+            icon->m_player->m_spiderSprite->m_extraSprite->setColor(white);
         else
             icon->m_player->m_detailSprite->setColor(white);
     }
@@ -292,7 +303,7 @@ const char* titles[5] = {"Default", "Static", "Chromatic", "Gradient", "Progress
 const char* descs[5] = {
     "As if this mod isn't loaded here.",
     "Set to your given static one.",
-    "Just Chroma like the name of this mod. Set saturation percent to 50 if you want pastel like icons",
+    "Our favourite Hue Cycle Mode. Set saturation percent to 50 if you want pastel like icons",
     "Pick two colors to cycle gradient or set duty value close to 100 or 0 so it looks like pulse.",
     "Let this color gradient from one to another during your gameplay. In plat levels your current progress is always regarded 0."
 };
@@ -432,11 +443,13 @@ void ScrollLayerPlus::Transition(bool in, int move) {
     // move to top plz
     if (in) {
         if (move)
+            // if move <= 5, the scroll layer should be at bottom already
             m_realCL->setPositionY(move > 5 ? 210.f - 40.f * move : 0.f);
         else
+            // options
             this->moveToTop();
     }
-    // animation        
+    // animation
     int m = this->getTag();
     int tag = in ? m : 1;
     float delay = 0;
@@ -446,8 +459,6 @@ void ScrollLayerPlus::Transition(bool in, int move) {
     // fade buttons
     while (tag > 0 && tag <= m) {
         if (auto opt = static_cast<CCMenu*>(m_contentLayer->getChildByTag(tag))) {
-            // casted contentLayer
-            
             // start
             float y0 = m_realCL->Ystd.at(tag-1) - (in && !move ? 0.f : 0);
             float tg0 = m_realCL->getSomething(y0, opt->getContentHeight());

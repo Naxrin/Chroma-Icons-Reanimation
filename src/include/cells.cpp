@@ -5,7 +5,7 @@ extern std::map<std::string, bool> opts;
 bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     // myself
     this->setPosition(point);
-    this->setContentSize(size);    
+    this->setContentSize(size);
     this->setAnchorPoint(CCPoint(0.5, 0.5));
     this->ignoreAnchorPointForPosition(false);
     this->setTag(tag);
@@ -248,13 +248,13 @@ bool ItemCell::init(int tag) {
     // effect
     if (tag == 3) {
         // setup
-        if (!BaseCell::setup(CCPoint(0.f, -65.f), CCSize(150.f, 24.f), tag, "effect-sheet"))
+        if (!BaseCell::setup(CCPoint(0.f, -65.f), CCSize(180.f, 24.f), tag, "effect-sheet"))
             return false;
 
-        for (int item = 11; item < 16; item ++) {
+        for (int item = 10; item < 16; item ++) {
             // spr
             auto btn = PickItemButton::create(item, false, this, menu_selector(ItemCell::onPickItem));
-            btn->setPosition(CCPoint(30.f*item - 315.f, 12.f));
+            btn->setPosition(CCPoint(30.f*item - 285.f, 12.f));
             btn->setScale(0);
             btn->setOpacity(0);
             this->addChild(btn);
@@ -307,7 +307,7 @@ void ItemCell::Fade(bool in) {
     // items
     int length = btns.size();
     for (int i = 0; i < length; i++) {
-        btns[i]->delayFade(in ? abs(length/ 2 - i) : 0, in);
+        btns[i]->delayFade(in ? abs((length - 1 - 2 * i) / 2) : 0, in);
     }
 }
 
@@ -315,15 +315,15 @@ bool SetupItemCell::init(int index, float Y, int tag) {
     if (!CCMenu::init())
         return false;
 
-    if (!BaseCell::setup(CCPoint(60.f, Y), CCSize(90.f, 24.f), tag, "sheet"))
+    if (!BaseCell::setup(CCPoint(55.f, Y), CCSize(90.f, 24.f), tag, "sheet"))
         return false;
 
     this->index = index;
 
-    m_label = CCLabelBMFont::create((index > 9 ? chnls[index - 7] : items[index]).c_str(), "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_label = CCLabelBMFont::create((index > 9 ? chnls[index - 6] : items[index]).c_str(), "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_label->setScale(0.4);
-    // wave trail label is too long
-    if (index == 12)
+    // wave trail and ghost trail labels are too long
+    if (index == 10 || index == 14)
         m_label->setScaleX(0.35);
     m_label->setPosition(CCPoint(60.f, 12.f));
     m_label->setContentSize(CCSize(60.f, 24.f));
@@ -342,7 +342,7 @@ bool SetupItemCell::init(int index, float Y, int tag) {
 }
 
 bool SetupOptionCell::init() {
-    if (!BaseCell::setup(CCPoint(50.f, 0.f), CCSize(240.f, 230.f), 0, "setup-options"))
+    if (!BaseCell::setup(CCPoint(55.f, 0.f), CCSize(240.f, 230.f), 0, "setup-options"))
         return false;
 
     this->setVisible(false);

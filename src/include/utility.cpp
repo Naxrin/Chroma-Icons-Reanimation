@@ -87,7 +87,7 @@ GJItemEffect* GJItemEffect::createEffectItem(int id) {
     if (base && base->initWithFile("effect_base.png"_spr)) {
         // cascade opacity
         base->setCascadeOpacityEnabled(true);
-        base->effectType = Channel(id - 7);
+        base->effectType = Channel(id - 6);
         // add cover
         std::string str = fmt::format("{}_{}.png","effect"_spr , id - 10);
         base->m_cover = CCSprite::create(str.c_str());
@@ -187,12 +187,12 @@ inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpo
     });
 }*/
 
-ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress, bool reset) {
-    if (reset)
+ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress) {
+    if (!opts["activate"])
         return defaultVal;
 
     // current left intcolor valve
-    pairpos l;
+    pairpos l = {0, ccc3(0, 0, 0)};
     switch (setup.mode) {
     // static
     case 1:

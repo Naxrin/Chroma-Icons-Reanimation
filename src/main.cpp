@@ -19,10 +19,8 @@ static float percentage;
 // phase for game layer update
 // mod menu has its own phase standalone
 static float lvlphase;
-// reset
-//extern std::vector<int> reset2;
-// reset
-extern std::map<PlayerObject*, int> reset;
+// reset chroma
+extern std::map<PlayerObject*, bool> reset;
 // bools
 extern std::map<std::string, bool> opts;
 // speed option
@@ -150,8 +148,9 @@ class $modify(GameLayer, PlayLayer) {
         progress = level->m_normalPercent.value();
         return PlayLayer::init(level, useReplay, dontCreateObjects);
     }
+
     // edit phase
-    void postUpdate(float d) override {
+    void postUpdate(float d) {
         // iterate phase and update progress
         lvlphase = fmod(lvlphase + 360 * d * speed, 360.f);
         percentage = this->getCurrentPercent();
@@ -226,24 +225,132 @@ class $modify(MainGameLayer, MenuGameLayer) {
     }
 };
 
+inline std::string toIndexStr(int index) {
+    return (index < 10 ? "0" : "") + std::to_string(index);
+}
+
+#include <Geode/modify/GhostTrailEffect.hpp>
+class $modify(OptionalGhostTrail, GhostTrailEffect) {
+    void trailSnapshot(float p) {
+        log::warn("snapshot");
+        if (!opts["activate"] || opts["dis-ghost"])
+            GhostTrailEffect::trailSnapshot(p);
+    }
+};
+
 // My god, this mod finally starts to chroma your icons as definitely expected from here on
 #include <Geode/modify/PlayerObject.hpp>
 class $modify(ChromaPlayer, PlayerObject) {
+    struct Fields {
+        // if the counter reaches the period of generator, the game should generate a ghost trail here and reset the counter
+        float ghost_counter = 0;
+        // frame name for ghost trail sprite name
+        std::string frame, ball, dart, swing, robot, spider;
+    };
     // record this player's pointer
     bool init(int p0, int p1, GJBaseGameLayer *p2, cocos2d::CCLayer *p3, bool p4) {
         reset[this] = false;
+        this->getTextureNames();
         return PlayerObject::init(p0, p1, p2, p3, p4);
+    }
+
+    // compact with separate dual icons and more icons
+    void getTextureNames() {
+        auto MI = Loader::get()->getLoadedMod("hiimjustin000.more_icons");
+        auto SDI = Loader::get()->getLoadedMod("weebify.separate_dual_icons");
+        bool usingSDI = SDI && m_isSecondPlayer;
+        // frame
+        if (MI) {
+            auto name = MI->getSavedValue<std::string>(usingSDI ? "icon-dual" : "icon");
+            if (name != "")
+                m_fields->frame = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
+            else
+                m_fields->frame = fmt::format("player_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("cube") : gm->getPlayerFrame()));
+        } else
+            m_fields->frame = fmt::format("player_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("cube") : gm->getPlayerFrame()));
+
+        // ball
+        if (MI) {
+            auto name = MI->getSavedValue<std::string>(usingSDI ? "ball-dual" : "ball");
+            if (name != "")
+                m_fields->ball = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
+            else
+                m_fields->ball = fmt::format("player_ball_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("roll") : gm->getPlayerBall()));
+        } else
+            m_fields->ball = fmt::format("player_ball_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("roll") : gm->getPlayerBall()));
+
+        // wave
+        if (MI) {
+            auto name = MI->getSavedValue<std::string>(usingSDI ? "wave-dual" : "wave");
+            if (name != "")
+                m_fields->dart = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
+            else
+                m_fields->dart = fmt::format("dart_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("dart") : gm->getPlayerDart()));
+        } else
+            m_fields->dart = fmt::format("dart_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("dart") : gm->getPlayerDart()));
+
+        // swing
+        if (MI) {
+            auto name = MI->getSavedValue<std::string>(usingSDI ? "swing-dual" : "swing");
+            if (name != "")
+                m_fields->swing = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
+            else
+                m_fields->swing = fmt::format("swing_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("swing") : gm->getPlayerSwing()));
+        } else
+            m_fields->swing = fmt::format("swing_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("swing") : gm->getPlayerSwing()));
+
+        // robot
+        if (MI) {
+            auto name = MI->getSavedValue<std::string>(usingSDI ? "robot-dual" : "robot");
+            if (name != "")
+                m_fields->robot = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
+            else
+                m_fields->robot = fmt::format("robot_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("robot") : gm->getPlayerRobot()));
+        } else
+            m_fields->robot = fmt::format("robot_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("robot") : gm->getPlayerRobot()));
+
+        // spider
+        if (MI) {
+            auto name = MI->getSavedValue<std::string>(usingSDI ? "spider-dual" : "spider");
+            if (name != "")
+                m_fields->spider = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
+            else
+                m_fields->spider = fmt::format("spider_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("spider") : gm->getPlayerSpider()));
+        } else
+            m_fields->spider = fmt::format("spider_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("spider") : gm->getPlayerSpider()));
     }
 
     // update override, chroma icons regarding current setup
     void update(float d) override {
+        // log::error("counter = {} + {}", m_fields->ghost_counter, d);
+        m_fields->ghost_counter += d;
+        if (m_fields->ghost_counter > 3) {
+            // enabled ghost and using my proxy
+            if (m_ghostType == GhostType::Enabled && opts["activate"] && !opts["dis-ghost"])
+                this->generateChromaGhostTrail();
+            m_fields->ghost_counter = fmod(m_fields->ghost_counter, 3);
+        }
+
         // base
         this->PlayerObject::update(d);
-        //auto pos = this->getPosition();
-        //log::info("Position = {}, {}", pos.x, pos.y);
+        // run chroma of other sprites
+        if (!opts["init"])
+            this->processChroma();
+    }
+    
+    // set position override covers level pause in layer init 
+    void setPosition(CCPoint const& pos) override {
+        PlayerObject::setPosition(pos);
+        if (opts["init"])
+            // set chroma color
+            this->processChroma();  
+    }
 
+    // get some phase offsets then set chroma color
+    // as sending negative phase value to getChroma(...) is not allowed, all of them should really be positive
+    void processChroma() {
         // only chroma the visible two
-        if ((!opts["activate"] && !reset[this]) || !this->isVisible() || this->m_isDead)
+        if ((!opts["activate"] && !reset[this]) || !this->isVisible())
             return;
         if (layerType == LayerType::LevelEditorLayer && !opts["editor"])
             return;
@@ -254,16 +361,6 @@ class $modify(ChromaPlayer, PlayerObject) {
                 return;
         }
 
-        // set chroma color
-        this->processChroma();
-        // confirm it's really reset
-        if (reset[this])
-            reset[this] --;
-    }
-
-    // get some phase offsets then set chroma color
-    // as sending negative phase value to getChroma(...) is not allowed, all of them should really be positive
-    void processChroma() {
         bool p = this->m_isSecondPlayer && !opts["same-dual"];
         short od = this->m_isSecondPlayer && (opts["sep-dual"]) ? 180 : 0;
         short o2 = opts["sep-second"] ? 120 : 0;
@@ -273,13 +370,13 @@ class $modify(ChromaPlayer, PlayerObject) {
 
         // get the chroma pattern result firstly
         ccColor3B main = getChroma(setups[getIndex(p, status, Channel::Main)],
-            m_playerColor1, lvlphase + od, percentage, progress, reset[this]);
+            m_playerColor1, lvlphase + od, percentage, progress);
         ccColor3B secondary = getChroma(setups[getIndex(p, status, Channel::Secondary)],
-            m_playerColor2, lvlphase + od + o2, percentage, progress, reset[this]);
+            m_playerColor2, lvlphase + od + o2, percentage, progress);
         ccColor3B glow = getChroma(setups[getIndex(p, status, Channel::Glow)],
-            m_glowColor, lvlphase + od + o3, percentage, progress, reset[this]);
+            m_glowColor, lvlphase + od + o3, percentage, progress);
         ccColor3B white = getChroma(setups[getIndex(p, status, Channel::White)],
-            ccc3(255, 255, 255), lvlphase + od, percentage, progress, reset[this]);
+            ccc3(255, 255, 255), lvlphase + od, percentage, progress);
 
         // icons
         // for compatibility with Seperate dual icons or other mods
@@ -291,15 +388,15 @@ class $modify(ChromaPlayer, PlayerObject) {
             isRider = opts["rider"] && (int)status;
             // icon
             this->m_iconSprite->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::Main)],
-                m_playerColor1, lvlphase + od, percentage, reset[this]) : main);
+                m_playerColor1, lvlphase + od, percentage, progress) : main);
             this->m_iconSpriteSecondary->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::Secondary)],
-                m_playerColor2, lvlphase + od + o2, percentage, reset[this]) : secondary);
+                m_playerColor2, lvlphase + od + o2, percentage, progress) : secondary);
             if (m_hasGlow)
                 this->m_iconGlow->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::Glow)],
-                    m_glowColor, lvlphase + od + o3, percentage, reset[this]) : glow);
+                    m_glowColor, lvlphase + od + o3, percentage, progress) : glow);
             if (this->m_iconSpriteWhitener)
                 this->m_iconSpriteWhitener->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::White)],
-                    ccc3(255, 255, 255), lvlphase + od, percentage, reset[this]) : white);
+                    ccc3(255, 255, 255), lvlphase + od, percentage, progress) : white);
             // vehicle
             this->m_vehicleSprite->setColor(main);
             this->m_vehicleSpriteSecondary->setColor(secondary);
@@ -310,35 +407,23 @@ class $modify(ChromaPlayer, PlayerObject) {
         }
         // robot
         else if (m_isRobot) {
-            if (!m_robotSprite) return;
-            auto arr = this->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->m_spriteParts;
-            for (auto part : CCArrayExt<CCSpritePart*>(arr)) {
-                if (!m_robotSprite) return;
-                part->setColor(main);
-                part->getChildByType<CCSprite>(0)->setColor(secondary);
-                if (part->getTag() == 1)
-                    if (auto w = part->getChildByType<CCSprite>(1))
-                        w->setColor(white);
-            }
+            this->m_robotSprite->m_color = main;
+            this->m_robotSprite->m_secondColor = secondary;
+            this->m_robotSprite->updateColors();
             if (m_hasGlow)
-                for (auto spr: CCArrayExt<CCSprite*>(this->m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByType<CCSprite>(0)->getChildren()))
+                for (auto spr: CCArrayExt<CCSprite*>(this->m_robotSprite->m_glowSprite->getChildren()))
                     spr->setColor(glow);
+            this->m_robotSprite->m_extraSprite->setColor(white);
         }
         // spider
         else if (m_isSpider) {
-            if (!m_spiderSprite) return;
-            auto arr = this->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->m_spriteParts;
-            for (auto part : CCArrayExt<CCSpritePart*>(arr)) {
-                if (!m_spiderSprite) return;
-                part->setColor(main);
-                part->getChildByType<CCSprite>(0)->setColor(secondary);
-                if (part->getTag() == 1)
-                    if (auto w = part->getChildByType<CCSprite>(1))
-                        w->setColor(white);
-            }
+            this->m_spiderSprite->m_color = main;
+            this->m_spiderSprite->m_secondColor = secondary;
+            this->m_spiderSprite->updateColors();
             if (m_hasGlow)
-                for (auto spr: CCArrayExt<CCSprite*>(this->m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByType<CCSprite>(0)->getChildren()))
+                for (auto spr: CCArrayExt<CCSprite*>(this->m_spiderSprite->m_glowSprite->getChildren()))
                     spr->setColor(glow);
+            this->m_spiderSprite->m_extraSprite->setColor(white);
         }
         // regular modes
         else {
@@ -346,59 +431,127 @@ class $modify(ChromaPlayer, PlayerObject) {
             this->m_iconSpriteSecondary->setColor(secondary);
             if (m_hasGlow)
                 this->m_iconGlow->setColor(glow);
-            if (this->m_iconSpriteWhitener)
-                this->m_iconSpriteWhitener->setColor(white);
+            this->m_iconSpriteWhitener->setColor(white);
         }
 
         // trail
         if (m_playerStreak != 2 && m_playerStreak != 7)
             this->m_regularTrail->setColor(getChroma(setups[getIndex(p, status, Channel::Trail)],
-                m_playerColor2, lvlphase + od, percentage, reset[this]));
+                m_playerColor2, lvlphase + od, percentage, progress));
         // wave trail
         if (this->m_isDart)
             this->m_waveTrail->setColor(getChroma(setups[getIndex(p, status, Channel::WaveTrail)],
-                gm->getGameVariable("0096") ? m_playerColor2 : m_playerColor1, lvlphase + od, percentage, reset[this]));
+                gm->getGameVariable("0096") ? m_playerColor2 : m_playerColor1, lvlphase + od, percentage, progress));
         // dash fire
         if (this->m_isDashing)
             this->m_dashFireSprite->setColor(getChroma(setups[getIndex(p, status, Channel::DashFire)],
-                gm->getGameVariable("0062") ? m_playerColor1 : m_playerColor2, lvlphase + od, percentage, reset[this]));
+                gm->getGameVariable("0062") ? m_playerColor1 : m_playerColor2, lvlphase + od, percentage, progress));
+
         // ufo shell
         if (this->m_isBird)
             this->m_birdVehicle->setColor(getChroma(setups[getIndex(p, status, Channel::UFOShell)],
-                ccc3(255, 255, 255), lvlphase + od, percentage, reset[this]));        
+                ccc3(255, 255, 255), lvlphase + od, percentage, progress));                
+
+        // confirm it's really reset
+        reset[this] = false;
     }
 
-    // spider teleport line i guess
-    void spiderTestJumpInternal(bool unk) {
-        if (!opts["activate"]) {
-            PlayerObject::spiderTestJump(unk);
-            return;
-        }
+    // rewrite ghost trail generator
+    void generateChromaGhostTrail() {
+        // some arguments
+        auto p = this->getPosition();
+        auto s = this->getScale();
+        auto r = this->getRotation() + (this->m_isSideways ? 90.f : 0.f);
 
-        auto pori = this->getPosition();
-        PlayerObject::spiderTestJumpInternal(unk);
-        auto pcur = this->getPosition();
+        // name
+        std::string name;
+        if (m_isRobot) {
+            auto main = m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1);
+            auto dp = main->getPosition();
+            auto dr = main->getRotation();
+            p.x += dp.x;
+            p.y += dp.y;
+            r += dr;
+            name = m_fields->robot;
+        }
+        else if (m_isSpider) {
+            auto main = m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1);
+            auto dp = main->getPosition();
+            auto dr = main->getRotation();
+            p.x += dp.x;
+            p.y += dp.y;
+            r += dr;
+            name = m_fields->spider;
+        }
+        else if (m_isShip || m_isBird) {
+            bool isJetpack = m_isShip && m_isPlatformer;
+            p.x += isJetpack ? 6.f : 0.f;
+            p.y += isJetpack ? 4.f : 5.f;
+            s = s * (isJetpack ? 0.6 : 0.55);
+            name = m_fields->frame;
+        } else if (m_isBall)
+            name = m_fields->ball;
+        else if (m_isDart)
+            name = m_fields->dart;
+        else if (m_isSwing)
+            name = m_fields->swing;
+        else
+            name = m_fields->frame;
+
+        // generate
+        auto spr = CCSprite::createWithSpriteFrameName(name.c_str());
+        spr->setPosition(p);
+        spr->setScale(s);
+        spr->setRotation(r);
+        spr->setFlipX(this->m_isGoingLeft != this->m_isSideways);
+        spr->setFlipY(this->m_isUpsideDown);
+
+        // this mod is chroma icons not ghost trail fix        
+        auto color = getChroma(setups[getIndex(this->m_isSecondPlayer && !opts["same-dual"], this->getStatusID(), Channel::Ghost)],
+            m_playerColor1, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress);
+        spr->setColor(color);
+        // this is how robtop set his own ghost trails
+        if (color == ccc3(0, 0, 0))
+            spr->setBlendFunc({GL_ONE, GL_ONE_MINUS_SRC_ALPHA});
+        else
+            spr->setBlendFunc({GL_SRC_ALPHA, GL_ONE});
+
+        // add to and run action
+        this->getParent()->addChild(spr);
+        spr->runAction(CCEaseOut::create(CCScaleTo::create(0.5, 0.6), 2));
+        spr->runAction(CCFadeOut::create(0.5));
+        spr->runAction(CCSequence::create(
+            CCDelayTime::create(0.5),
+            CallFuncExt::create([spr]() { spr->removeFromParentAndCleanup(true); }),
+            nullptr
+        ));
+    }
+
+    void playSpiderDashEffect(CCPoint from, CCPoint to) {
+        PlayerObject::playSpiderDashEffect(from, to);
+        if (!opts["activate"])
+            return;
         
         for (auto node : CCArrayExt<CCNode*>(this->getParent()->getChildren())) {
             // stupid judge
             if (auto tele = typeinfo_cast<CCSprite*>(node)) {
-                // confirm class type
-                if (typeinfo_cast<PlayerObject*>(node) || !(tele->getContentSize() == CCSize(221.f, 21.f) )) // && tele->getRotation() == (this->m_isUpsideDown ? 90.f : -90.f)
+                // check class type and content size
+                if (typeinfo_cast<PlayerObject*>(node) || !(tele->getContentSize() == CCSize(221.f, 21.f) ))
                     continue;
-                // confirm position
-                if (detectTPline(tele, pori, pcur))
+                // check position
+                if (detectTPline(tele, from, to))
                     tele->setColor(getChroma(setups[getIndex(this->m_isSecondPlayer && !opts["same-dual"], this->getStatusID(), Channel::TPLine)],
-                        m_playerColor1, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress, reset[this]));
+                        m_playerColor1, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress));
             }
         }
     }
-
-    bool detectTPline(CCSprite *tele, CCPoint &pori, CCPoint &pcur) {
+    
+    bool detectTPline(CCSprite *tele, CCPoint &from, CCPoint &to) {
         CCPoint pos = tele->getPosition();
         CCPoint posfix;
         // horizental tp
         if (this->m_isSideways) {
-            posfix = CCPoint((pori.x + pcur.x) / 2, pori.y);
+            posfix = CCPoint((from.x + to.x) / 2, from.y);
             //log::error("delta x = {} y = {}", pos.x - posfix.x + (this->m_isGoingLeft ? 4.5 : -10.5), pos.y - posfix.y);
             if (std::abs(pos.y - posfix.y) > 0.001 || std::abs(pos.x - posfix.x + (this->m_isGoingLeft ? 4.5 : -10.5)) > 0.001
                 || tele->getRotation() != this->m_isUpsideDown * 180.f)
@@ -406,7 +559,7 @@ class $modify(ChromaPlayer, PlayerObject) {
         }
         // vertical tp
         else {
-            posfix = CCPoint(pori.x, (pori.y + pcur.y) / 2);
+            posfix = CCPoint(from.x, (from.y + to.y) / 2);
             //log::error("delta x = {} y = {}", pos.x - posfix.x + (this->m_isGoingLeft ? 7.5 : -7.5), pos.y - posfix.y);
             if (std::abs(pos.x - posfix.x + (this->m_isGoingLeft ? 7.5 : -7.5)) > 0.001 || std::abs(pos.y - posfix.y) > 0.001
                 || tele->getRotation() != (this->m_isUpsideDown ? 90.f : -90.f))
@@ -437,7 +590,7 @@ $on_mod(Loaded) {
     for (short p = 0; p < 2; p++) {
         // icons
         for (short gmid = 0; gmid < 10; gmid++)
-            for (short chnl = 0; chnl < 7; chnl++)
+            for (short chnl = 0; chnl < 8; chnl++)
                 setups[getIndex(p, Gamemode(gmid), Channel(chnl))] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode(gmid), Channel(chnl)), DEFAULT_SETUP);
         // wave trail
         setups[getIndex(p, Gamemode::Icon, Channel::WaveTrail)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode::Icon, Channel::WaveTrail), DEFAULT_SETUP);
@@ -455,6 +608,8 @@ $on_mod(Loaded) {
         {"same-dual", false},
         {"rider", false},
         {"editor", false},
+        {"init", true},
+        {"dis-ghost", false},
         {"tele-fix", false},
         {"sep-dual", false},
         {"sep-second", false},

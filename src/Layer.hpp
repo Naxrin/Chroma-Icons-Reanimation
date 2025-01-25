@@ -194,17 +194,13 @@ protected:
     // save config -> switch current ID and refresh setup page
     // @param tab new target id he will switch to.
     // @return true if the value is really changed
-    bool switchCurrentItem(int tab);
+    bool switchTab(int tab);
 
     // ColorPickerDelegate function override
     // @param color new color from the picker
     void colorValueChanged(ccColor3B color) override;
 
     /*********** TRANSITION ***********/
-
-    // cover speed member value and change menu chroma speed
-    // @param t time interval
-    void updateSpeedValue(float t);
 
     // switch theme color between dark and white
     void switchTheme();

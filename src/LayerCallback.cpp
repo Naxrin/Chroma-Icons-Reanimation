@@ -5,16 +5,16 @@
 extern std::map<short, ChromaSetup> setups;
 extern std::map<std::string, bool> opts;
 extern float speed;
-std::map<PlayerObject*, int> reset;
+// reset chroma
+std::map<PlayerObject*, bool> reset;
 
 /**************** EVENT HANDLER *******************/
 ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
     // activate
     if (event->name == "activate") {
-        opts["activate"] = event->value;
         if (!reset.empty())
             for (auto [key, _] : reset)
-                reset[key] = 5 * (int)!event->value;
+                reset[key] = true;
 
         // item menu toggle preview
         m_advBundleCell->toggleChroma();
@@ -105,7 +105,7 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
     else if (event->name == "pick") {
         // from item menu icon
         if (this->pages.back() == Page::Item) {
-            this->switchCurrentItem(event->value);
+            this->switchTab(event->value);
             this->m_workspace->refreshUI(currentSetup, false);
             this->pages.push_back(Page::Setup);
             this->fadeItemPage();
@@ -123,7 +123,7 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
         }
         // from setup menu icon
         else if (this->pages.back() == Page::Setup) {
-            bool really_changed = this->switchCurrentItem(event->value);
+            bool really_changed = this->switchTab(event->value);
             if (really_changed) {
                 // show or hide channel switch arrow
                 bool showArrows = this->tab < 14 && !opts["easy"] || !this->tab;
@@ -218,8 +218,10 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
 
 ListenerResult ChromaLayer::handleFloatSignal(SignalEvent<float>* event) {
     // drag speed slider
-    if (event->name == "speed")
-        this->updateSpeedValue(event->value);
+    if (event->name == "speed") {
+        Mod::get()->setSavedValue("speed", event->value);
+        speed = event->value;
+    }
     return ListenerResult::Stop;
 }
 

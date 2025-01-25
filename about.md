@@ -11,6 +11,8 @@ Switch <cb>Easy</c> / <cr>Advanced</c> mode in bottom left corner of main menu.
 Set cube riders' colors follow their ship / ufo / jetpack vehicles' chroma pattern or remain the cube's own colors;
 #### <cy>Mods Compatible</c>
 Max effort made to make this mod compatible with other icon modifying modes, such as **Separate Dual Icons** (Weebify) and **More Icons** (hiimjustin000).
+#### <cy>In-Game Bug Fix</c>
+Better performance of Ghost Trails and Teleport Line effect in game;  
 #### <cy>Ultimate Trigger</c>
 Toggle <cg>ON</c> / <cr>OFF</c> the whole mod anytime you want!  
 

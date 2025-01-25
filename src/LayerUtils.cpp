@@ -103,7 +103,7 @@ void ChromaLayer::dumpConfig() {
     setups[getIndex(this->ptwo, this->gamemode, this->channel)] = currentSetup;
 }
 
-bool ChromaLayer::switchCurrentItem(int tab) {
+bool ChromaLayer::switchTab(int tab) {
     // switch a nonsense
     if (this->tab == tab && pages.back() == Page::Setup)
         return false;
@@ -116,7 +116,7 @@ bool ChromaLayer::switchCurrentItem(int tab) {
     }
     // to effect
     if (tab > 9) {
-        this->channel = Channel(tab - 7);
+        this->channel = Channel(tab - 6);
         if (!opts["easy"]) {
             // force convert gamemode
             if (tab == 14)
@@ -141,10 +141,9 @@ bool ChromaLayer::switchCurrentItem(int tab) {
     m_itemSetupLabel->setString(items[(int)this->gamemode].c_str());
     m_chnlSetupLabel->setString(chnls[(int)this->channel].c_str());
 
-    // locate new current setup item
-    int tag = tab > 9 ? 16 - tab : (opts["easy"] ? 6 : 15 - tab);
     // loate current item
-    m_currentItem = static_cast<SetupItemCell*>((opts["easy"] ? m_setupEasyScroller : m_setupAdvScroller)->m_contentLayer->getChildByTag(tag));
+    m_currentItem = static_cast<SetupItemCell*>(
+        (opts["easy"] ? m_setupEasyScroller : m_setupAdvScroller)->m_contentLayer->getChildByTag(tab ? 16 - tab : 7));
     // scroll the scroller to dest position
     // tint green
     if (m_currentItem)

@@ -211,24 +211,24 @@ bool ChromaLayer::setup() {
     m_chnlSetupLabel->setID("current-channel-label");
     setupMenu->addChild(m_chnlSetupLabel);
 
-    this->m_setupEasyScroller = ScrollLayerPlus::create(CCRect(0.f, 0.f, 110.f, 300.f));
+    this->m_setupEasyScroller = ScrollLayerPlus::create(CCRect(0.f, 0.f, 110.f, 340.f));
     m_setupEasyScroller->setAnchorPoint(CCPoint(0.5, 0.5));
 	m_setupEasyScroller->setPosition(CCPoint(-160.f, 0.f));
     m_setupEasyScroller->ignoreAnchorPointForPosition(false);
 	m_setupEasyScroller->setContentSize(CCSize(120.f, 260.f));
 	m_setupEasyScroller->setID("easy-scroller");
-    m_setupEasyScroller->setTag(6);
+    m_setupEasyScroller->setTag(7);
     m_setupEasyScroller->setVisible(false);
     m_setupEasyScroller->setCeiling();
     setupMenu->addChild(m_setupEasyScroller);
 
-    this->m_setupAdvScroller = ScrollLayerPlus::create(CCRect(0.f, 0.f, 110.f, 620.f));
+    this->m_setupAdvScroller = ScrollLayerPlus::create(CCRect(0.f, 0.f, 110.f, 660.f));
     m_setupAdvScroller->setAnchorPoint(CCPoint(0.5, 0.5));
 	m_setupAdvScroller->setPosition(CCPoint(-160.f, 0.f));
     m_setupAdvScroller->ignoreAnchorPointForPosition(false);
 	m_setupAdvScroller->setContentSize(CCSize(120.f, 260.f));
 	m_setupAdvScroller->setID("advanced-scroller");
-    m_setupAdvScroller->setTag(14);
+    m_setupAdvScroller->setTag(15);
     m_setupAdvScroller->setVisible(false);
     m_setupAdvScroller->setCeiling();
     setupMenu->addChild(m_setupAdvScroller);
@@ -238,24 +238,21 @@ bool ChromaLayer::setup() {
     SetupItemCell* cell = nullptr;
 
     // effects
-    for (int id = 15; id > 10; id--) {
+    for (int id = 15; id > 9; id--) {
         cell = SetupItemCell::create(id, Y, 16-id);
         static_cast<MyContentLayer*>(m_setupEasyScroller->m_contentLayer)->addChild(cell);
         m_cells.push_back(cell);
         Y += 40.f;
     }
     // single icon
-    cell = SetupItemCell::create(0, Y, 6);
+    cell = SetupItemCell::create(0, Y, 7);
     static_cast<MyContentLayer*>(m_setupEasyScroller->m_contentLayer)->addChild(cell);
     m_cells.push_back(cell);
     Y = 50.f;
 
     // full icons
     for (int id = 15; id > 0; id--) {
-        // skip id 10 cuz there is nonsense
-        if (id == 10)
-            continue;
-        cell = SetupItemCell::create(id, Y, 16 - id - (id < 10));
+        cell = SetupItemCell::create(id, Y, 16 - id);
         static_cast<MyContentLayer*>(m_setupAdvScroller->m_contentLayer)->addChild(cell);
         m_cells.push_back(cell);
         Y += 40.f;
@@ -499,9 +496,23 @@ bool ChromaLayer::setup() {
     sTag ++;
     auto teleOpt = OptionTogglerCell::create("Align Spider TP Line", H, sTag, "tele-fix",
         "Not related to icons chroma though, this option will fix spider teleport jump (or just triggering a purple ring / pad) "
-        "effect line strictly to the center point between the player positions before and after being teleported.\n");
+        "effect line strictly to the center point between the player positions before and after being teleported.");
     static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(teleOpt);
     H += teleOpt->getContentHeight() + 15.f;
+
+    sTag ++;
+    auto ghostOpt = OptionTogglerCell::create("Original Ghost Trail", H, sTag, "dis-ghost",
+        "Disable this mod's rewritten fixed Ghost Trail and apply RobTop's raw Ghost Trail Effect instead.\n"
+        "But this will also result in ghost trail chroma not working.");
+    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(ghostOpt);
+    H += ghostOpt->getContentHeight() + 15.f;
+
+    sTag ++;
+    auto InitOpt = OptionTogglerCell::create("Chroma on Initial", H, sTag, "init",
+        "Both PlayLayer and LevelEditorLayer may have a lag between the player happens and your player starts to move.\n"
+        "If OFF, you can see your players are of raw color when you pause quickly enough.");
+    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(InitOpt);
+    H += InitOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto editorOpt = OptionTogglerCell::create("Editor Test", H, sTag, "editor",

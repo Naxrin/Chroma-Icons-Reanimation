@@ -54,12 +54,12 @@ static std::string items[] = {
 
 // Ghost is preserved for future update
 enum class Channel {
-    Main, Secondary, Glow, White, Trail, DashFire, TPLine, WaveTrail, UFOShell, Ghost
+    Main, Secondary, Glow, White, Ghost, Trail, DashFire, TPLine, WaveTrail, UFOShell
 };
 
 // channel names regarding enum class above
 static std::string chnls[] = {
-    "Main", "Secondary", "Glow", "White", "Trail", "Dash Fire", "TP Line", "Wave Trail", "UFO Shell", "Ghost"
+    "Main", "Secondary", "Glow", "White", "Ghost Trail", "Trail", "Dash Fire", "TP Line", "Wave Trail", "UFO Shell"
 };
 
 /********** SETUP AND SERIELIZE ***********/
@@ -173,7 +173,7 @@ struct myColorHSV {
 // percentage current level percentage
 // progress current level progress
 // reset true if a player should be reset to default
-ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress, bool reset = false);
+ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress);
 
 // get index for in-level pointer
 // @param p2 is player 2

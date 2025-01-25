@@ -4,10 +4,6 @@ extern std::map<short, ChromaSetup> setups;
 extern std::map<std::string, bool> opts;
 extern float speed;
 
-void ChromaLayer::updateSpeedValue(float value) {
-    speed = value;
-}
-
 void ChromaLayer::switchTheme() {
     // bg
     m_bg->runAction(CCTintTo::create(ANIM_TIME_M, BG_COLOR));
@@ -170,9 +166,9 @@ void ChromaLayer::fadeSetupPage() {
     bool in = pages.back() == Page::Setup;
     // switch between easy and adv
     if (opts["easy"])
-        m_setupEasyScroller->Transition(in, tab > 10 ? 16 - tab : 6);
+        m_setupEasyScroller->Transition(in, tab > 9 ? 16 - tab : 7);
     else {
-        m_setupAdvScroller->Transition(in, tab > 10 ? 16 - tab : 15 - tab);
+        m_setupAdvScroller->Transition(in, 16-tab);
         if (in)
             // refresh target of setup menu
             for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))

@@ -10,6 +10,12 @@ inline float limiter(float target, float min = 0, float max = 1) {
     return target;
 }
 
+// get child by index and cast to type
+template<typename T>
+inline T getChildByIndex(CCNode *node, int index) {
+    return static_cast<T*>(node->getChildren()->objectAtIndex(index));
+}
+
 /********** UI ***********/
 
 class PickItemButton : public CCMenuItemSpriteExtra {
@@ -139,7 +145,7 @@ public:
         postEvent();
     };
     // post event
-    void postEvent() {
+    virtual void postEvent() {
         if (this->is_int)
             SignalEvent(this->topic, (int)value).post();
         else
@@ -279,7 +285,6 @@ public:
 
 class ScrollLayerPlus : public ScrollLayer {
 protected:
-    
     CCAction* actionFade = nullptr;
 public:
 
