@@ -1,8 +1,14 @@
 ### Warning
-Despite most effort on stability, Old versions od this mod may perhaps randomly crash your game in playing a level, and I cannot promise this update has completely fixed it. Take it in mind if you are challenging your new hardest level or something matters your life.
-
+Despite most effort on stability, former versions of this mod may very seldom randomly crash your game in playing a level, and I cannot promise this update has completely fixed it.  
+Take it in mind if you are challenging your new hardest level or something matters your life.  
+**There may be some other unknown bugs, I set the mod to RelWithDebInfo so you can plz report your crashlog of this new update**  
+  
+# 3.3.1
+Add warning page sprite image (I miss that)  
+Some text polish  
+  
 # 3.3.0
-Hoping this release never crash our geometry dash, best wishes
+Hoping this release will never crash our geometry dash, best wishes
 ### Addition
 - Ghost Trail chroma (except mac for now)
 - Ghost trail generator rewrite fix (optional) (except mac for now)
@@ -19,13 +25,11 @@ Hoping this release never crash our geometry dash, best wishes
 spider teleport line on Mac comes (thanks to @hiimjustin000)  
 Fix white robot / spider sprite chroma crashing the game (I hope)  
 Fix some spelling issues  
-Fix some other issues
-**There are some other unknown bugs, I set the mod to RelWithDebInfo so you can plz report your crashlog of this new update**  
+Fix some other issues  
 
 # 3.2.0-beta.3
 Fix the *Interface* spelling issue (batch replace mistake)  
-Fix menu stuck when hit esc on menu launch
-**There are some other unknown bugs, I set the mod to RelWithDebInfo so you can plz report your crashlog of this new update**  
+Fix menu stuck when hit esc on menu launch  
 
 # 3.2.0-beta.2
 Fix the bug that Mac version banned Wave Trail rather than spider teleport line (stupid bug)  
