@@ -210,19 +210,6 @@ bool OptionTogglerCell::init(const char* title, float y, int tag, std::string id
 }
 
 void OptionTogglerCell::onOption(CCObject* sender) {
-
-    #ifdef GEODE_IS_MACOS
-    if (this->getID() == "dis-ghost") {
-        FLAlertLayer::create(
-            "Oooops!",
-            "Ghost Trail things are not supported on mac for now! Please wait for future update! "
-            "Here only original ghost trail effect is applied!",
-            "Alright"
-        )->show();
-        this->m_toggler->toggle(!yes);
-        return;
-    }
-    #endif
     // revert
     yes = !yes;
     // set value

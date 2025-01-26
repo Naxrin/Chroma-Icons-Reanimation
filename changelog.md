@@ -3,6 +3,8 @@ Despite most effort on stability, former versions of this mod may very seldom ra
 Take it in mind if you are challenging your new hardest level or something matters your life.  
 **There may be some other unknown bugs, I set the mod to RelWithDebInfo so you can plz report your crashlog of this new update**  
   
+# 3.3.2
+Ghost Trail chroma supports mac now (again thanks to @hiimjustin000)  
 # 3.3.1
 Add warning page sprite image (I miss that)  
 Some text polish  

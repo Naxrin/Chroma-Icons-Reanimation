@@ -103,16 +103,6 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
 
     // pick an item from item page or setup page
     else if (event->name == "pick") {
-        #ifdef GEODE_IS_MACOS
-        if (event->value == 10) {
-            FLAlertLayer::create(
-                "Oooops!",
-                "Ghost Trail things are not supported on mac for now, Please wait for future update! ",
-                "Alright"
-            )->show();
-            return ListenerResult::Stop;
-        }
-        #endif
         // from item menu icon
         if (this->pages.back() == Page::Item) {
             this->switchTab(event->value);
