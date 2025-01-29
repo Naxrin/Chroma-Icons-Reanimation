@@ -17,24 +17,24 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
                 reset[key] = true;
 
         // item menu toggle preview
-        m_advBundleCell->toggleChroma();
-        m_ezyBundleCell->toggleChroma();
-        m_effBundleCell->toggleChroma();
+        m_cellItemAdv->toggleChroma();
+        m_cellItemEasy->toggleChroma();
+        m_cellItemEffect->toggleChroma();
 
         // setup item
-        for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
-            cell->toggleChroma(cell == m_currentItem);
-        for (auto cell : CCArrayExt<SetupItemCell*>(m_setupEasyScroller->m_contentLayer->getChildren()))
-            cell->toggleChroma(cell == m_currentItem);
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsAdv->m_contentLayer->getChildren()))
+            cell->toggleChroma(cell == m_currentTab);
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsEasy->m_contentLayer->getChildren()))
+            cell->toggleChroma(cell == m_currentTab);
     }
 
     // switch
     else if (event->name == "prev") {
         if (opts["activate"]) {
             // toggle preview
-            m_advBundleCell->toggleChroma();
-            m_ezyBundleCell->toggleChroma();
-            m_effBundleCell->toggleChroma();
+            m_cellItemAdv->toggleChroma();
+            m_cellItemEasy->toggleChroma();
+            m_cellItemEffect->toggleChroma();
         }
     }
 
@@ -58,89 +58,95 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
 
     // check best toggler in workspace
     else if (event->name == "best") {
-        currentSetup.best = event->value;
+        m_currentSetup.best = event->value;
         this->dumpConfig();
     }
 
 
     // never allow on close when dragging slider
     else if (event->name == "drag-slider")
-        this->on_slider = event->value;
+        this->m_onSlider = event->value;
+
     return ListenerResult::Stop;
 }
 
 ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
     // drag speed slider
     if (event->name == "mode") {
-        this->currentSetup.mode = event->value;
-        this->m_workspace->refreshUI(currentSetup, true);
+        this->m_currentSetup.mode = event->value;
+        this->m_cellWorkspace->refreshUI(m_currentSetup, true);
         this->dumpConfig();
     }
 
     // set duty value
     else if (event->name == "duty") {
         // cache
-        ccColor3B grad1 = currentSetup.gradient.begin()->second;
-        ccColor3B grad2 = currentSetup.gradient.rbegin()->second;
+        ccColor3B grad1 = m_currentSetup.gradient.begin()->second;
+        ccColor3B grad2 = m_currentSetup.gradient.rbegin()->second;
         // clear
-        currentSetup.gradient.clear();
+        m_currentSetup.gradient.clear();
         // construct
-        this->currentSetup.gradient[0] = grad1;
+        this->m_currentSetup.gradient[0] = grad1;
         int d = event->value ? (int)round(event->value * 18 / 5) : 1;
-        this->currentSetup.gradient[d] = grad2;
+        this->m_currentSetup.gradient[d] = grad2;
         if (d > 180)
-            this->currentSetup.gradient[2 * d - 360] = grad1;
+            this->m_currentSetup.gradient[2 * d - 360] = grad1;
         if (d < 180)
-            this->currentSetup.gradient[360 - d] = grad2;
+            this->m_currentSetup.gradient[360 - d] = grad2;
         this->dumpConfig();
     }
 
     // set saturation
     else if (event->name == "satu") {
-        this->currentSetup.satu = event->value;
+        this->m_currentSetup.satu = event->value;
         this->dumpConfig();
     }
 
     // pick an item from item page or setup page
     else if (event->name == "pick") {
         // from item menu icon
-        if (this->pages.back() == Page::Item) {
+        if (this->m_pages.back() == Page::Item) {
+            if (!this->m_hasSetupPage)
+                this->makeSetupPage();
             this->switchTab(event->value);
-            this->m_workspace->refreshUI(currentSetup, false);
-            this->pages.push_back(Page::Setup);
+            this->m_cellWorkspace->refreshUI(m_currentSetup, false);
+            this->m_pages.push_back(Page::Setup);
             this->fadeItemPage();
-            fade(m_infoBtn, false, ANIM_TIME_M);
+            fade(m_btnInfo, false, ANIM_TIME_M);
             this->runAction(CCSequence::create(
                 CCDelayTime::create(ANIM_TIME_M),
                 CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeSetupPage)),
                 CallFuncExt::create([this] () {
-                    fade(m_infoBtn, pages.back() == Page::Item || pages.back() == Page::Options, ANIM_TIME_M);
-                    fade(m_optionsBtn, pages.back() == Page::Item || pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
-                    fade(m_applyBtn, pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
+                    fade(m_btnInfo, m_pages.back() == Page::Item || m_pages.back() == Page::Options, ANIM_TIME_M);
+                    fade(m_btnOptions, m_pages.back() == Page::Item || m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+                    fade(m_btnApply, m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
                 }),
                 nullptr
             ));            
         }
         // from setup menu icon
-        else if (this->pages.back() == Page::Setup) {
+        else if (this->m_pages.back() == Page::Setup) {
             bool really_changed = this->switchTab(event->value);
             if (really_changed) {
+
                 // show or hide channel switch arrow
-                bool showArrows = this->tab < 14 && !opts["easy"] || !this->tab;
-                fade(m_leftArrowSetupBtn, showArrows);
-                fade(m_rightArrowSetupBtn, showArrows);
+                bool showArrows = this->m_tab < 14 && !opts["easy"] || !this->m_tab;
+                fade(m_btnSetupArrowLeft, showArrows);
+                fade(m_btnSetupArrowRight, showArrows);
+
                 // workspace animation
-                this->m_workspace->runAction(CCSequence::create(
+                this->m_cellWorkspace->runAction(CCSequence::create(
                     CallFuncExt::create([this] () {
-                        m_workspace->Fade(false);
-                        m_waitspace->refreshUI(currentSetup);
-                        auto temp = m_waitspace;
-                        m_waitspace = m_workspace;
-                        m_workspace = temp;
+                        m_cellWorkspace->Fade(false);
+                        m_cellWaitspace->refreshUI(m_currentSetup);
+                        // swap pointers
+                        auto temp = m_cellWaitspace;
+                        m_cellWaitspace = m_cellWorkspace;
+                        m_cellWorkspace = temp;
                     }),
                     CCDelayTime::create(ANIM_TIME_M / 3),
                     CallFuncExt::create([this] () {
-                        m_workspace->Fade(true);
+                        m_cellWorkspace->Fade(true);
                         }),
                     nullptr
                 ));          
@@ -150,8 +156,11 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
 
     // launch color page
     else if (event->name == "color") {
-        auto cur = pages.back();
-        pages.push_back(Page::Color);
+        if (!this->m_hasColorPage)
+            this->makeColorPage();
+
+        auto cur = m_pages.back();
+        m_pages.push_back(Page::Color);
         // maybe planning more
         switch (cur) {
         case Page::Setup:
@@ -161,18 +170,18 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
             break;
         }
         // color page
-        this->colorTag = event->value;
+        this->m_colorTag = event->value;
         ccColor3B col = getColorTarget()->getColor();
-        this->oriColor = col;
-        this->crtColor = col;
+        this->m_oriColor = col;
+        this->m_crtColor = col;
         this->refreshColorPage(0);
         this->runAction(CCSequence::create(
             CCDelayTime::create(ANIM_TIME_M),
             CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeColorPage)),
             CallFuncExt::create([this] () {
-                fade(m_infoBtn, pages.back() == Page::Item || pages.back() == Page::Options, ANIM_TIME_M);
-                fade(m_optionsBtn, pages.back() == Page::Item || pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
-                fade(m_applyBtn, pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
+                fade(m_btnInfo, m_pages.back() == Page::Item || m_pages.back() == Page::Options, ANIM_TIME_M);
+                fade(m_btnOptions, m_pages.back() == Page::Item || m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+                fade(m_btnApply, m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
             }),
             nullptr
         ));
@@ -180,17 +189,17 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
 
     // R cell
     else if (event->name == "color-R") {
-        crtColor.r = event->value;
+        m_crtColor.r = event->value;
         this->refreshColorPage(1);
     }
     // G cell
     else if (event->name == "color-G") {
-        crtColor.g = event->value;
+        m_crtColor.g = event->value;
         this->refreshColorPage(1);
     }
     // B cell
     else if (event->name == "color-B") {
-        crtColor.b = event->value;
+        m_crtColor.b = event->value;
         this->refreshColorPage(1);
     }
 
@@ -202,10 +211,15 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
             Mod::get()->setSavedValue("notify", false);
         // remind next time
         case 1:
-            pages.pop_back();
+            m_pages.pop_back();
+            // leave warn page
             this->fadeWarnPage();
-            pages.push_back(Page::Init);
+            m_pages.push_back(Page::Init);
+            // fade in item page
             this->fadeMainMenu();
+            // make up item page
+            this->makeItemPage();
+            // fade in item page
             this->fadeItemPage();
             break;
         // escape
@@ -228,7 +242,7 @@ ListenerResult ChromaLayer::handleFloatSignal(SignalEvent<float>* event) {
 ListenerResult ChromaLayer::handleColorSignal(SignalEvent<ccColor3B>* event) {
     // drag speed slider
     if (event->name == "color-hex") {
-        crtColor = event->value;
+        m_crtColor = event->value;
         this->refreshColorPage(2);
     }
     return ListenerResult::Stop;
@@ -239,48 +253,103 @@ ListenerResult ChromaLayer::handleColorSignal(SignalEvent<ccColor3B>* event) {
 // switch player
 void ChromaLayer::onSwitchPlayer(CCObject* sender) {
     // save config
-    if (this->pages.back() == Page::Setup)
+    if (this->m_pages.back() == Page::Setup)
         this->dumpConfig();
     // flip own p2 value
-    this->ptwo = !this->ptwo;
+    this->m_ptwo = !this->m_ptwo;
     // flip his twin button
     if (sender->getTag() < 3)
-        m_playerItemBtn->toggle(!m_playerSetupBtn->isToggled());
-    else
-        m_playerSetupBtn->toggle(!m_playerItemBtn->isToggled());
+        m_btnItemPlayer->toggle(!m_btnSetupPlayer->isToggled());
+    else if (this->m_hasSetupPage)
+        m_btnSetupPlayer->toggle(!m_btnItemPlayer->isToggled());
 
     // new config
-    currentSetup = setups[getIndex(this->ptwo, this->gamemode, this->channel)];
+    m_currentSetup = setups[getIndex(this->m_ptwo, this->m_gamemode, this->m_channel)];
 
     // item menu toggle preview
-    m_advBundleCell->switchPlayer();
-    m_ezyBundleCell->switchPlayer();
-    m_effBundleCell->switchPlayer();
+    m_cellItemAdv->switchPlayer();
+    m_cellItemEasy->switchPlayer();
+    m_cellItemEffect->switchPlayer();
 
-    // setup item
-    for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
-        cell->switchPlayer();
-    for (auto cell : CCArrayExt<SetupItemCell*>(m_setupEasyScroller->m_contentLayer->getChildren()))
-        cell->switchPlayer();
-
-    // if outside setup page, then refresh ui and return
-    if (this->pages.back() != Page::Setup) {
-        m_workspace->refreshUI(currentSetup);
-        return;
+    if (m_hasSetupPage) {
+        // setup item
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsAdv->m_contentLayer->getChildren()))
+            cell->switchPlayer();
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsEasy->m_contentLayer->getChildren()))
+            cell->switchPlayer();
     }
-    // if currently in setup page, then should refresh UI
-    this->m_workspace->runAction(CCSequence::create(
-        CallFuncExt::create([this] () {
-            m_workspace->Fade(false);
-            m_waitspace->refreshUI(currentSetup);
-            auto temp = m_waitspace;
-            m_waitspace = m_workspace;
-            m_workspace = temp;
-        }),
-        CCDelayTime::create(ANIM_TIME_M / 3),
-        CallFuncExt::create([this] () {
-            m_workspace->Fade(true);
+
+    if (this->m_pages.back() == Page::Setup)
+        // if currently in setup page, then should refresh UI
+        this->m_cellWorkspace->runAction(CCSequence::create(
+            CallFuncExt::create([this] () {
+                m_cellWorkspace->Fade(false);
+                m_cellWaitspace->refreshUI(m_currentSetup);
+                auto temp = m_cellWaitspace;
+                m_cellWaitspace = m_cellWorkspace;
+                m_cellWorkspace = temp;
             }),
+            CCDelayTime::create(ANIM_TIME_M / 3),
+            CallFuncExt::create([this] () {
+                m_cellWorkspace->Fade(true);
+                }),
+            nullptr
+        ));
+    else if (m_hasSetupPage) {
+        m_cellWorkspace->refreshUI(m_currentSetup);
+    }
+}
+
+void ChromaLayer::onShowPopup(CCObject* sender) {
+    
+    int tag = sender->getTag();
+
+    auto cur = this->m_pages.back();
+    this->m_pages.push_back(Page::Popup);
+    switch (cur) {
+    // from setup menu
+    case Page::Setup:
+        this->fadeSetupPage();
+        fade(m_btnApply, false, ANIM_TIME_M);
+        switch (tag) {
+        // gamemode hint
+        case 3:
+            this->makeHintPopup(
+                "Gamemode Indicator",
+                opts["easy"] ? "You are now in Easy Mode, \"Icon\" means your current config will work regardless of your player icons' gamemode."
+                    : fmt::format("Your current modifying chroma pattern will only affect your player icon when she is in {} mode.",
+                    items[(int)this->m_gamemode])
+            );
+            break;
+        // channel hint
+        case 4:
+            this->makeHintPopup(
+                "Channel Indicator",
+                "       The target icon sprite part or effect you're currently modifying for current gamemode.\n"
+                "Main / Second / Glow -> Robtop's official paint area\n"
+                "White -> Extra detail sprite that keeps white in original games\n"
+                "Also note that:\n"
+                "       1.Ghost Trail is overwritten fixed and may not perfectly match RobTop's work. "
+                "You can turn off my fix but ghost trail chroma will not work then.\n"
+                "       2.Rainbow and fire Regular Trail will neither get rendered by RobTop nor Chroma Icons.\n"
+                "       3.Spider TP line is also fixed, this fix is optional but here you can keep tp line chroma with this fix OFF."
+            );
+            break;
+        }
+    
+    default:
+        break;
+    }
+
+    // delay enter info page
+    this->runAction(CCSequence::create(
+        CCDelayTime::create(ANIM_TIME_M),
+        CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadePopupPage)),
+        CallFuncExt::create([this] () {
+            fade(m_btnInfo, m_pages.back() == Page::Item || m_pages.back() == Page::Options, ANIM_TIME_M);
+            fade(m_btnOptions, m_pages.back() == Page::Item || m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+            fade(m_btnApply, m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+        }),
         nullptr
     ));
 }
@@ -293,21 +362,21 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
     Mod::get()->setSavedValue("easy", opts["easy"]);
     // gamemode
     if (opts["easy"]) {
-        this->history = this->gamemode;
-        this->gamemode = Gamemode::Icon;
+        this->m_gamemodeAdv = this->m_gamemode;
+        this->m_gamemode = Gamemode::Icon;
     } else
-        this->gamemode = this->history;
+        this->m_gamemode = this->m_gamemodeAdv;
 
     // set color
     //m_modeBtn->setColor(opts["easy"] ? ccc3(127, 127, 255) : ccc3(255, 127, 127));
     // why ?
-    m_modeBtn->toggle(opts["easy"]);
-    // full mode
-    m_advBundleCell->Fade(!opts["easy"]);
+    m_btnMode->toggle(opts["easy"]);
+    // advanced mode
+    m_cellItemAdv->Fade(!opts["easy"]);
     fade(this->getChildByID("item-menu")->getChildByTag(6),
         !opts["easy"], ANIM_TIME_L, !opts["easy"] ? 0.7 : 0.35, !opts["easy"] ? 0.7 : 0.35);
     // easy mode
-    m_ezyBundleCell->Fade(opts["easy"]);
+    m_cellItemEasy->Fade(opts["easy"]);
     fade(this->getChildByID("item-menu")->getChildByTag(5),
         opts["easy"], ANIM_TIME_L, opts["easy"] ? 0.7 : 0.35, opts["easy"] ? 0.7 : 0.35);
 
@@ -316,7 +385,7 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
         !opts["easy"], ANIM_TIME_L, !opts["easy"] ? 0.5 : 0.25, !opts["easy"] ? 0.5 : 0.25);
 
     // switch effect preview target in items menu
-    m_effBundleCell->setModeTarget(this->gamemode);
+    m_cellItemEffect->setModeTarget(this->m_gamemode);
 
     auto btn = static_cast<CCMenuItemToggler*>(sender);
     // not knowing how to deal with spamming ui bug for now @_@
@@ -331,7 +400,7 @@ void ChromaLayer::onSwitchEasyAdv(CCObject* sender) {
 // on switch channel page
 void ChromaLayer::onSwitchChannelPage(CCObject* sender) {
     // no spamming :(
-    if (!(this->tab < 14 && !opts["easy"] || !this->tab))
+    if (!(this->m_tab < 14 && !opts["easy"] || !this->m_tab))
         return;
     // dump settings
     this->dumpConfig();
@@ -340,67 +409,85 @@ void ChromaLayer::onSwitchChannelPage(CCObject* sender) {
 
     // easy mode
     if (opts["easy"])
-        this->channel = Channel((int(this->channel) + dir + 9) % 9);
+        this->m_channel = Channel((int(this->m_channel) + dir + 9) % 9);
     // in effects modify, switch gamemode
-    else if (this->tab > 9) {
-        this->gamemode = Gamemode((int(this->gamemode) + dir + 8) % 9 + 1);
+    else if (this->m_tab > 9) {
+        this->m_gamemode = Gamemode((int(this->m_gamemode) + dir + 8) % 9 + 1);
         // refresh target of setup menu
-        for (auto cell : CCArrayExt<SetupItemCell*>(m_setupAdvScroller->m_contentLayer->getChildren()))
-            if (!cell->setModeTarget(this->gamemode))
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsAdv->m_contentLayer->getChildren()))
+            if (!cell->setModeTarget(this->m_gamemode))
                 break;
     }
     // in icons modify, switch channel
-    else if (this->channel == Channel::Main && dir == -1)
-        this->channel = this->gamemode == Gamemode::Wave ? Channel::WaveTrail : (this->gamemode == Gamemode::Ufo ? Channel::UFOShell : Channel::TPLine);
-    else if (this->channel == Channel::TPLine && dir == 1)
-        this->channel = this->gamemode == Gamemode::Wave ? Channel::WaveTrail : (this->gamemode == Gamemode::Ufo ? Channel::UFOShell : Channel::Main);
-    else if (this->channel == Channel::WaveTrail)
-        this->channel = dir > 0 ? Channel::Main : Channel::TPLine;
-    else if (this->channel == Channel::UFOShell)
-        this->channel = dir > 0 ? Channel::Main : Channel::TPLine;
+    else if (this->m_channel == Channel::Main && dir == -1)
+        this->m_channel = this->m_gamemode == Gamemode::Wave ? Channel::WaveTrail : (this->m_gamemode == Gamemode::Ufo ? Channel::UFOShell : Channel::TPLine);
+    else if (this->m_channel == Channel::TPLine && dir == 1)
+        this->m_channel = this->m_gamemode == Gamemode::Wave ? Channel::WaveTrail : (this->m_gamemode == Gamemode::Ufo ? Channel::UFOShell : Channel::Main);
+    else if (this->m_channel == Channel::WaveTrail)
+        this->m_channel = dir > 0 ? Channel::Main : Channel::TPLine;
+    else if (this->m_channel == Channel::UFOShell)
+        this->m_channel = dir > 0 ? Channel::Main : Channel::TPLine;
     else
-        this->channel = Channel(int(this->channel) + dir);
+        this->m_channel = Channel(int(this->m_channel) + dir);
 
     // load new setup
-    currentSetup = setups[getIndex(this->ptwo, this->gamemode, this->channel)];
+    this->m_currentSetup = setups[getIndex(this->m_ptwo, this->m_gamemode, this->m_channel)];
 
-    // labels
-    m_itemSetupLabel->setString(items[(int)this->gamemode].c_str());
-    m_chnlSetupLabel->setString(chnls[(int)this->channel].c_str());
+    // gamemode label
+    auto txtSetupGamemode = static_cast<CCLabelBMFont*>(this->m_btnSetupGamemode->getChildByID("label"));
+    txtSetupGamemode->setString(items[(int)this->m_gamemode].c_str());
+    txtSetupGamemode->setPositionX(0.24 * txtSetupGamemode->getContentWidth());
+    this->m_btnSetupGamemode->setContentWidth(0.48 * txtSetupGamemode->getContentWidth());
+    this->m_btnSetupGamemode->setPositionX(120.f - m_winSize.width / 2 + 0.24 * txtSetupGamemode->getContentWidth());
 
+    // channel label
+    auto txtSetupChannel = static_cast<CCLabelBMFont*>(this->m_btnSetupChannel->getChildByID("label"));
+    txtSetupChannel->setString(chnls[(int)this->m_channel].c_str());
+    txtSetupChannel->setPositionX(0.18 * txtSetupChannel->getContentWidth());
+    this->m_btnSetupChannel->setContentWidth(0.36 * txtSetupChannel->getContentWidth());
+    this->m_btnSetupChannel->setPositionX(57.f - m_winSize.width / 2 + 0.18 * txtSetupChannel->getContentWidth());
+
+    // refresh target of setup menu
+    for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsAdv->m_contentLayer->getChildren()))
+        if (!cell->setModeTarget(this->m_gamemode))
+            break;
+            
     // workspace
-    this->m_workspace->runAction(CCSequence::create(
-        CallFuncExt::create([this, dir] () {m_workspace->Fade(false, dir);}),
+    this->m_cellWorkspace->runAction(CCSequence::create(
+        CallFuncExt::create([this, dir] () {m_cellWorkspace->Fade(false, dir);}),
         CCDelayTime::create(dir ? ANIM_TIME_M / 3 : 0),
         CallFuncExt::create([this, dir] () {
-            m_waitspace->refreshUI(currentSetup);
-            m_waitspace->Fade(true, dir);
-            auto temp = m_waitspace;
-            m_waitspace = m_workspace;
-            m_workspace = temp;            
+            m_cellWaitspace->refreshUI(m_currentSetup);
+            m_cellWaitspace->Fade(true, dir);
+            auto temp = m_cellWaitspace;
+            m_cellWaitspace = m_cellWorkspace;
+            m_cellWorkspace = temp;            
         }),
         nullptr
     ));
 }
 
 void ChromaLayer::onOptionsPage(CCObject*) {
-    auto cur = pages.back();
-    pages.push_back(Page::Options);
+    if (!this->m_hasOptionsPage)
+        this->makeOptionsPage();
+
+    auto cur = m_pages.back();
+    m_pages.push_back(Page::Options);
 
     // fade out the old page
-    fade(m_optionsBtn, false, ANIM_TIME_M);
+    fade(m_btnOptions, false, ANIM_TIME_M);
     switch (cur) {
     case Page::Item:
         this->fadeItemPage();
-        fade(m_modeBtn, false, ANIM_TIME_M);
+        fade(m_btnMode, false, ANIM_TIME_M);
         break;
     case Page::Setup:
         this->fadeSetupPage();
-        fade(m_applyBtn, false, ANIM_TIME_M);
+        fade(m_btnApply, false, ANIM_TIME_M);
         break;
     case Page::Color:
         this->fadeColorPage();
-        fade(m_applyBtn, false, ANIM_TIME_M);
+        fade(m_btnApply, false, ANIM_TIME_M);
         break;
     default:
         break;
@@ -409,25 +496,28 @@ void ChromaLayer::onOptionsPage(CCObject*) {
         CCDelayTime::create(ANIM_TIME_M),
         CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeOptionsPage)),
         CallFuncExt::create([this] () {
-            fade(m_infoBtn, pages.back() == Page::Item || pages.back() == Page::Options, ANIM_TIME_M);
-            fade(m_optionsBtn, pages.back() == Page::Item || pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
-            fade(m_applyBtn, pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
+            fade(m_btnInfo, m_pages.back() == Page::Item || m_pages.back() == Page::Options, ANIM_TIME_M);
+            fade(m_btnOptions, m_pages.back() == Page::Item || m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+            fade(m_btnApply, m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
         }),
         nullptr
     ));
 }
 
 void ChromaLayer::onInfoPage(CCObject*) {
-    auto cur = pages.back();
-    pages.push_back(Page::Info);
+    if (!this->m_hasInfoPage)
+        this->makeInfoPage();
+        
+    auto cur = m_pages.back();
+    m_pages.push_back(Page::Info);
 
     // fade out old page
-    fade(m_infoBtn, false, ANIM_TIME_M);
+    fade(m_btnInfo, false, ANIM_TIME_M);
     switch (cur) {
     case Page::Item:
         this->fadeItemPage();
-        fade(m_optionsBtn, false, ANIM_TIME_M);
-        fade(m_modeBtn, false, ANIM_TIME_M);
+        fade(m_btnOptions, false, ANIM_TIME_M);
+        fade(m_btnMode, false, ANIM_TIME_M);
         break;
     case Page::Options:
         this->fadeOptionsPage();
@@ -439,9 +529,9 @@ void ChromaLayer::onInfoPage(CCObject*) {
         CCDelayTime::create(ANIM_TIME_M),
         CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeInfoPage)),
         CallFuncExt::create([this] () {
-            fade(m_infoBtn, pages.back() == Page::Item || pages.back() == Page::Options, ANIM_TIME_M);
-            fade(m_optionsBtn, pages.back() == Page::Item || pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
-            fade(m_applyBtn, pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
+            fade(m_btnInfo, m_pages.back() == Page::Item || m_pages.back() == Page::Options, ANIM_TIME_M);
+            fade(m_btnOptions, m_pages.back() == Page::Item || m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+            fade(m_btnApply, m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
         }),
         nullptr
     ));
@@ -484,125 +574,129 @@ void ChromaLayer::onColorDisplayBtn(CCObject* sender) {
 void ChromaLayer::onCopy(CCObject* sender) {
     switch (sender->getTag()) {
     case 1:
-        this->clipColor.first = true;
-        this->clipColor.second = oriColor;
+        this->m_clipColor.first = true;
+        this->m_clipColor.second = m_oriColor;
         this->transistColorBtn(false, false);
         return;
     case 3:
-        this->clipColor.first = true;
-        this->clipColor.second = crtColor;
+        this->m_clipColor.first = true;
+        this->m_clipColor.second = m_crtColor;
         this->transistColorBtn(true, false);
         return;
     case 5:
-        this->clipSetup.first = true;
-        this->clipSetup.second = currentSetup;
+        this->m_clipSetup.first = true;
+        this->m_clipSetup.second = m_currentSetup;
     }
 }
 
 void ChromaLayer::onPaste(CCObject* sender) {
     if (sender->getTag() == 6) {
-        if (!clipSetup.first)
+        if (!m_clipSetup.first)
             return;
-        currentSetup = this->clipSetup.second;
+        m_currentSetup = this->m_clipSetup.second;
         this->dumpConfig();
-        this->m_workspace->runAction(CCSequence::create(
+        this->m_cellWorkspace->runAction(CCSequence::create(
             CallFuncExt::create([this] () {
-                m_workspace->Fade(false);
-                m_waitspace->refreshUI(currentSetup);
-                auto temp = m_waitspace;
-                m_waitspace = m_workspace;
-                m_workspace = temp;
+                m_cellWorkspace->Fade(false);
+                m_cellWaitspace->refreshUI(m_currentSetup);
+                auto temp = m_cellWaitspace;
+                m_cellWaitspace = m_cellWorkspace;
+                m_cellWorkspace = temp;
             }),
             CCDelayTime::create(ANIM_TIME_M / 3),
             CallFuncExt::create([this] () {
-                m_workspace->Fade(true);
+                m_cellWorkspace->Fade(true);
                 }),
             nullptr
         ));
         return;
     }
-    if (sender->getTag() != 2 || !clipColor.first)
+    if (sender->getTag() != 2 || !m_clipColor.first)
         return;
-    crtColor = this->clipColor.second;
+    m_crtColor = this->m_clipColor.second;
     this->transistColorBtn(true, false);
     this->refreshColorPage(4);
     
 }
 
 void ChromaLayer::onResc(CCObject* sender) {
-    crtColor = this->oriColor;
+    m_crtColor = this->m_oriColor;
     this->transistColorBtn(false, false);
     this->refreshColorPage(4);
 }
 
 void ChromaLayer::onApply(CCObject* sender) {
-    if (pages.back() == Page::Color) {
+    if (m_pages.back() == Page::Color) {
         // color target
-        this->getColorTarget()->setColor(crtColor);
+        this->getColorTarget()->setColor(m_crtColor);
         // set setup value
-        switch (colorTag) {
+        switch (m_colorTag) {
         case 1:
-            currentSetup.color = crtColor;
+            m_currentSetup.color = m_crtColor;
             break;
         case 2:
-            currentSetup.gradient.begin()->second = crtColor;
+            m_currentSetup.gradient.begin()->second = m_crtColor;
             break;
         case 3:
-            currentSetup.gradient.rbegin()->second = crtColor;
+            m_currentSetup.gradient.rbegin()->second = m_crtColor;
             break;
         case 4:
-            currentSetup.progress.begin()->second = crtColor;
+            m_currentSetup.progress.begin()->second = m_crtColor;
             break;
         case 5:
-            currentSetup.progress.rbegin()->second = crtColor;
+            m_currentSetup.progress.rbegin()->second = m_crtColor;
             break;
         }
         this->dumpConfig();
     }
     // im speechlees of the delay fade design
-    if (pages.back() != Page::Item)
+    if (m_pages.back() != Page::Item)
         this->onClose(nullptr);
 }
 
 void ChromaLayer::onClose(CCObject* sender) {
     // mute on dragging slider
-    if (this->on_slider || this->pages.back() == Page::Init)
+    if (this->m_onSlider || this->m_pages.back() == Page::Init)
         return;
 
-    auto cur = pages.back();
-    pages.pop_back();
+    auto cur = m_pages.back();
+    m_pages.pop_back();
 
     // fade out current page
     switch (cur) {
     case Page::Info:
         this->fadeInfoPage();
         break;
+    case Page::Popup:
+        this->fadePopupPage();
+        break;
     case Page::Options:
         this->fadeOptionsPage();
-        if (pages.back() != Page::Item)
-            fade(m_infoBtn, false, ANIM_TIME_M);
+        if (m_pages.back() != Page::Item)
+            fade(m_btnInfo, false, ANIM_TIME_M);
         break;
     case Page::Color:
         this->fadeColorPage();
         break;
     case Page::Setup:
         this->fadeSetupPage();
-        fade(m_applyBtn, false, ANIM_TIME_M);
+        fade(m_btnApply, false, ANIM_TIME_M);
         // dump config
         this->dumpConfig();
         break;
     // byebye menu
     case Page::Item:
-        pages.pop_back();
-        pages.push_back(Page::Terminal);
+        m_pages.pop_back();
+        m_pages.push_back(Page::Terminal);
         this->fadeItemPage();
-        pages.pop_back();
+        m_pages.pop_back();
         this->fadeMainMenu();
         this->runAction(CCFadeTo::create(ANIM_TIME_L, 0));
         m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, 0));
         // blur
         if (m_blur)
             m_blur->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 0)));
+        // delayed base close
         this->runAction(CCSequence::create(
             CCDelayTime::create(ANIM_TIME_L),
             CallFuncExt::create([this] () { Popup::onClose(nullptr); }),
@@ -629,7 +723,7 @@ void ChromaLayer::onClose(CCObject* sender) {
     }
     
     // fade in the new
-    switch (pages.back()) {
+    switch (m_pages.back()) {
     case Page::Options:
         this->runAction(CCSequence::create(
             CCDelayTime::create(ANIM_TIME_M),
@@ -664,9 +758,9 @@ void ChromaLayer::onClose(CCObject* sender) {
     this->runAction(CCSequence::create(
         CCDelayTime::create(ANIM_TIME_M),
         CallFuncExt::create([this] () {
-            fade(m_infoBtn, pages.back() == Page::Item || pages.back() == Page::Options, ANIM_TIME_M);
-            fade(m_optionsBtn, pages.back() == Page::Item || pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
-            fade(m_applyBtn, pages.back() == Page::Setup || pages.back() == Page::Color, ANIM_TIME_M);
+            fade(m_btnInfo, m_pages.back() == Page::Item || m_pages.back() == Page::Options, ANIM_TIME_M);
+            fade(m_btnOptions, m_pages.back() == Page::Item || m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+            fade(m_btnApply, m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
         }),
         nullptr
     ));

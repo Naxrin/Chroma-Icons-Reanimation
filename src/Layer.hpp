@@ -7,8 +7,25 @@
 
 // interface code in menu
 enum class Page {
-    Terminal, Init, Item, Setup, Color, Options, Info, Warn
+    Terminal, Init, Item, Setup, Color, Options, Info, Popup, Warn
 };
+
+// hide the node in init and show them up in menu launch
+template<class T>
+inline void hide(T node, float scale) {
+    node->setScale(scale);
+    node->setOpacity(0);
+    node->setVisible(false);
+}
+
+// hide the ndoe in init, but scaleX != scaleY
+template<class T>
+inline void hide(T node, float scaleX, float scaleY) {
+    node->setScaleX(scaleX);
+    node->setScaleY(scaleY);
+    node->setOpacity(0);
+    node->setVisible(false);
+}
 
 // fubao is like a clever neko witch
 // miss her super much
@@ -16,54 +33,74 @@ class ChromaLayer : public Popup<>, public ColorPickerDelegate {
 protected:
     /********** VARIENT CENTRAL ***********/
 
+    // winSize
+    const CCSize m_winSize = CCDirector::sharedDirector()->getWinSize();
+
     // interface status chain
-    // @note for initialize the first node is Init, when you're gonna quit the menu we temply add a Terminal node
+    // @note for initialize the first value is Init, when you're gonna quit the menu we temply add a Terminal page
+    // @note but we should know both Init and Terminal are virtual fake
     // @note if warn page is triggered, warn page will be added firstly
-    std::vector<Page> pages;
+    std::vector<Page> m_pages;
+
+    // already has Item Page
+    bool m_hasItemPage;
+    // already has Setup Page
+    bool m_hasSetupPage;
+    // already has Color Page
+    bool m_hasColorPage;
+    // already has Options Page
+    bool m_hasOptionsPage;
+    // already has Hint Page
+    bool m_hasHintPage;
+    // already has Info Page
+    bool m_hasInfoPage;
 
     // dual player 1/2
-    bool ptwo;
+    bool m_ptwo;
 
     // the identifier of the current modifying icon/effect for setup menu
     // @note easy mode : common = 0
     // @note adv mode : icons = 1-9
     // @note Effects (11~15) : trail, wave trail, dash fire, teleport line, ufo shell...
-    int tab;
+    int m_tab;
 
     // current gamemode in setup page
     // @note icon-jetpack = 0-9
-    Gamemode gamemode;
+    Gamemode m_gamemode;
 
     // record adv mode gamemode when switching to ez mode
-    Gamemode history;
+    Gamemode m_gamemodeAdv;
 
     // current item channel in setup page
     // @note main/second/glow/white
-    Channel channel = Channel::Main;
+    Channel m_channel = Channel::Main;
 
     // current editing color tag in case color page dosen't know what he's working on
-    int colorTag = 0;
+    int m_colorTag = 0;
 
     // phase for schedule update
-    float phase = 0;
+    float m_phase = 0;
     // percentage simulator
-    float percentage = 0;
+    float m_percentage = 0;
 
     // current config data
-    ChromaSetup currentSetup = DEFAULT_SETUP;
+    ChromaSetup m_currentSetup = DEFAULT_SETUP;
 
     // current color
     // @note varient inside color page
-    ccColor3B oriColor;
+    ccColor3B m_oriColor;
     // original color
     // @note fixed inside color page
-    ccColor3B crtColor;
+    ccColor3B m_crtColor;
 
     // setup scroller
-    SetupItemCell* m_currentItem = nullptr;
+    SetupItemCell* m_currentTab = nullptr;
 
-    std::pair<bool, ccColor3B> clipColor;
-    std::pair<bool, ChromaSetup> clipSetup;
+    std::pair<bool, ccColor3B> m_clipColor;
+    std::pair<bool, ChromaSetup> m_clipSetup;
+
+    // mute onClose if called
+    bool m_onSlider = false;
 
     /********** UI THINGS ***********/
 
@@ -72,105 +109,108 @@ protected:
     // blur layer
     CCBlurLayer* m_blur = nullptr;
 
-    bool on_slider = false;
+
     // all cell nodes to switch theme (except option cells)
     CCArrayExt<BaseCell*> m_cells;
 
-    // warning page
-    WarnCell* m_warnPage;
-
     // exit button
-    CCMenuItemSpriteExtra* m_exitBtn;
+    CCMenuItemSpriteExtra* m_btnExit;
     // info button
-    CCMenuItemSpriteExtra* m_infoBtn;
+    CCMenuItemSpriteExtra* m_btnInfo;
     // apply button
-    CCMenuItemSpriteExtra* m_applyBtn;
+    CCMenuItemSpriteExtra* m_btnApply;
     // options button
-    CCMenuItemSpriteExtra* m_optionsBtn;
+    CCMenuItemSpriteExtra* m_btnOptions;
     // mode button
-    CCMenuItemToggler* m_modeBtn;
-    // copy button
-    CCMenuItemSpriteExtra* m_copyBtn;
-    // paste button
-    CCMenuItemSpriteExtra* m_pasteBtn;
+    CCMenuItemToggler* m_btnMode;
 
+    // warning
+    WarnCell* m_cellWarning;
     // title
-    CCLabelBMFont* m_titleLabel;
+    CCLabelBMFont* m_lbfTitle;
     // player switch
-    CCMenuItemToggler* m_playerItemBtn;
+    CCMenuItemToggler* m_btnItemPlayer;
     // full icons
-    ItemCell* m_advBundleCell;
+    ItemCell* m_cellItemAdv;
     // single icon
-    ItemCell* m_ezyBundleCell;
+    ItemCell* m_cellItemEasy;
     // effect
-    ItemCell* m_effBundleCell;
+    ItemCell* m_cellItemEffect;
 
     // setup player switch
-    CCMenuItemToggler* m_playerSetupBtn;
+    CCMenuItemToggler* m_btnSetupPlayer;
     // setup item label
-    CCLabelBMFont* m_itemSetupLabel;
+    CCMenuItemSpriteExtra* m_btnSetupGamemode;
     // setup channel label
-    CCLabelBMFont* m_chnlSetupLabel;
+    CCMenuItemSpriteExtra* m_btnSetupChannel;
     // setup adv items scroller
-    ScrollLayerPlus* m_setupAdvScroller;
+    ScrollLayerPlus* m_scrollerSetupTabsAdv;
     // setup easy items scroller
-    ScrollLayerPlus* m_setupEasyScroller;
+    ScrollLayerPlus* m_scrollerSetupTabsEasy;
     // main setup workspace
-    SetupOptionCell* m_workspace;
+    SetupOptionCell* m_cellWorkspace;
     // temp setup space
-    SetupOptionCell* m_waitspace;    
+    SetupOptionCell* m_cellWaitspace;
     // setup channel switch left
-    CCMenuItemSpriteExtra* m_leftArrowSetupBtn;
+    CCMenuItemSpriteExtra* m_btnSetupArrowLeft;
     // setup channel switch right
-    CCMenuItemSpriteExtra* m_rightArrowSetupBtn;
+    CCMenuItemSpriteExtra* m_btnSetupArrowRight;
+    // copy button
+    CCMenuItemSpriteExtra* m_btnSetupCopy;
+    // paste button
+    CCMenuItemSpriteExtra* m_btnSetupPaste;
 
     // display what id and channel he is working on
-    CCLabelBMFont* m_colorTitle;
+    CCLabelBMFont* m_lbfColorTarget;
     // display what color he is now configuring
-    CCLabelBMFont* m_colorItem;
+    CCLabelBMFont* m_lbfColorItem;
     // original color displayer
-    CCMenuItemSpriteExtra* m_oriColorDisplay;
+    CCMenuItemSpriteExtra* m_btnColorDisplayOri;
     // current color displayer
-    CCMenuItemSpriteExtra* m_crtColorDisplay;
+    CCMenuItemSpriteExtra* m_btnColorDisplayCur;
     // arrow
-    CCSprite* m_mysteriousArrow;
+    CCSprite* m_sprArrow;
     // picker
     CCControlColourPicker* m_picker;
     // R val
-    ColorValueCell* m_redCell;
+    ColorValueCell* m_cellRed;
     // G val
-    ColorValueCell* m_greenCell;
+    ColorValueCell* m_cellGreen;
     // B val
-    ColorValueCell* m_blueCell;
+    ColorValueCell* m_cellBlue;
     // HEX val
-    ColorHexCell* m_hexCell;
+    ColorHexCell* m_cellHex;
 
     // copy ori
-    CCMenuItemSpriteExtra* m_copyOriBtn;
+    CCMenuItemSpriteExtra* m_btnColorCopyOri;
     // resc ori
-    CCMenuItemSpriteExtra* m_rescOriBtn;
+    CCMenuItemSpriteExtra* m_btnColorRescOri;
     // copy crt
-    CCMenuItemSpriteExtra* m_copyCrtBtn;
+    CCMenuItemSpriteExtra* m_btnColorCopyCur;
     // resc paste
-    CCMenuItemSpriteExtra* m_pasteCrtBtn;
+    CCMenuItemSpriteExtra* m_btnColorPasteCur;
+
     // option scroller
-    ScrollLayerPlus* m_optionScroller;
+    ScrollLayerPlus* m_scrollerOptions;
+
+    // hint content
+    CCLabelBMFont* m_lbfHintContent;
 
     /********** LISTENERS ***********/
 
-    EventListener<EventFilter<SignalEvent<bool>>> boolListener
+    EventListener<EventFilter<SignalEvent<bool>>> listenerBool
         = EventListener<EventFilter<SignalEvent<bool>>>(
             [this](SignalEvent<bool>* event) -> ListenerResult { return this->handleBoolSignal(event); });
 
-    EventListener<EventFilter<SignalEvent<int>>> intListener
+    EventListener<EventFilter<SignalEvent<int>>> listenerInt
         = EventListener<EventFilter<SignalEvent<int>>>(
             [this](SignalEvent<int>* event) -> ListenerResult { return this->handleIntSignal(event); });
 
-    EventListener<EventFilter<SignalEvent<float>>> floatListener
+    EventListener<EventFilter<SignalEvent<float>>> listenerFloat
         = EventListener<EventFilter<SignalEvent<float>>>(
             [this](SignalEvent<float>* event) -> ListenerResult { return this->handleFloatSignal(event); });
 
-    EventListener<EventFilter<SignalEvent<ccColor3B>>> colorListener
+    EventListener<EventFilter<SignalEvent<ccColor3B>>> listenerColor
         = EventListener<EventFilter<SignalEvent<ccColor3B>>>(
             [this] (SignalEvent<ccColor3B>* event) -> ListenerResult { return this->handleColorSignal(event); });
 
@@ -178,6 +218,21 @@ protected:
 
     // makup initial UI
     bool setup() override;
+
+    // make item page
+    void makeItemPage();
+
+    // make setup page
+    void makeSetupPage();
+
+    // make color page
+    void makeColorPage();
+
+    // make options page
+    void makeOptionsPage();
+
+    // make info page
+    void makeInfoPage();
 
     /*********** UTILITY ***********/
 
@@ -196,6 +251,10 @@ protected:
     // @return true if the value is really changed
     bool switchTab(int tab);
 
+    // make a hint popup
+    void makeHintPopup(std::string title, std::string content);
+
+
     // ColorPickerDelegate function override
     // @param color new color from the picker
     void colorValueChanged(ccColor3B color) override;
@@ -212,6 +271,9 @@ protected:
     // @param type 0->init 1->rgb 2->hex 3->circle 4->restore
     void refreshColorPage(int type);
 
+    // show & hide color sub options
+    // @param isCrt whether the pressed sprite is current color (true) or original color (false)
+    // @param display to show or to hide after clicked
     void transistColorBtn(bool isCrt, bool display);
 
     // run main ui animation
@@ -231,6 +293,9 @@ protected:
 
     // run options ui animation
     void fadeOptionsPage();
+
+    // run popup ui animation
+    void fadePopupPage();
 
     // run info ui animation
     void fadeInfoPage();
@@ -258,6 +323,9 @@ protected:
     // on switch easy/advanced mode
     // @param sender the easy adv button
     void onSwitchEasyAdv(CCObject* sender);
+
+    // show popup regarding sender tag and current page
+    void onShowPopup(CCObject* sender);
 
     // flip channel page
     // @param sender m_leftArrowSetupBtn->tag = 4 m_rightArrowSetupBtn->tag = 2

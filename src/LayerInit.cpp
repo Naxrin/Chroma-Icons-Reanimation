@@ -1,23 +1,19 @@
 #include "Layer.hpp"
 
-#define HIDE(target, sX, sY) target->setScaleX(sX); target->setScaleY(sY); target->setVisible(false); target->setOpacity(0);
-
 extern std::map<std::string, bool> opts;
 extern float speed;
 
-// makup initial UI
+// makup initial UI (only main page)
 bool ChromaLayer::setup() {
     // set id
     this->setID("chroma-icons-central"_spr);
-    // winSize
-    auto winSize = CCDirector::sharedDirector()->getWinSize();
-    this->gamemode = this->history = opts["easy"] ? Gamemode::Icon : Gamemode::Cube;
+    this->m_gamemode = this->m_gamemodeAdv = opts["easy"] ? Gamemode::Icon : Gamemode::Cube;
 
     /********** BG **********/
 
     // bg regarding theme color
     this->m_bg = CCLayerColor::create(ccc4(BG_COLOR, 0));
-    m_bg->setContentSize(winSize);
+    m_bg->setContentSize(m_winSize);
     m_bg->setZOrder(-2);
     m_bg->setID("bg");
     this->addChild(m_bg);
@@ -34,204 +30,225 @@ bool ChromaLayer::setup() {
         //m_blur->runAction(CCFadeTo::create(0.5f, 255));
         this->addChild(m_blur);
     }
-
-    /********** Notify **********/
-    this->m_warnPage = WarnCell::create();
-    m_warnPage->setPosition(CCPoint(winSize.width/2, winSize.height/2));
-    this->addChild(m_warnPage);
-    m_cells.push_back(m_warnPage);
     
     /********** Main Menu **********/
-    auto mainMenu = CCMenu::create();
-    mainMenu->setPosition(CCPoint(0, 0));
-    mainMenu->setID("main-menu");
-    this->addChild(mainMenu);
+    auto menuMain = CCMenu::create();
+    menuMain->setPosition(CCPoint(0, 0));
+    menuMain->setID("main-menu");
+    this->addChild(menuMain);
 
-    // closeBtn
-    auto exitSpr = CCSprite::create("closeBtn.png"_spr);
-    exitSpr->setScale(0.8);
-    exitSpr->setID("exit");
-    this->m_exitBtn = CCMenuItemSpriteExtra::create(exitSpr, this, menu_selector(ChromaLayer::onClose));
-    m_exitBtn->setPosition(CCPoint(30.f, winSize.height - 30.f));
-    m_exitBtn->setColor(ccc3(CELL_COLOR));    
-    m_exitBtn->setTag(1);
-    mainMenu->addChild(m_exitBtn);
+    // close button
+    auto sprExit = CCSprite::create("closeBtn.png"_spr);
+    sprExit->setScale(0.8);
+    sprExit->setID("exit");
+    this->m_btnExit = CCMenuItemSpriteExtra::create(sprExit, this, menu_selector(ChromaLayer::onClose));
+    m_btnExit->setPosition(CCPoint(30.f, m_winSize.height - 30.f));
+    m_btnExit->setColor(ccc3(CELL_COLOR));    
+    m_btnExit->setTag(1);
+    menuMain->addChild(m_btnExit);
 
-    // applyBtn
-    auto applySpr = CCSprite::create("applyBtn.png"_spr);
-    applySpr->setScale(0.8);
-    applySpr->setID("apply");
-    this->m_applyBtn = CCMenuItemSpriteExtra::create(applySpr, this, menu_selector(ChromaLayer::onApply));
-    m_applyBtn->setPosition(CCPoint(winSize.width - 30.f, 30.f));
-    m_applyBtn->setColor(ccc3(CELL_COLOR));
-    m_applyBtn->setTag(5);
-    HIDE(m_applyBtn, 0, 0)
-    mainMenu->addChild(m_applyBtn);
+    // apply button
+    auto sprApply = CCSprite::create("applyBtn.png"_spr);
+    sprApply->setScale(0.8);
+    sprApply->setID("apply");
+    this->m_btnApply = CCMenuItemSpriteExtra::create(sprApply, this, menu_selector(ChromaLayer::onApply));
+    m_btnApply->setPosition(CCPoint(m_winSize.width - 30.f, 30.f));
+    m_btnApply->setColor(ccc3(CELL_COLOR));
+    m_btnApply->setTag(5);
+    hide(m_btnApply, 0);
+    menuMain->addChild(m_btnApply);
 
-    // infoBtn
-    auto infoSpr = CCSprite::create("infoBtn.png"_spr);
-    infoSpr->setScale(0.6);
-    infoSpr->setID("info");
-    this->m_infoBtn = CCMenuItemSpriteExtra::create(infoSpr, this, menu_selector(ChromaLayer::onInfoPage));    
-    m_infoBtn->setPosition(CCPoint(winSize.width - 30.f, 30.f));
-    m_infoBtn->setColor(ccc3(CELL_COLOR));    
-    m_infoBtn->setTag(4);
-    mainMenu->addChild(m_infoBtn);
+    // info button
+    auto sprInfo = CCSprite::create("infoBtn.png"_spr);
+    sprInfo->setScale(0.6);
+    sprInfo->setID("info");
+    this->m_btnInfo = CCMenuItemSpriteExtra::create(sprInfo, this, menu_selector(ChromaLayer::onInfoPage));    
+    m_btnInfo->setPosition(CCPoint(m_winSize.width - 30.f, 30.f));
+    m_btnInfo->setColor(ccc3(CELL_COLOR));
+    m_btnInfo->setTag(4);
+    menuMain->addChild(m_btnInfo);
 
-    // optionsBtn
-    auto gearSpr = CCSprite::create("optionsBtn.png"_spr);
-    gearSpr->setScale(0.8);
-    gearSpr->setID("option");
-    this->m_optionsBtn = CCMenuItemSpriteExtra::create(gearSpr, this, menu_selector(ChromaLayer::onOptionsPage));
-    m_optionsBtn->setPosition(CCPoint(winSize.width - 30.f, winSize.height - 30.f));
-    m_optionsBtn->setTag(2);
-    m_optionsBtn->setColor(ccc3(CELL_COLOR));    
-    mainMenu->addChild(m_optionsBtn);
+    // options button
+    auto sprGear = CCSprite::create("optionsBtn.png"_spr);
+    sprGear->setScale(0.8);
+    sprGear->setID("option");
+    this->m_btnOptions = CCMenuItemSpriteExtra::create(sprGear, this, menu_selector(ChromaLayer::onOptionsPage));
+    m_btnOptions->setPosition(CCPoint(m_winSize.width - 30.f, m_winSize.height - 30.f));
+    m_btnOptions->setTag(2);
+    m_btnOptions->setColor(ccc3(CELL_COLOR));
+    menuMain->addChild(m_btnOptions);
 
     // Easy-Adv switcher
-    auto easySpr = CCSprite::create("icon_Easy.png"_spr);
-    easySpr->setScale(0.9);
-    easySpr->setID("easy");
-    auto advSpr = CCSprite::create("icon_Adv.png"_spr);
-    advSpr->setScale(0.9);
-    advSpr->setID("adv");
-    this->m_modeBtn = CCMenuItemToggler::create(advSpr, easySpr, this, menu_selector(ChromaLayer::onSwitchEasyAdv));
-    m_modeBtn->setPosition(CCPoint(30.f, 30.f));
-    m_modeBtn->setTag(3);
-    m_modeBtn->setCascadeOpacityEnabled(true);
-    m_modeBtn->setCascadeColorEnabled(true);
+    auto sprEasy = CCSprite::create("icon_Easy.png"_spr);
+    sprEasy->setScale(0.9);
+    sprEasy->setID("easy");
+    auto sprAdv = CCSprite::create("icon_Adv.png"_spr);
+    sprAdv->setScale(0.9);
+    sprAdv->setID("adv");
+    this->m_btnMode = CCMenuItemToggler::create(sprAdv, sprEasy, this, menu_selector(ChromaLayer::onSwitchEasyAdv));
+    m_btnMode->setPosition(CCPoint(30.f, 30.f));
+    m_btnMode->setTag(3);
+    m_btnMode->setCascadeOpacityEnabled(true);
+    m_btnMode->setCascadeColorEnabled(true);
     //m_modeBtn->setColor(opts["easy"] ? ccc3(127, 127, 255) : ccc3(255, 127, 127));
-    m_modeBtn->setColor(ccc3(CELL_COLOR));    
-    m_modeBtn->toggle(opts["easy"]);
-    mainMenu->addChild(m_modeBtn);
+    m_btnMode->setColor(ccc3(CELL_COLOR));    
+    m_btnMode->toggle(opts["easy"]);
+    menuMain->addChild(m_btnMode);
 
-    mainMenu->setOpacity(0);
-    mainMenu->setScale(1.4);
+    menuMain->setOpacity(0);
+    menuMain->setScale(1.4);
 
-    /********** Item Menu **********/
-    // item select menu
-    auto itemMenu = CCMenu::create();
-    itemMenu->setID("item-menu");
-    this->addChild(itemMenu);
+    return true;
+}
 
-    this->m_titleLabel = CCLabelBMFont::create("Chroma Icons Central", "ErasBold.fnt"_spr, 500.f, CCTextAlignment::kCCTextAlignmentCenter);
-    m_titleLabel->setPosition(CCPoint(0, winSize.height / 2 - 30.f));
-    m_titleLabel->setWidth(500.f);
-    HIDE(m_titleLabel, 0.3, 0.3)
-    m_titleLabel->setID("title-label");
-    itemMenu->addChild(m_titleLabel);
+void ChromaLayer::makeItemPage() {
+    // item menu
+    auto menuItem = CCMenu::create();
+    menuItem->setID("item-menu");
+    this->addChild(menuItem);
+
+    this->m_lbfTitle = CCLabelBMFont::create("Chroma Icons Central", "ErasBold.fnt"_spr, 500.f, CCTextAlignment::kCCTextAlignmentCenter);
+    m_lbfTitle->setPosition(CCPoint(0, m_winSize.height / 2 - 30.f));
+    m_lbfTitle->setWidth(500.f);
+    hide(m_lbfTitle, 0.3);
+    m_lbfTitle->setID("title-label");
+    menuItem->addChild(m_lbfTitle);
 
     // full items, easy item, effect row
-    this->m_advBundleCell = ItemCell::create(1);
-    itemMenu->addChild(m_advBundleCell);
-    m_cells.push_back(m_advBundleCell);
+    this->m_cellItemAdv = ItemCell::create(1);
+    menuItem->addChild(m_cellItemAdv);
+    m_cells.push_back(m_cellItemAdv);
+
     // full items, easy item, effect row
-    this->m_ezyBundleCell = ItemCell::create(2);
-    itemMenu->addChild(m_ezyBundleCell);
-    m_cells.push_back(m_ezyBundleCell);
+    this->m_cellItemEasy = ItemCell::create(2);
+    menuItem->addChild(m_cellItemEasy);
+    m_cells.push_back(m_cellItemEasy);
+
     // full items, easy item, effect row
-    this->m_effBundleCell = ItemCell::create(3);
-    itemMenu->addChild(m_effBundleCell);
-    m_cells.push_back(m_effBundleCell);
+    this->m_cellItemEffect = ItemCell::create(3);
+    menuItem->addChild(m_cellItemEffect);
+    m_cells.push_back(m_cellItemEffect);
 
-    auto labelP1 = CCLabelBMFont::create("Player 1", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
-    labelP1->setScale(0.7);
-    auto labelP2 = CCLabelBMFont::create("Player 2", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
-    labelP2->setScale(0.7);
-    this->m_playerItemBtn = CCMenuItemToggler::create(labelP1, labelP2, this, menu_selector(ChromaLayer::onSwitchPlayer));
-    m_playerItemBtn->setPosition(CCPoint(0, 95.f));
-    m_playerItemBtn->setTag(4);
-    m_playerItemBtn->setCascadeOpacityEnabled(true);
-    m_playerItemBtn->setCascadeColorEnabled(true);
-    HIDE(m_playerItemBtn, 5, 0.2)
-    m_playerItemBtn->setEnabled(false);
-    itemMenu->addChild(m_playerItemBtn);
+    auto lbfP1 = CCLabelBMFont::create("Player 1", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfP1->setScale(0.7);
+    auto lbfP2 = CCLabelBMFont::create("Player 2", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfP2->setScale(0.7);
+    this->m_btnItemPlayer = CCMenuItemToggler::create(lbfP1, lbfP2, this, menu_selector(ChromaLayer::onSwitchPlayer));
+    m_btnItemPlayer->setPosition(CCPoint(0, 95.f));
+    m_btnItemPlayer->setTag(4);
+    m_btnItemPlayer->setCascadeOpacityEnabled(true);
+    m_btnItemPlayer->setCascadeColorEnabled(true);
+    hide(m_btnItemPlayer, 5, 0.2);
+    m_btnItemPlayer->setEnabled(false);
+    menuItem->addChild(m_btnItemPlayer);
 
-    auto labelEzyIcon = CCLabelBMFont::create("Click this Player Icon to Start", "ErasWhite.fnt"_spr, 360.f, CCTextAlignment::kCCTextAlignmentCenter);
-    labelEzyIcon->setPosition(CCPoint(0.f, 60.f));
-    HIDE(labelEzyIcon, 0.35, 0.35)
-    labelEzyIcon->setColor(ccc3(CELL_COLOR));
-    labelEzyIcon->setTag(5);
-    itemMenu->addChild(labelEzyIcon);
+    auto lbfIconEasy = CCLabelBMFont::create("Click this Player Icon to Start", "ErasWhite.fnt"_spr, 360.f, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfIconEasy->setPosition(CCPoint(0.f, 60.f));
+    hide(lbfIconEasy, 0.35);
+    lbfIconEasy->setColor(ccc3(CELL_COLOR));
+    lbfIconEasy->setTag(5);
+    menuItem->addChild(lbfIconEasy);
 
-    auto labelAdvIcon = CCLabelBMFont::create("Player Icons", "ErasWhite.fnt"_spr, 360.f, CCTextAlignment::kCCTextAlignmentCenter);
-    labelAdvIcon->setPosition(CCPoint(0.f, 55.f));
-    HIDE(labelAdvIcon, 0.35, 0.35)
-    labelAdvIcon->setColor(ccc3(CELL_COLOR));
-    labelAdvIcon->setTag(6);
-    itemMenu->addChild(labelAdvIcon);
+    auto lbfIconsAdv = CCLabelBMFont::create("Player Icons", "ErasWhite.fnt"_spr, 360.f, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfIconsAdv->setPosition(CCPoint(0.f, 55.f));
+    hide(lbfIconsAdv, 0.35);
+    lbfIconsAdv->setColor(ccc3(CELL_COLOR));
+    lbfIconsAdv->setTag(6);
+    menuItem->addChild(lbfIconsAdv);
 
-    auto labelEffect = CCLabelBMFont::create("In-Game Effects", "ErasWhite.fnt"_spr, 360.f, CCTextAlignment::kCCTextAlignmentCenter);
-    labelEffect->setPosition(CCPoint(0.f, -35.f));
-    HIDE(labelEffect, 0.35, 0.35)
-    labelEffect->setColor(ccc3(CELL_COLOR));
-    labelEffect->setTag(7);
-    itemMenu->addChild(labelEffect);
+    auto lbfEffect = CCLabelBMFont::create("In-Game Effects", "ErasWhite.fnt"_spr, 360.f, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfEffect->setPosition(CCPoint(0.f, -35.f));
+    hide(lbfEffect, 0.35);
+    lbfEffect->setColor(ccc3(CELL_COLOR));
+    lbfEffect->setTag(7);
+    menuItem->addChild(lbfEffect);
 
-    auto labelTarget = CCLabelBMFont::create("- Cube -", "ErasWhite.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
-    labelTarget->setPosition(CCPoint(0.f, -90.f));
-    HIDE(labelTarget, 0.25, 0.25);
-    labelTarget->setColor(ccc3(CELL_COLOR));
-    labelTarget->setTag(8);
-    itemMenu->addChild(labelTarget);
+    auto lbfTarget = CCLabelBMFont::create("- Cube -", "ErasWhite.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfTarget->setPosition(CCPoint(0.f, -90.f));
+    hide(lbfTarget, 0.25);
+    lbfTarget->setColor(ccc3(CELL_COLOR));
+    lbfTarget->setTag(8);
+    menuItem->addChild(lbfTarget);
 
+    // speed menu
     auto menuSpeed = SpeedSliderBundle::create(speed);
-    itemMenu->addChild(menuSpeed);
+    menuItem->addChild(menuSpeed);
 
-    /********** Setup Menu **********/
-    auto setupMenu = CCMenu::create();
-    setupMenu->setID("setup-menu");
-    this->addChild(setupMenu);
+    // toggle preview
+    m_cellItemEasy->toggleChroma();
+    m_cellItemAdv->toggleChroma();
+    m_cellItemEffect->toggleChroma();
+
+    this->m_hasItemPage = true;
+
+    // update
+    this->scheduleUpdate();
+}
+
+void ChromaLayer::makeSetupPage() {
+    // setup menu
+    auto menuSetup = CCMenu::create();
+    menuSetup->setID("setup-menu");
+    this->addChild(menuSetup);
     
-    auto labelP3 = CCLabelBMFont::create("Player 1", "ErasBold.fnt"_spr, 160.f, CCTextAlignment::kCCTextAlignmentLeft);
-    labelP3->setScale(0.6);
-    auto labelP4 = CCLabelBMFont::create("Player 2", "ErasBold.fnt"_spr, 160.f, CCTextAlignment::kCCTextAlignmentLeft);
-    labelP4->setScale(0.6);
-    this->m_playerSetupBtn = CCMenuItemToggler::create(labelP3, labelP4, this, menu_selector(ChromaLayer::onSwitchPlayer));
-    m_playerSetupBtn->setPosition(CCPoint(85.f - winSize.width / 2, winSize.height / 2 - 25.f));
-    m_playerSetupBtn->setTag(2);
-    m_playerSetupBtn->setCascadeOpacityEnabled(true);
-    m_playerSetupBtn->setCascadeColorEnabled(true);
-    HIDE(m_playerSetupBtn, 1, 1)
-    m_playerSetupBtn->setEnabled(false);
-    setupMenu->addChild(m_playerSetupBtn);
+    auto lbfP1 = CCLabelBMFont::create("Player 1", "ErasBold.fnt"_spr, 160.f, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfP1->setScale(0.48);
+    auto lbfP2 = CCLabelBMFont::create("Player 2", "ErasBold.fnt"_spr, 160.f, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfP2->setScale(0.48);
+    this->m_btnSetupPlayer = CCMenuItemToggler::create(lbfP1, lbfP2, this, menu_selector(ChromaLayer::onSwitchPlayer));
+    m_btnSetupPlayer->setPosition(CCPoint(85.f - m_winSize.width / 2, m_winSize.height / 2 - 25.f));
+    m_btnSetupPlayer->setTag(2);
+    m_btnSetupPlayer->setCascadeOpacityEnabled(true);
+    m_btnSetupPlayer->setCascadeColorEnabled(true);
+    hide(m_btnSetupPlayer, 0);
+    m_btnSetupPlayer->setEnabled(false);
+    m_btnSetupPlayer->toggle(this->m_ptwo);
+    menuSetup->addChild(m_btnSetupPlayer);
 
-    this->m_itemSetupLabel = CCLabelBMFont::create("Item", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentLeft);
-    m_itemSetupLabel->setPosition(CCPoint(120.f - winSize.width / 2, winSize.height / 2 - 25.f));
-    m_itemSetupLabel->setAnchorPoint(CCPoint(0.f, 0.5));
-    HIDE(m_itemSetupLabel, 0.54, 0.54)
-    m_itemSetupLabel->setID("current-item-label");
-    setupMenu->addChild(m_itemSetupLabel);
+    auto txtSetupGamemode = CCLabelBMFont::create("Gamemode", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
+    txtSetupGamemode->setScale(0.48);
+    txtSetupGamemode->setID("label");
+    this->m_btnSetupGamemode = CCMenuItemSpriteExtra::create(txtSetupGamemode, this, menu_selector(ChromaLayer::onShowPopup));
+    m_btnSetupGamemode->setPosition(CCPoint(120.f - m_winSize.width / 2, m_winSize.height / 2 - 25.f));
+    //m_btnSetupGamemode->setAnchorPoint(CCPoint(0.f, 0.5));
+    hide(m_btnSetupGamemode, 0);
+    m_btnSetupGamemode->setID("current-tab-label");
+    m_btnSetupGamemode->setTag(3);
+    menuSetup->addChild(m_btnSetupGamemode);
 
-    this->m_chnlSetupLabel = CCLabelBMFont::create("Channel", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentLeft);
-    m_chnlSetupLabel->setPosition(CCPoint(60.f - winSize.width / 2, winSize.height / 2 - 45.f));
-    m_chnlSetupLabel->setAnchorPoint(CCPoint(0.f, 0.5));
-    m_chnlSetupLabel->setColor(ccc3(192, 192, 192));
-    HIDE(m_chnlSetupLabel, 0.4, 0.4)
-    m_chnlSetupLabel->setID("current-channel-label");
-    setupMenu->addChild(m_chnlSetupLabel);
+    auto txtSetupChannel = CCLabelBMFont::create("Channel", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
+    txtSetupChannel->setScale(0.36);
+    txtSetupChannel->setID("label");
+    this->m_btnSetupChannel = CCMenuItemSpriteExtra::create(txtSetupChannel, this, menu_selector(ChromaLayer::onShowPopup));
+    m_btnSetupChannel->setPosition(CCPoint(60.f - m_winSize.width / 2, m_winSize.height / 2 - 45.f));
+    //m_btnSetupChannel->setAnchorPoint(CCPoint(0.f, 0.5));
+    hide(m_btnSetupChannel, 0);
+    m_btnSetupChannel->setColor(ccc3(127, 127, 127));
+    m_btnSetupChannel->setID("current-channel-label");
+    m_btnSetupChannel->setTag(4);
+    menuSetup->addChild(m_btnSetupChannel);
 
-    this->m_setupEasyScroller = ScrollLayerPlus::create(CCRect(0.f, 0.f, 110.f, 340.f));
-    m_setupEasyScroller->setAnchorPoint(CCPoint(0.5, 0.5));
-	m_setupEasyScroller->setPosition(CCPoint(-160.f, 0.f));
-    m_setupEasyScroller->ignoreAnchorPointForPosition(false);
-	m_setupEasyScroller->setContentSize(CCSize(120.f, 260.f));
-	m_setupEasyScroller->setID("easy-scroller");
-    m_setupEasyScroller->setTag(7);
-    m_setupEasyScroller->setVisible(false);
-    m_setupEasyScroller->setCeiling();
-    setupMenu->addChild(m_setupEasyScroller);
+    this->m_scrollerSetupTabsEasy = ScrollLayerPlus::create(CCRect(0.f, 0.f, 110.f, 340.f));
+    m_scrollerSetupTabsEasy->setAnchorPoint(CCPoint(0.5, 0.5));
+	m_scrollerSetupTabsEasy->setPosition(CCPoint(-160.f, 0.f));
+    m_scrollerSetupTabsEasy->ignoreAnchorPointForPosition(false);
+	m_scrollerSetupTabsEasy->setContentSize(CCSize(120.f, 260.f));
+	m_scrollerSetupTabsEasy->setID("easy-scroller");
+    m_scrollerSetupTabsEasy->setTag(7);
+    m_scrollerSetupTabsEasy->setVisible(false);
+    m_scrollerSetupTabsEasy->setCeiling();
+    menuSetup->addChild(m_scrollerSetupTabsEasy);
 
-    this->m_setupAdvScroller = ScrollLayerPlus::create(CCRect(0.f, 0.f, 110.f, 660.f));
-    m_setupAdvScroller->setAnchorPoint(CCPoint(0.5, 0.5));
-	m_setupAdvScroller->setPosition(CCPoint(-160.f, 0.f));
-    m_setupAdvScroller->ignoreAnchorPointForPosition(false);
-	m_setupAdvScroller->setContentSize(CCSize(120.f, 260.f));
-	m_setupAdvScroller->setID("advanced-scroller");
-    m_setupAdvScroller->setTag(15);
-    m_setupAdvScroller->setVisible(false);
-    m_setupAdvScroller->setCeiling();
-    setupMenu->addChild(m_setupAdvScroller);
+    this->m_scrollerSetupTabsAdv = ScrollLayerPlus::create(CCRect(0.f, 0.f, 110.f, 660.f));
+    m_scrollerSetupTabsAdv->setAnchorPoint(CCPoint(0.5, 0.5));
+	m_scrollerSetupTabsAdv->setPosition(CCPoint(-160.f, 0.f));
+    m_scrollerSetupTabsAdv->ignoreAnchorPointForPosition(false);
+	m_scrollerSetupTabsAdv->setContentSize(CCSize(120.f, 260.f));
+	m_scrollerSetupTabsAdv->setID("advanced-scroller");
+    m_scrollerSetupTabsAdv->setTag(15);
+    m_scrollerSetupTabsAdv->setVisible(false);
+    m_scrollerSetupTabsAdv->setCeiling();
+    menuSetup->addChild(m_scrollerSetupTabsAdv);
 
     // add content
     float Y = 50.f;
@@ -240,292 +257,319 @@ bool ChromaLayer::setup() {
     // effects
     for (int id = 15; id > 9; id--) {
         cell = SetupItemCell::create(id, Y, 16-id);
-        static_cast<MyContentLayer*>(m_setupEasyScroller->m_contentLayer)->addChild(cell);
+        static_cast<MyContentLayer*>(m_scrollerSetupTabsEasy->m_contentLayer)->addChild(cell);
         m_cells.push_back(cell);
         Y += 40.f;
     }
     // single icon
     cell = SetupItemCell::create(0, Y, 7);
-    static_cast<MyContentLayer*>(m_setupEasyScroller->m_contentLayer)->addChild(cell);
+    static_cast<MyContentLayer*>(m_scrollerSetupTabsEasy->m_contentLayer)->addChild(cell);
     m_cells.push_back(cell);
     Y = 50.f;
 
     // full icons
     for (int id = 15; id > 0; id--) {
         cell = SetupItemCell::create(id, Y, 16 - id);
-        static_cast<MyContentLayer*>(m_setupAdvScroller->m_contentLayer)->addChild(cell);
+        static_cast<MyContentLayer*>(m_scrollerSetupTabsAdv->m_contentLayer)->addChild(cell);
         m_cells.push_back(cell);
         Y += 40.f;
     }
 
     // workspace
-    this->m_workspace = SetupOptionCell::create();
-    setupMenu->addChild(m_workspace);
-    m_cells.push_back(m_workspace);
-    m_workspace->refreshUI(currentSetup);
+    this->m_cellWorkspace = SetupOptionCell::create();
+    menuSetup->addChild(m_cellWorkspace);
+    m_cells.push_back(m_cellWorkspace);
 
-    this->m_waitspace = SetupOptionCell::create();
-    setupMenu->addChild(m_waitspace);
-    m_cells.push_back(m_waitspace);
+    this->m_cellWaitspace = SetupOptionCell::create();
+    menuSetup->addChild(m_cellWaitspace);
+    m_cells.push_back(m_cellWaitspace);
     
-    auto arrowLeft = CCSprite::create("closeBtn.png"_spr);
-    arrowLeft->setScale(0.6);
-    arrowLeft->setID("channel-button-left");
-    this->m_leftArrowSetupBtn = CCMenuItemSpriteExtra::create(arrowLeft, this, menu_selector(ChromaLayer::onSwitchChannelPage));
-    m_leftArrowSetupBtn->setPosition(CCPoint(-90.f, 0.f));
-    m_leftArrowSetupBtn->setColor(ccc3(CELL_COLOR));
-    m_leftArrowSetupBtn->setTag(1);
-    HIDE(m_leftArrowSetupBtn, 0, 0)
-    m_leftArrowSetupBtn->setEnabled(false);
-    setupMenu->addChild(m_leftArrowSetupBtn);
+    auto sprArwLeft = CCSprite::create("closeBtn.png"_spr);
+    sprArwLeft->setScale(0.6);
+    sprArwLeft->setID("channel-button-left");
+    this->m_btnSetupArrowLeft = CCMenuItemSpriteExtra::create(sprArwLeft, this, menu_selector(ChromaLayer::onSwitchChannelPage));
+    m_btnSetupArrowLeft->setPosition(CCPoint(-90.f, 0.f));
+    m_btnSetupArrowLeft->setColor(ccc3(CELL_COLOR));
+    m_btnSetupArrowLeft->setTag(1);
+    hide(m_btnSetupArrowLeft, 0);
+    m_btnSetupArrowLeft->setEnabled(false);
+    menuSetup->addChild(m_btnSetupArrowLeft);
 
-    auto arrowRight = CCSprite::create("closeBtn.png"_spr);
-    arrowRight->setScale(0.6);
-    arrowRight->setID("channel-button-right");
-    arrowRight->setFlipX(true);
-    this->m_rightArrowSetupBtn = CCMenuItemSpriteExtra::create(arrowRight, this, menu_selector(ChromaLayer::onSwitchChannelPage));
-    m_rightArrowSetupBtn->setPosition(CCPoint(190.f, 0.f));
-    m_rightArrowSetupBtn->setColor(ccc3(CELL_COLOR));    
-    m_rightArrowSetupBtn->setTag(2);
-    HIDE(m_rightArrowSetupBtn, 0, 0)
-    m_rightArrowSetupBtn->setEnabled(false);
-    setupMenu->addChild(m_rightArrowSetupBtn);
+    auto sprArwRight = CCSprite::create("closeBtn.png"_spr);
+    sprArwRight->setScale(0.6);
+    sprArwRight->setID("channel-button-right");
+    sprArwRight->setFlipX(true);
+    this->m_btnSetupArrowRight = CCMenuItemSpriteExtra::create(sprArwRight, this, menu_selector(ChromaLayer::onSwitchChannelPage));
+    m_btnSetupArrowRight->setPosition(CCPoint(190.f, 0.f));
+    m_btnSetupArrowRight->setColor(ccc3(CELL_COLOR));    
+    m_btnSetupArrowRight->setTag(2);
+    hide(m_btnSetupArrowLeft, 0);
+    m_btnSetupArrowRight->setEnabled(false);
+    menuSetup->addChild(m_btnSetupArrowRight);
 
-    // copyBtn
-    auto copySpr = CCSprite::create("copyBtn.png"_spr);
-    copySpr->setScale(0.8);
-    copySpr->setID("copy");
-    this->m_copyBtn = CCMenuItemSpriteExtra::create(copySpr, this, menu_selector(ChromaLayer::onCopy));
-    m_copyBtn->setPosition(CCPoint(winSize.width / 2 - 30.f, winSize.height / 2 - 75.f));
-    m_copyBtn->setTag(5);
-    m_copyBtn->setColor(ccc3(CELL_COLOR));
-    HIDE(m_copyBtn, 0, 0)
-    setupMenu->addChild(m_copyBtn);
+    // copy chroma setup
+    auto sprCopy = CCSprite::create("copyBtn.png"_spr);
+    sprCopy->setScale(0.8);
+    sprCopy->setID("copy");
+    this->m_btnSetupCopy = CCMenuItemSpriteExtra::create(sprCopy, this, menu_selector(ChromaLayer::onCopy));
+    m_btnSetupCopy->setPosition(CCPoint(m_winSize.width / 2 - 30.f, m_winSize.height / 2 - 75.f));
+    m_btnSetupCopy->setTag(5);
+    m_btnSetupCopy->setColor(ccc3(CELL_COLOR));
+    hide(m_btnSetupCopy, 0);
+    menuSetup->addChild(m_btnSetupCopy);
 
-    // pasteBtn
-    auto pasteSpr = CCSprite::create("pasteBtn.png"_spr);
-    pasteSpr->setScale(0.8);
-    pasteSpr->setID("paste");
-    this->m_pasteBtn = CCMenuItemSpriteExtra::create(pasteSpr, this, menu_selector(ChromaLayer::onPaste));
-    m_pasteBtn->setPosition(CCPoint(winSize.width / 2 - 30.f, winSize.height / 2 - 120.f));
-    m_pasteBtn->setTag(6);
-    m_pasteBtn->setColor(ccc3(CELL_COLOR));
-    HIDE(m_pasteBtn, 0, 0)
-    setupMenu->addChild(m_pasteBtn);
+    // paste chroma setup
+    auto sprPaste = CCSprite::create("pasteBtn.png"_spr);
+    sprPaste->setScale(0.8);
+    sprPaste->setID("paste");
+    this->m_btnSetupPaste = CCMenuItemSpriteExtra::create(sprPaste, this, menu_selector(ChromaLayer::onPaste));
+    m_btnSetupPaste->setPosition(CCPoint(m_winSize.width / 2 - 30.f, m_winSize.height / 2 - 120.f));
+    m_btnSetupPaste->setTag(6);
+    m_btnSetupPaste->setColor(ccc3(CELL_COLOR));
+    hide(m_btnSetupPaste, 0);
+    menuSetup->addChild(m_btnSetupPaste);
+    
+    if (this->m_ptwo) {
+        // set player
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsAdv->m_contentLayer->getChildren()))
+            cell->switchPlayer();
+        for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsEasy->m_contentLayer->getChildren()))
+            cell->switchPlayer();        
+    }
 
-    /********** Color Menu **********/
-    auto colorMenu = CCMenu::create();
-    colorMenu->setID("color-menu");
-    this->addChild(colorMenu);
+    // toggle on chroma
+    for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsAdv->m_contentLayer->getChildren()))
+        cell->toggleChroma(cell == m_currentTab);
+    for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsEasy->m_contentLayer->getChildren()))
+        cell->toggleChroma(cell == m_currentTab);
+
+    this->m_hasSetupPage = true;
+}
+
+void ChromaLayer::makeColorPage() {
+    // color menu
+    auto menuColor = CCMenu::create();
+    menuColor->setID("color-menu");
+    this->addChild(menuColor);
 
     // title
-    this->m_colorTitle = CCLabelBMFont::create("Pick a Color", "ErasBold.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
-    m_colorTitle->setPosition(CCPoint(0.f, 130.f));
-    HIDE(m_colorTitle, 0.35, 0.35)
-    m_colorTitle->setTag(5);
-    colorMenu->addChild(m_colorTitle);
+    this->m_lbfColorTarget = CCLabelBMFont::create("Pick a Color", "ErasBold.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
+    m_lbfColorTarget->setPosition(CCPoint(0.f, 130.f));
+    hide(m_lbfColorTarget, 0.35);
+    m_lbfColorTarget->setTag(5);
+    menuColor->addChild(m_lbfColorTarget);
 
-    this->m_colorItem = CCLabelBMFont::create("target", "ErasBold.fnt"_spr, 300.f, CCTextAlignment::kCCTextAlignmentCenter);
-    m_colorItem->setPosition(CCPoint(0.f, 105.f));
-    m_colorItem->setColor(ccc3(192, 192, 192));
-    HIDE(m_colorItem, 0.2, 0.2)
-    m_colorItem->setTag(6);
-    colorMenu->addChild(m_colorItem);
+    this->m_lbfColorItem = CCLabelBMFont::create("this color", "ErasBold.fnt"_spr, 300.f, CCTextAlignment::kCCTextAlignmentCenter);
+    m_lbfColorItem->setPosition(CCPoint(0.f, 105.f));
+    m_lbfColorItem->setColor(ccc3(192, 192, 192));
+    hide(m_lbfColorItem, 0.2);
+    m_lbfColorItem->setTag(6);
+    menuColor->addChild(m_lbfColorItem);
 
     // pick color
     this->m_picker = CCControlColourPicker::colourPicker();
     m_picker->setPosition(CCPoint(-60.f, 0));
     m_picker->setContentSize(CCSize(0.f, 0.f));
-    HIDE(m_picker, 0, 0)
+    hide(m_picker, 0);
     m_picker->setID("color-picker");
-    colorMenu->addChild(m_picker);
+    menuColor->addChild(m_picker);
     // red
-    this->m_redCell = ColorValueCell::create(0);
-    colorMenu->addChild(m_redCell);
-    m_cells.push_back(m_redCell);
+    this->m_cellRed = ColorValueCell::create(0);
+    menuColor->addChild(m_cellRed);
+    m_cells.push_back(m_cellRed);
     // green
-    this->m_greenCell = ColorValueCell::create(1);
-    colorMenu->addChild(m_greenCell);
-    m_cells.push_back(m_greenCell);
+    this->m_cellGreen = ColorValueCell::create(1);
+    menuColor->addChild(m_cellGreen);
+    m_cells.push_back(m_cellGreen);
     // blue
-    this->m_blueCell = ColorValueCell::create(2);
-    colorMenu->addChild(m_blueCell);
-    m_cells.push_back(m_blueCell);
+    this->m_cellBlue = ColorValueCell::create(2);
+    menuColor->addChild(m_cellBlue);
+    m_cells.push_back(m_cellBlue);
     // hex
-    this->m_hexCell = ColorHexCell::create();
-    colorMenu->addChild(m_hexCell);
-    m_cells.push_back(m_hexCell);
+    this->m_cellHex = ColorHexCell::create();
+    menuColor->addChild(m_cellHex);
+    m_cells.push_back(m_cellHex);
 
-    auto oriColorSpr = ColorChannelSprite::create();
-    this->m_oriColorDisplay = CCMenuItemSpriteExtra::create(oriColorSpr, this, menu_selector(ChromaLayer::onColorDisplayBtn));
-    m_oriColorDisplay->setPosition(CCPoint(-180.f, 30.f));
-    HIDE(m_oriColorDisplay, 0, 0)
-    m_oriColorDisplay->setTag(1);
-    colorMenu->addChild(m_oriColorDisplay);
+    auto sprColorOri = ColorChannelSprite::create();
+    this->m_btnColorDisplayOri = CCMenuItemSpriteExtra::create(sprColorOri, this, menu_selector(ChromaLayer::onColorDisplayBtn));
+    m_btnColorDisplayOri->setPosition(CCPoint(-180.f, 30.f));
+    hide(m_btnColorDisplayOri, 0);
+    m_btnColorDisplayOri->setTag(1);
+    menuColor->addChild(m_btnColorDisplayOri);
 
-    auto crtColorSpr = ColorChannelSprite::create();
-    this->m_crtColorDisplay = CCMenuItemSpriteExtra::create(crtColorSpr, this, menu_selector(ChromaLayer::onColorDisplayBtn));
-    m_crtColorDisplay->setPosition(CCPoint(-180.f, -30.f));
-    HIDE(m_crtColorDisplay, 0, 0)
-    m_crtColorDisplay->setTag(3);
-    colorMenu->addChild(m_crtColorDisplay);
+    auto sprColorCur = ColorChannelSprite::create();
+    this->m_btnColorDisplayCur = CCMenuItemSpriteExtra::create(sprColorCur, this, menu_selector(ChromaLayer::onColorDisplayBtn));
+    m_btnColorDisplayCur->setPosition(CCPoint(-180.f, -30.f));
+    hide(m_btnColorDisplayCur, 0);
+    m_btnColorDisplayCur->setTag(3);
+    menuColor->addChild(m_btnColorDisplayCur);
 
     // arrow
-    this->m_mysteriousArrow = CCSprite::create("mysteriousArrow.png"_spr);
-    m_mysteriousArrow->setPosition(CCPoint(-180.f, 0.f));
-    HIDE(m_mysteriousArrow, 0.3, 0.3)
-    m_mysteriousArrow->setColor(ccc3(CELL_COLOR));
-    colorMenu->addChild(m_mysteriousArrow);
+    this->m_sprArrow = CCSprite::create("mysteriousArrow.png"_spr);
+    m_sprArrow->setPosition(CCPoint(-180.f, 0.f));
+    hide(m_sprArrow, 0.3);
+    m_sprArrow->setColor(ccc3(CELL_COLOR));
+    menuColor->addChild(m_sprArrow);
 
     // copy Ori
-    auto copyOriSpr = CCSprite::create("copyBtn.png"_spr);
-    copyOriSpr->setScale(0.8);
-    copyOriSpr->setID("copy");
-    this->m_copyOriBtn = CCMenuItemSpriteExtra::create(copyOriSpr, this, menu_selector(ChromaLayer::onCopy));
-    m_copyOriBtn->setPosition(CCPoint(-180.f, 30.f));
-    HIDE(m_copyOriBtn, 0, 0)
-    m_copyOriBtn->setTag(1);
-    m_copyOriBtn->setColor(ccc3(CELL_COLOR));
-    colorMenu->addChild(m_copyOriBtn);
+    auto sprCopyOri = CCSprite::create("copyBtn.png"_spr);
+    sprCopyOri->setScale(0.8);
+    sprCopyOri->setID("copy");
+    this->m_btnColorCopyOri = CCMenuItemSpriteExtra::create(sprCopyOri, this, menu_selector(ChromaLayer::onCopy));
+    m_btnColorCopyOri->setPosition(CCPoint(-180.f, 30.f));
+    hide(m_btnColorCopyOri, 0);
+    m_btnColorCopyOri->setTag(1);
+    m_btnColorCopyOri->setColor(ccc3(CELL_COLOR));
+    menuColor->addChild(m_btnColorCopyOri);
 
     // resc Ori
-    auto rescOriSpr = CCSprite::create("rescBtn.png"_spr);
-    rescOriSpr->setScale(0.75);
-    rescOriSpr->setID("resc");
-    this->m_rescOriBtn = CCMenuItemSpriteExtra::create(rescOriSpr, this, menu_selector(ChromaLayer::onResc));
-    m_rescOriBtn->setPosition(CCPoint(-180.f, 30.f));
-    m_rescOriBtn->setTag(4);
-    HIDE(m_rescOriBtn, 0, 0)
-    m_rescOriBtn->setColor(ccc3(CELL_COLOR));
-    colorMenu->addChild(m_rescOriBtn);
+    auto sprRescOri = CCSprite::create("rescBtn.png"_spr);
+    sprRescOri->setScale(0.75);
+    sprRescOri->setID("resc");
+    this->m_btnColorRescOri = CCMenuItemSpriteExtra::create(sprRescOri, this, menu_selector(ChromaLayer::onResc));
+    m_btnColorRescOri->setPosition(CCPoint(-180.f, 30.f));
+    m_btnColorRescOri->setTag(4);
+    hide(m_btnColorRescOri, 0);
+    m_btnColorRescOri->setColor(ccc3(CELL_COLOR));
+    menuColor->addChild(m_btnColorRescOri);
 
     // copy Crt
-    auto copyCrtSpr = CCSprite::create("copyBtn.png"_spr);
-    copyCrtSpr->setScale(0.8);
-    copyCrtSpr->setID("copy");
-    this->m_copyCrtBtn = CCMenuItemSpriteExtra::create(copyCrtSpr, this, menu_selector(ChromaLayer::onCopy));
-    m_copyCrtBtn->setPosition(CCPoint(-180.f, -30.f));
-    m_copyCrtBtn->setTag(3);
-    HIDE(m_copyCrtBtn, 0, 0)
-    m_copyCrtBtn->setColor(ccc3(CELL_COLOR));
-    colorMenu->addChild(m_copyCrtBtn);
+    auto sprCopyCur = CCSprite::create("copyBtn.png"_spr);
+    sprCopyCur->setScale(0.8);
+    sprCopyCur->setID("copy");
+    this->m_btnColorCopyCur = CCMenuItemSpriteExtra::create(sprCopyCur, this, menu_selector(ChromaLayer::onCopy));
+    m_btnColorCopyCur->setPosition(CCPoint(-180.f, -30.f));
+    m_btnColorCopyCur->setTag(3);
+    hide(m_btnColorCopyCur, 0);
+    m_btnColorCopyCur->setColor(ccc3(CELL_COLOR));
+    menuColor->addChild(m_btnColorCopyCur);
 
     // paste Crt
-    auto pasteCrtSpr = CCSprite::create("pasteBtn.png"_spr);
-    pasteCrtSpr->setScale(0.8);
-    pasteCrtSpr->setID("paste");
-    this->m_pasteCrtBtn = CCMenuItemSpriteExtra::create(pasteCrtSpr, this, menu_selector(ChromaLayer::onPaste));
-    m_pasteCrtBtn->setPosition(CCPoint(-180.f, -30.f));
-    m_pasteCrtBtn->setTag(2);
-    HIDE(m_pasteCrtBtn, 0, 0)
-    m_pasteCrtBtn->setColor(ccc3(CELL_COLOR));
-    colorMenu->addChild(m_pasteCrtBtn);
+    auto sprPasteCur = CCSprite::create("pasteBtn.png"_spr);
+    sprPasteCur->setScale(0.8);
+    sprPasteCur->setID("paste");
+    this->m_btnColorPasteCur = CCMenuItemSpriteExtra::create(sprPasteCur, this, menu_selector(ChromaLayer::onPaste));
+    m_btnColorPasteCur->setPosition(CCPoint(-180.f, -30.f));
+    m_btnColorPasteCur->setTag(2);
+    hide(m_btnColorPasteCur, 0);
+    m_btnColorPasteCur->setColor(ccc3(CELL_COLOR));
+    menuColor->addChild(m_btnColorPasteCur);
 
-    /********** Options Menu **********/
-    auto optionsMenu = CCMenu::create();
-    optionsMenu->setID("options-menu");
-    this->addChild(optionsMenu);
+    this->m_hasColorPage = true;
+}
+
+void ChromaLayer::makeOptionsPage() {
+    // options menu
+    auto menuOptions = CCMenu::create();
+    menuOptions->setID("options-menu");
+    this->addChild(menuOptions);
 
     // optionsScroller
     // fullscreen scroll tolerance
-    this->m_optionScroller = ScrollLayerPlus::create(CCRect(0.f, 0.f, 320.f, 400.f));
-    m_optionScroller->setAnchorPoint(CCPoint(0.5, 0.5));
-    m_optionScroller->ignoreAnchorPointForPosition(false);
-	m_optionScroller->setContentSize(winSize);
-    m_optionScroller->m_contentLayer->setPositionX(winSize.width / 2 - 160.f);
-	m_optionScroller->setID("options-scroller");
-    m_optionScroller->setVisible(false);
-    optionsMenu->addChild(m_optionScroller);
+    this->m_scrollerOptions = ScrollLayerPlus::create(CCRect(0.f, 0.f, 320.f, 400.f));
+    m_scrollerOptions->setAnchorPoint(CCPoint(0.5, 0.5));
+    m_scrollerOptions->ignoreAnchorPointForPosition(false);
+	m_scrollerOptions->setContentSize(m_winSize);
+    m_scrollerOptions->m_contentLayer->setPositionX(m_winSize.width / 2 - 160.f);
+	m_scrollerOptions->setID("options-scroller");
+    m_scrollerOptions->setVisible(false);
+    menuOptions->addChild(m_scrollerOptions);
 
     float H = 50;
     int sTag = 0;
 
+    // are you trying to find out what does this quesiton marks option mean here?
     sTag ++;
     auto questionMarkOpt = OptionTogglerCell::create("???", H, sTag, "???",
         "?????");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(questionMarkOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(questionMarkOpt);
     H += questionMarkOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto darkOpt = OptionTogglerCell::create("Dark Theme", H, sTag, "dark-theme",
         "Deep Dark Fantasy...");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(darkOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(darkOpt);
     H += darkOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto blurOpt = OptionTogglerCell::create("Blur Background", H, sTag, "blur-bg",
         "Add a gaussian blur effect to the background. Give it up if you feel this effect can't worth your device lag.");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(blurOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(blurOpt);
     H += blurOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto prevOpt = OptionTogglerCell::create("Preview Effects", H, sTag, "prev",
         "Preview Chroma Effects inside mod menu.");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(prevOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(prevOpt);
     H += prevOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto uiTitle = OptionTitleCell::create("Interface Options", H, sTag, "interface-title");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(uiTitle);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(uiTitle);
     H += 40.f;
 
     sTag ++;
     auto sepglowOpt = OptionTogglerCell::create("Separate Glow Color Phase", H, sTag, "sep-glow",
         "Set phase (for Chromatic / Gradient mode) of Glow Color keeps 120 degrees delay from Main Color.\nOtherwise Glow Color aligns with Main Color");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepglowOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(sepglowOpt);
     H += sepglowOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto sepsecondOpt = OptionTogglerCell::create("Separate Secondary Color Phase", H, sTag, "sep-second",
         "Set phase (for Chromatic / Gradient mode) of Secondary Color keeps 120 degrees lead from Main Color.\nOtherwise Secondary Color aligns with Main Color");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepsecondOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(sepsecondOpt);
     H += sepsecondOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto sepdualOpt = OptionTogglerCell::create("Separate Dual Mode Phase", H, sTag, "sep-dual",
         "Set color phase (for Chromatic / Gradient mode) of P2 keeps 180 degrees away from P1.\n"
         "Otherwise the two players just cycles the same phase.");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(sepdualOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(sepdualOpt);
     H += sepdualOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto phaseTitle = OptionTitleCell::create("Phase Options", H, sTag, "phase-title");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(phaseTitle);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(phaseTitle);
     H += 40.f;
 
     sTag ++;
     auto teleOpt = OptionTogglerCell::create("Align Spider TP Line", H, sTag, "tele-fix",
         "Not related to icons chroma though, this option will fix spider teleport jump (or just triggering a purple ring / pad) "
         "effect line strictly to the center point between the player positions before and after being teleported.");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(teleOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(teleOpt);
     H += teleOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto ghostOpt = OptionTogglerCell::create("Original Ghost Trail", H, sTag, "dis-ghost",
         "Disable this mod's rewritten fixed Ghost Trail and apply RobTop's raw Ghost Trail Effect instead.\n"
         "But this will also result in ghost trail chroma not working.");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(ghostOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(ghostOpt);
     H += ghostOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto InitOpt = OptionTogglerCell::create("Chroma on Initial", H, sTag, "init",
-        "Both PlayLayer and LevelEditorLayer may have a lag between the player happens and your player starts to move.\n"
-        "If OFF, you can see your players are of raw color when you pause quickly enough.");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(InitOpt);
+        "Both PlayLayer and LevelEditorLayer may have a lag between the player happens and your player starts to move. "
+        "If OFF, you can see your players of raw color when you pause quickly enough.");
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(InitOpt);
     H += InitOpt->getContentHeight() + 15.f;
+
+    sTag ++;
+    auto fixTitle = OptionTitleCell::create("Fix Options", H, sTag, "fix-title");
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(fixTitle);
+    H += 40.f;
 
     sTag ++;
     auto editorOpt = OptionTogglerCell::create("Editor Test", H, sTag, "editor",
         "Apply to Editor Playtest. Will also add a button in your editor page if checked.\n"
         "But I do not promise your device will not lag there.");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(editorOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(editorOpt);
     H += editorOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto riderOpt = OptionTogglerCell::create("Seperate Riders", H, sTag, "rider",
+    auto riderOpt = OptionTogglerCell::create("Separate Riders", H, sTag, "rider",
         "If checked, the cube rider of ship / ufo / jetpack will follow Cube mode's color."
         "\nOtherwise she follow her vehicle's color.");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(riderOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(riderOpt);
     H += riderOpt->getContentHeight() + 15.f;
 
     sTag ++;
@@ -533,54 +577,58 @@ bool ChromaLayer::setup() {
         "Let Player 2 follow P1's chroma pattern in playing.\n"
         "This only merges your chroma pattern, but their default colors may be different!\n"
         "NOT affecting menu preview.");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(samedualOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(samedualOpt);
     H += samedualOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto generalTitle = OptionTitleCell::create("General Options", H, sTag, "general-title");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(generalTitle);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(generalTitle);
     H += 40.f;
 
     sTag ++;
     auto switchOpt = OptionTogglerCell::create("Switch", H, sTag, "activate",
-        "Ultimate Switch of this mod.\n"
+        "Master Switch of this mod.\n"
         "If disabled, all item icons (except current tab in setup page) in the mod menu will be set to grey-white and ignore Preview Effects option.");
-    static_cast<MyContentLayer*>(m_optionScroller->m_contentLayer)->addChild(switchOpt);
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(switchOpt);
     H += switchOpt->getContentHeight() + 15.f;
 
-    m_optionScroller->m_contentLayer->setContentHeight(H - 10.f);
-    m_optionScroller->setTag(sTag);
-    m_optionScroller->setCeiling();
-    
-    /********** Info Menu **********/
-    auto infoMenu = CCMenu::create();
-    infoMenu->setID("info-menu");
-    this->addChild(infoMenu);
+    m_scrollerOptions->m_contentLayer->setContentHeight(H - 10.f);
+    m_scrollerOptions->setTag(sTag);
+    m_scrollerOptions->setCeiling();
 
-    auto aboutLabel = CCLabelBMFont::create("Chroma Icons", "ErasBold.fnt"_spr, 200, CCTextAlignment::kCCTextAlignmentCenter);
-    aboutLabel->setPosition(CCPoint(0.f, 130.f));
-    HIDE(aboutLabel, 0.32, 0.32);
-    aboutLabel->setID("about");
-    infoMenu->addChild(aboutLabel);
+    this->m_hasOptionsPage = true;
+}
 
-    auto versionLabel = CCLabelBMFont::create(Mod::get()->getVersion().toVString().c_str(), "ErasBold.fnt"_spr, 150, CCTextAlignment::kCCTextAlignmentCenter);
-    versionLabel->setPosition(CCPoint(0.f, 110.f));
-    HIDE(versionLabel, 0.15, 0.15);
-    versionLabel->setColor(ccc3(127, 127, 127));
-    versionLabel->setID("version");
-    infoMenu->addChild(versionLabel);
+void ChromaLayer::makeInfoPage() {
+    // info menu
+    auto menuInfo = CCMenu::create();
+    menuInfo->setID("info-menu");
+    this->addChild(menuInfo);
 
-    auto manualLabel = CCLabelBMFont::create("About This Mod", "ErasBold.fnt"_spr, 300, CCTextAlignment::kCCTextAlignmentCenter);
-    manualLabel->setPosition(CCPoint(0.f, 80.f));
-    HIDE(manualLabel, 0.25, 0.25);
-    manualLabel->setID("manual");
-    infoMenu->addChild(manualLabel);
+    auto lbfName = CCLabelBMFont::create("Chroma Icons", "ErasBold.fnt"_spr, 200, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfName->setPosition(CCPoint(0.f, 130.f));
+    hide(lbfName, 0.32);
+    lbfName->setID("about");
+    menuInfo->addChild(lbfName);
 
-    auto authorLabel = CCLabelBMFont::create("My Website / Contact", "ErasBold.fnt"_spr, 300, CCTextAlignment::kCCTextAlignmentCenter);
-    authorLabel->setPosition(CCPoint(0.f, 10.f));
-    HIDE(authorLabel, 0.25, 0.25);
-    authorLabel->setID("author");
-    infoMenu->addChild(authorLabel);
+    auto lbfVersion = CCLabelBMFont::create(Mod::get()->getVersion().toVString().c_str(), "ErasBold.fnt"_spr, 150, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfVersion->setPosition(CCPoint(0.f, 110.f));
+    hide(lbfVersion, 0.15);
+    lbfVersion->setColor(ccc3(127, 127, 127));
+    lbfVersion->setID("version");
+    menuInfo->addChild(lbfVersion);
+
+    auto lbfManual = CCLabelBMFont::create("About This Mod", "ErasBold.fnt"_spr, 300, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfManual->setPosition(CCPoint(0.f, 80.f));
+    hide(lbfManual, 0.25);
+    lbfManual->setID("manual");
+    menuInfo->addChild(lbfManual);
+
+    auto lbfAuthor = CCLabelBMFont::create("Website / Contact", "ErasBold.fnt"_spr, 300, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfAuthor->setPosition(CCPoint(0.f, 10.f));
+    hide(lbfAuthor, 0.25);
+    lbfAuthor->setID("author");
+    menuInfo->addChild(lbfAuthor);
 
     auto menuManual = CCMenu::create();
     menuManual->setID("manual-menu");
@@ -588,7 +636,7 @@ bool ChromaLayer::setup() {
     menuManual->setAnchorPoint(CCPoint(0.5, 0.5));
     menuManual->ignoreAnchorPointForPosition(false);
     menuManual->setContentSize(CCSize(300.f, 20.f));
-    infoMenu->addChild(menuManual);
+    menuInfo->addChild(menuManual);
 
     int index = 0;
     std::vector<const char*> manuals = {"geodeBtn.png"_spr, "githubBtn.png"_spr};
@@ -598,7 +646,7 @@ bool ChromaLayer::setup() {
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ChromaLayer::onInfoButtons));
         btn->setColor(ccc3(CELL_COLOR));
         btn->setTag(index);
-        HIDE(btn, 0, 0)
+        hide(btn, 0);
         menuManual->addChild(btn);
         index ++;
     }
@@ -614,7 +662,7 @@ bool ChromaLayer::setup() {
     menuAuthor->setAnchorPoint(CCPoint(0.5, 0.5));
     menuAuthor->ignoreAnchorPointForPosition(false);
     menuAuthor->setContentSize(CCSize(300.f, 20.f));
-    infoMenu->addChild(menuAuthor);
+    menuInfo->addChild(menuAuthor);
 
     index = 0;
     std::vector<const char*> authors = {"youtubeBtn.png"_spr, "twitterBtn.png"_spr, "discordBtn.png"_spr};
@@ -627,7 +675,7 @@ bool ChromaLayer::setup() {
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ChromaLayer::onInfoButtons));
         btn->setColor(ccc3(CELL_COLOR));
         btn->setTag(10 + index);
-        HIDE(btn, 0, 0)
+        hide(btn, 0);
         menuAuthor->addChild(btn);
         index ++;
     }
@@ -637,26 +685,24 @@ bool ChromaLayer::setup() {
     );
     menuAuthor->updateLayout();
 
-    auto thanksTitleLabel = CCLabelBMFont::create("Special Thanks", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
-    thanksTitleLabel->setPosition(CCPoint(0.f, -60.f));
-    HIDE(thanksTitleLabel, 0.25, 0.25);
-    thanksTitleLabel->setID("thanks-title");
-    infoMenu->addChild(thanksTitleLabel);
+    auto lbfCreditTitle = CCLabelBMFont::create("Special Thanks", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
+    lbfCreditTitle->setPosition(CCPoint(0.f, -60.f));
+    hide(lbfCreditTitle, 0.25);
+    lbfCreditTitle->setID("thanks-title");
+    menuInfo->addChild(lbfCreditTitle);
 
-    auto thanksContentLabel = CCLabelBMFont::create(
-        "@Mat for index login, CCSequence mac build: This guy is my hero\n"
-        "@hiimjustin000 for More Icons mod support & mac spider jump\n"
+    auto lbfCreditContent = CCLabelBMFont::create(
+        "@hiimjustin000 for More Icons mod support & mac Reverse Engineering\n"
+        "@Mat for index login, CCSequence mac build\n"
         "@TheSillyDoggo for Blur Background\n"
-        "@irryan&clunos for mod test\n",
+        "@irryan for internal mod test debug\n"
+        "@clunos for mac mod test",
         "ErasBold.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
-    thanksContentLabel->setPosition(CCPoint(0.f, -110.f));
-    thanksContentLabel->setColor(ccc3(127, 127, 127));
-    HIDE(thanksContentLabel, 0.2, 0.2);
-    thanksContentLabel->setID("thanks-content");
-    infoMenu->addChild(thanksContentLabel);
+    lbfCreditContent->setPosition(CCPoint(0.f, -110.f));
+    lbfCreditContent->setColor(ccc3(127, 127, 127));
+    hide(lbfCreditContent, 0.16);
+    lbfCreditContent->setID("thanks-content");
+    menuInfo->addChild(lbfCreditContent);
 
-    // update
-    this->scheduleUpdate();
-
-    return true;
+    this->m_hasInfoPage = true;
 }

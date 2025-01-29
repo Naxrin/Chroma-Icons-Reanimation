@@ -178,7 +178,7 @@ class $modify(NivelEditorLayer, LevelEditorLayer) {
         // allow chroma
         layerType = LayerType::LevelEditorLayer;
         reset.clear();
-        // log
+        // get progress
         progress = level->m_normalPercent.value();
 		return LevelEditorLayer::init(level, p);
     }
@@ -250,6 +250,7 @@ class $modify(ChromaPlayer, PlayerObject) {
     // record this player's pointer
     bool init(int p0, int p1, GJBaseGameLayer *p2, cocos2d::CCLayer *p3, bool p4) {
         reset[this] = false;
+        // get sprite names for ghost trails generation
         this->getTextureNames();
         return PlayerObject::init(p0, p1, p2, p3, p4);
     }

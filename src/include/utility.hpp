@@ -154,10 +154,13 @@ class GJItemEffect : public CCSprite {
 public:
     // register effectType
     Channel effectType;
-    // 4~12
+    // the item in mod menu as this target gamemode
     Gamemode targetMode = Gamemode::Icon;
+    // covering node sprite showing it's reference
     CCSprite* m_cover;
-    static GJItemEffect* createEffectItem(int id);
+    // create
+    // @param tab the tab int this item is created for
+    static GJItemEffect* createEffectItem(int tab);
 };
 
 struct myColorHSV {
@@ -167,12 +170,11 @@ struct myColorHSV {
 };
 
 // chroma engine
-// param setup the chroma pattern it refers to
-// defaultVal for mode 0
-// phase current phase
-// percentage current level percentage
-// progress current level progress
-// reset true if a player should be reset to default
+// @param setup the chroma pattern it refers to
+// @param defaultVal for mode 0
+// @param phase current phase
+// @param percentage current level percentage
+// @param progress current level progress
 ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress);
 
 // get index for in-level pointer
