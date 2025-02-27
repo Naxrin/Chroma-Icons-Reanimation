@@ -43,9 +43,10 @@ bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_Menu
     // icon
     // spr
     int index = tag ? tag - 1 : 0;
-    icon = GJItemIcon::createBrowserItem(UnlockType(gametype[index]), garageIconIndex(index));
+    this->icon = GJItemIcon::createBrowserItem(UnlockType(gametype[index]), garageIconIndex(index));
+    this->player = static_cast<SimplePlayer*>(this->icon->m_player);
     if (gm->m_playerGlow)
-        icon->m_player->setGlowOutline(ccc3(255, 255, 255));
+        player->setGlowOutline(ccc3(255, 255, 255));
     // setup page
     if (src)
         icon->setScale(0.6);
@@ -82,11 +83,11 @@ void PickItemButton::setPlayerStatus() {
     if (index < 9) {
         // update frames 
         f = (SDI && ptwo) ? SDI->getSavedValue<int64_t>(SDInames[index]) : garageIconIndex(index);
-        this->icon->m_player->updatePlayerFrame(f, IconType(index));
+        player->updatePlayerFrame(f, IconType(index));
         if (index == 5)
-            this->icon->m_player->m_robotSprite->updateFrame(f);
+            player->m_robotSprite->updateFrame(f);
         if (index == 6)
-            this->icon->m_player->m_spiderSprite->updateFrame(f);
+            player->m_spiderSprite->updateFrame(f);
             
         // More Icons compatible
         if (auto MI = Loader::get()->getLoadedMod("hiimjustin000.more_icons")) {
@@ -94,7 +95,7 @@ void PickItemButton::setPlayerStatus() {
             auto name = MI->getSavedValue<std::string>(MInames[index] + (ptwo ? "-dual" : ""));
             // post event
             DispatchEvent<SimplePlayer*, std::string, IconType>(
-                "hiimjustin000.more_icons/simple-player", icon->m_player, name, IconType(index)).post();
+                "hiimjustin000.more_icons/simple-player", player, name, IconType(index)).post();
         }           
     }
     if (SDI && ptwo) {
@@ -129,24 +130,24 @@ void PickItemButton::runChroma(float const& phase, float const& percentage, int 
             setups[getIndex(ptwo, effect->targetMode, effect->effectType)], this->mainColor, phase, percentage, progress));
     else {
         // main
-        icon->m_player->setColor(getChroma(
+        player->setColor(getChroma(
             setups[getIndex(ptwo, Gamemode(getTag()), Channel::Main)], this->mainColor, phase, percentage, progress));
         // second
-        icon->m_player->setSecondColor(getChroma(
+        player->setSecondColor(getChroma(
             setups[getIndex(ptwo, Gamemode(getTag()), Channel::Secondary)], this->secondColor, phase + 120 * opts["sep-second"], percentage, progress));
         // glow
-        if (icon->m_player->m_hasGlowOutline)
-            icon->m_player->setGlowOutline(getChroma(
+        if (player->m_hasGlowOutline)
+            player->setGlowOutline(getChroma(
                 setups[getIndex(ptwo, Gamemode(getTag()), Channel::Glow)], this->glowColor, phase + 240 * opts["sep-glow"], percentage, progress));
 
         // white
         auto white = getChroma(setups[getIndex(ptwo, Gamemode(getTag()), Channel::White)], ccc3(255, 255, 255), phase, percentage, progress);
         if (icon->m_unlockType == UnlockType::Robot)
-            icon->m_player->m_robotSprite->m_extraSprite->setColor(white);
+            player->m_robotSprite->m_extraSprite->setColor(white);
         else if (icon->m_unlockType == UnlockType::Spider)
-            icon->m_player->m_spiderSprite->m_extraSprite->setColor(white);
+            player->m_spiderSprite->m_extraSprite->setColor(white);
         else
-            icon->m_player->m_detailSprite->setColor(white);
+            player->m_detailSprite->setColor(white);
     }
 }
 
@@ -165,19 +166,18 @@ void PickItemButton::toggleChroma(bool current) {
     if (this->getTag() > 9)
         this->effect->setColor(opts["activate"] ? this->mainColor : ccc3(127, 127, 127));
     else {
-        auto p = this->icon->m_player;
-        p->setColor(opts["activate"] ? this->mainColor : ccc3(175, 175, 175));
-        p->setSecondColor(opts["activate"] ? this->secondColor : ccc3(255, 255, 255));
-        if (p->m_hasGlowOutline)
-            p->setGlowOutline(opts["activate"] ? this->glowColor : ccc3(255, 255, 255));
+        player->setColor(opts["activate"] ? this->mainColor : ccc3(175, 175, 175));
+        player->setSecondColor(opts["activate"] ? this->secondColor : ccc3(255, 255, 255));
+        if (player->m_hasGlowOutline)
+            player->setGlowOutline(opts["activate"] ? this->glowColor : ccc3(255, 255, 255));
 
         // white
         if (icon->m_unlockType == UnlockType::Robot)
-            icon->m_player->m_robotSprite->m_extraSprite->setColor(ccc3(255, 255, 255));
+            player->m_robotSprite->m_extraSprite->setColor(ccc3(255, 255, 255));
         else if (icon->m_unlockType == UnlockType::Spider)
-            icon->m_player->m_spiderSprite->m_extraSprite->setColor(ccc3(255, 255, 255));
-        else if (icon->m_player->m_detailSprite)
-            icon->m_player->m_detailSprite->setColor(ccc3(255, 255, 255));
+            player->m_spiderSprite->m_extraSprite->setColor(ccc3(255, 255, 255));
+        else if (player->m_detailSprite)
+            player->m_detailSprite->setColor(ccc3(255, 255, 255));
     }
 }
 

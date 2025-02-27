@@ -1,10 +1,13 @@
-### Warning
-Despite most effort on stability, former versions of this mod may very seldom randomly crash your game in playing a level, and I cannot promise this update has completely fixed it.  
-Take it in mind if you are challenging your new hardest level or something matters your life.  
-**There may be some other unknown bugs, I set the mod to RelWithDebInfo so you can plz report your crashlog of this new update**  
-  
+I'm busy these days, mods update may not be that fast.
+
+# 3.4.0
+### Bugfix
+- Globed compatible, to chroma remote players is a bit crash risky so I don't dare to make it optional for now  
+- Chroma Speed is now optional to sync timewarp value or ignore timewarp (sync real world clock)  
+
 # 3.3.2
 Ghost Trail chroma supports mac now (again thanks to @hiimjustin000)  
+
 # 3.3.1
 Add warning page sprite image (I miss that)  
 Some text polish  

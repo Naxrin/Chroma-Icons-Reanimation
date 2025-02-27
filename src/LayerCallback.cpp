@@ -27,7 +27,7 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
         for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsEasy->m_contentLayer->getChildren()))
             cell->toggleChroma(cell == m_currentTab);
     }
-
+    
     // switch
     else if (event->name == "prev") {
         if (opts["activate"]) {

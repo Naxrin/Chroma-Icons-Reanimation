@@ -78,7 +78,6 @@ public:
 class OptionTitleCell : public BaseCell {
 protected:
     CCLabelBMFont* m_title;
-
     // Option Title
     bool init(const char* text, float y, int tag, std::string id);
 public:
@@ -122,9 +121,7 @@ public:
 /*
 class OptionSliderCell : public BaseCell {
 protected:
-    bool yes;
-    SliderBundleBase bundle;
-
+    SliderBundleBase* bundle;
     // Option Float
     bool init(const char* title, float y, int tag, std::string id, const char* desc);
 public:

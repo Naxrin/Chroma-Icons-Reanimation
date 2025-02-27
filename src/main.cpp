@@ -21,12 +21,19 @@ static float percentage;
 static float lvlphase;
 // reset chroma
 extern std::map<PlayerObject*, bool> reset;
+// globed
+static bool globed;
+// timewarp
+static float timewarp;
 // bools
 extern std::map<std::string, bool> opts;
 // speed option
 extern float speed;
 // setup center
 extern std::map<short, ChromaSetup> setups;
+
+// main/second/glow/detail of globed progress bar icon
+ccColor3B barm, bars, barg, barw;
 
 // garage button
 #include <Geode/modify/GJGarageLayer.hpp>
@@ -130,11 +137,29 @@ class $modify(EditorMenu, EditorUI) {
 	}
 };
 
+// timewarp
+#include <Geode/modify/GJBaseGameLayer.hpp>
+class $modify(MyBaseGameLayer, GJBaseGameLayer) {
+    void updateTimeWarp(GameObject* obj, float p) override {
+        GJBaseGameLayer::updateTimeWarp(obj, p);
+        timewarp = p;
+    }
+
+    void resetPlayer() {
+        GJBaseGameLayer::resetPlayer();
+        timewarp = 1;
+    }
+};
+
 // mainly global phase operation
 #include <Geode/modify/PlayLayer.hpp>
 class $modify(GameLayer, PlayLayer) {
+    struct Fields {
+        float is_globed = false;
+    };
     // reset phase and tell mod central the level type in init
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
+        m_fields->is_globed = Loader::get()->isModLoaded("dankmeme.globed2") && !level->isPlatformer();
         // reset phase
         lvlphase = 0;
         // percentage = 0
@@ -152,9 +177,39 @@ class $modify(GameLayer, PlayLayer) {
     // edit phase
     void postUpdate(float d) {
         // iterate phase and update progress
-        lvlphase = fmod(lvlphase + 360 * d * speed, 360.f);
+        lvlphase = fmod(lvlphase + 360 * d * speed / (opts["igntw"] ? timewarp : 1), 360.f);
         percentage = this->getCurrentPercent();
         PlayLayer::postUpdate(d);
+        // globed
+        if (!opts["globed"])
+            if (globed)
+                globed = false;
+            else
+                return;
+        if (!m_fields->is_globed || !m_progressBar->isVisible())
+            return;
+        auto node = m_progressBar->getChildByID("dankmeme.globed2/progress-bar-wrapper");
+        if (!node)
+            return;
+
+        auto myself = node->getChildByID("dankmeme.globed2/self-player-progress");
+        if (auto point = myself->getChildByType<CCLayerColor>(0))
+            if (opts["globed"])
+                point->setColor(barm);
+        
+        if (auto gplayer = static_cast<CCNode*>(myself->getChildren()->objectAtIndex(1)))
+            if (auto player = static_cast<SimplePlayer*>(gplayer->getChildren()->objectAtIndex(0)))
+                if (opts["globed"]) {
+                    // main
+                    player->setColor(barm);
+                    // second
+                    player->setSecondColor(bars);
+                    // glow
+                    if (player->m_hasGlowOutline)
+                        player->setGlowOutline(barg);
+                    // white
+                    player->m_detailSprite->setColor(barw);
+                }
     }
 
     void resetPlayer() {
@@ -186,7 +241,7 @@ class $modify(NivelEditorLayer, LevelEditorLayer) {
     // edit phase
     void postUpdate(float d) override {
         if (opts["editor"])
-            lvlphase = fmod(lvlphase + 360 * d * speed, 360.f);
+            lvlphase = fmod(lvlphase + 360 * d * speed / (opts["igntw"] ? timewarp : 1), 360.f);
         LevelEditorLayer::postUpdate(d);
     }
 
@@ -213,7 +268,7 @@ class $modify(MainGameLayer, MenuGameLayer) {
     // edit phase
     void update(float d) override {
         if (opts["???"])
-            lvlphase = fmod(lvlphase + 360 * d * speed, 360.f);
+            lvlphase = fmod(lvlphase + 360 * d * speed / (opts["igntw"] ? timewarp : 1), 360.f);
 
         MenuGameLayer::update(d);
     }
@@ -350,7 +405,7 @@ class $modify(ChromaPlayer, PlayerObject) {
     // as sending negative phase value to getChroma(...) is not allowed, all of them should really be positive
     void processChroma() {
         // only chroma the visible two
-        if ((!opts["activate"] && !reset[this]) || !this->isVisible())
+        if ((!opts["activate"] && !reset[this]) || !this->isVisible() || this->getTag() > 0)
             return;
         if (layerType == LayerType::LevelEditorLayer && !opts["editor"])
             return;
@@ -377,6 +432,19 @@ class $modify(ChromaPlayer, PlayerObject) {
             m_glowColor, lvlphase + od + o3, percentage, progress);
         ccColor3B white = getChroma(setups[getIndex(p, status, Channel::White)],
             ccc3(255, 255, 255), lvlphase + od, percentage, progress);
+
+        if (!this->m_isSecondPlayer) {
+            if (opts["globed"]) {
+                // recolor
+                barm = main; bars = secondary; barg = glow; barw = white;
+                // set value
+                globed = true;
+            } else if (globed) {
+                // recover
+                barm = m_playerColor1; bars = m_playerColor2; barg = m_glowColor; barw = ccc3(255, 255, 255);
+            }
+        }
+
 
         // icons
         // for compatibility with Seperate dual icons or other mods
@@ -607,6 +675,8 @@ $on_mod(Loaded) {
         {"activate", true},
         {"same-dual", false},
         {"rider", false},
+        {"igntw", false},
+        {"globed", false},
         {"editor", false},
         {"init", true},
         {"dis-ghost", false},

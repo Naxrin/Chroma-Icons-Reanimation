@@ -547,11 +547,11 @@ void ChromaLayer::makeOptionsPage() {
     H += ghostOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto InitOpt = OptionTogglerCell::create("Chroma on Initial", H, sTag, "init",
+    auto initOpt = OptionTogglerCell::create("Chroma on Initial", H, sTag, "init",
         "Both PlayLayer and LevelEditorLayer may have a lag between the player happens and your player starts to move. "
         "If OFF, you can see your players of raw color when you pause quickly enough.");
-    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(InitOpt);
-    H += InitOpt->getContentHeight() + 15.f;
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(initOpt);
+    H += initOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto fixTitle = OptionTitleCell::create("Fix Options", H, sTag, "fix-title");
@@ -564,6 +564,18 @@ void ChromaLayer::makeOptionsPage() {
         "But I do not promise your device will not lag there.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(editorOpt);
     H += editorOpt->getContentHeight() + 15.f;
+
+    sTag ++;
+    auto globedOpt = OptionTogglerCell::create("Globed Progress Indicator", H, sTag, "globed",
+        "In case Globed loaded, your icon indicator of progress bar will apply your first player's chroma pattern when this option checked.");
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(globedOpt);
+    H += globedOpt->getContentHeight() + 15.f;
+
+    sTag ++;
+    auto igntwOpt = OptionTogglerCell::create("Ignore Timewarp", H, sTag, "igntw",
+        "If checked, chroma speed will keep constant during timewarp change (sync real world clock).");
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(igntwOpt);
+    H += igntwOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto riderOpt = OptionTogglerCell::create("Separate Riders", H, sTag, "rider",

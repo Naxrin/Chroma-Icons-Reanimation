@@ -28,6 +28,8 @@ protected:
     bool chroma = false;
     // icon sprite (gamemode tab only)
     GJItemIcon* icon = nullptr;
+    // player
+    SimplePlayer* player = nullptr;
     // effect sprite (effect tab only)
     GJItemEffect* effect = nullptr;
     // colors
