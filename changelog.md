@@ -1,5 +1,8 @@
 I'm busy these days, mods update may not be that fast.
-
+# 3.4.1
+### Bugfix
+Fix switch button crash (so late)  
+  
 # 3.4.0
 ### Bugfix
 - Globed compatible, to chroma remote players is a bit crash risky so I don't dare to make it optional for now  

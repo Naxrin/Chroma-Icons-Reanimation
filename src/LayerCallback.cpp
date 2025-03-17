@@ -22,6 +22,8 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
         m_cellItemEffect->toggleChroma();
 
         // setup item
+        if (!m_hasSetupPage)
+            return ListenerResult::Stop;
         for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsAdv->m_contentLayer->getChildren()))
             cell->toggleChroma(cell == m_currentTab);
         for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsEasy->m_contentLayer->getChildren()))
