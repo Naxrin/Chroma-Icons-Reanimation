@@ -299,6 +299,8 @@ class $modify(ChromaPlayer, PlayerObject) {
     struct Fields {
         // if the counter reaches the period of generator, the game should generate a ghost trail here and reset the counter
         float ghost_counter = 0;
+        // default color
+        ccColor3B main, second, glow;
         // frame name for ghost trail sprite name
         std::string frame, ball, dart, swing, robot, spider;
     };
@@ -374,6 +376,11 @@ class $modify(ChromaPlayer, PlayerObject) {
                 m_fields->spider = fmt::format("spider_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("spider") : gm->getPlayerSpider()));
         } else
             m_fields->spider = fmt::format("spider_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("spider") : gm->getPlayerSpider()));
+        
+        // colors
+        m_fields->main = gm->colorForIdx(usingSDI ? SDI->getSavedValue<int64_t>("color1") : gm->getPlayerColor());
+        m_fields->second = gm->colorForIdx(usingSDI ? SDI->getSavedValue<int64_t>("color2") : gm->getPlayerColor2());
+        m_fields->glow = gm->colorForIdx(usingSDI ? SDI->getSavedValue<int64_t>("colorglow") : gm->getPlayerGlowColor());
     }
 
     // update override, chroma icons regarding current setup
@@ -424,14 +431,10 @@ class $modify(ChromaPlayer, PlayerObject) {
         Gamemode status = this->getStatusID();
 
         // get the chroma pattern result firstly
-        ccColor3B main = getChroma(setups[getIndex(p, status, Channel::Main)],
-            m_playerColor1, lvlphase + od, percentage, progress);
-        ccColor3B secondary = getChroma(setups[getIndex(p, status, Channel::Secondary)],
-            m_playerColor2, lvlphase + od + o2, percentage, progress);
-        ccColor3B glow = getChroma(setups[getIndex(p, status, Channel::Glow)],
-            m_glowColor, lvlphase + od + o3, percentage, progress);
-        ccColor3B white = getChroma(setups[getIndex(p, status, Channel::White)],
-            ccc3(255, 255, 255), lvlphase + od, percentage, progress);
+        ccColor3B main = getChroma(setups[getIndex(p, status, Channel::Main)], m_fields->main, lvlphase + od, percentage, progress);
+        ccColor3B secondary = getChroma(setups[getIndex(p, status, Channel::Secondary)], m_fields->second, lvlphase + od + o2, percentage, progress);
+        ccColor3B glow = getChroma(setups[getIndex(p, status, Channel::Glow)], m_fields->glow, lvlphase + od + o3, percentage, progress);
+        ccColor3B white = getChroma(setups[getIndex(p, status, Channel::White)], ccc3(255, 255, 255), lvlphase + od, percentage, progress);
 
         if (!this->m_isSecondPlayer) {
             if (opts["globed"]) {
@@ -441,7 +444,7 @@ class $modify(ChromaPlayer, PlayerObject) {
                 globed = true;
             } else if (globed) {
                 // recover
-                barm = m_playerColor1; bars = m_playerColor2; barg = m_glowColor; barw = ccc3(255, 255, 255);
+                barm = m_fields->main; bars = m_fields->second; barg = m_fields->glow; barw = ccc3(255, 255, 255);
             }
         }
 
@@ -456,12 +459,12 @@ class $modify(ChromaPlayer, PlayerObject) {
             isRider = opts["rider"] && (int)status;
             // icon
             this->m_iconSprite->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::Main)],
-                m_playerColor1, lvlphase + od, percentage, progress) : main);
+                m_fields->main, lvlphase + od, percentage, progress) : main);
             this->m_iconSpriteSecondary->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::Secondary)],
-                m_playerColor2, lvlphase + od + o2, percentage, progress) : secondary);
+                m_fields->second, lvlphase + od + o2, percentage, progress) : secondary);
             if (m_hasGlow)
                 this->m_iconGlow->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::Glow)],
-                    m_glowColor, lvlphase + od + o3, percentage, progress) : glow);
+                    m_fields->glow, lvlphase + od + o3, percentage, progress) : glow);
             if (this->m_iconSpriteWhitener)
                 this->m_iconSpriteWhitener->setColor(isRider ? getChroma(setups[getIndex(p, Gamemode::Cube, Channel::White)],
                     ccc3(255, 255, 255), lvlphase + od, percentage, progress) : white);
@@ -505,15 +508,15 @@ class $modify(ChromaPlayer, PlayerObject) {
         // trail
         if (m_playerStreak != 2 && m_playerStreak != 7)
             this->m_regularTrail->setColor(getChroma(setups[getIndex(p, status, Channel::Trail)],
-                m_playerColor2, lvlphase + od, percentage, progress));
+                m_fields->second, lvlphase + od, percentage, progress));
         // wave trail
         if (this->m_isDart)
             this->m_waveTrail->setColor(getChroma(setups[getIndex(p, status, Channel::WaveTrail)],
-                gm->getGameVariable("0096") ? m_playerColor2 : m_playerColor1, lvlphase + od, percentage, progress));
+                gm->getGameVariable("0096") ? m_fields->second : m_fields->main, lvlphase + od, percentage, progress));
         // dash fire
         if (this->m_isDashing)
             this->m_dashFireSprite->setColor(getChroma(setups[getIndex(p, status, Channel::DashFire)],
-                gm->getGameVariable("0062") ? m_playerColor1 : m_playerColor2, lvlphase + od, percentage, progress));
+                gm->getGameVariable("0062") ? m_fields->main : m_fields->second, lvlphase + od, percentage, progress));
 
         // ufo shell
         if (this->m_isBird)
@@ -576,7 +579,7 @@ class $modify(ChromaPlayer, PlayerObject) {
 
         // this mod is chroma icons not ghost trail fix        
         auto color = getChroma(setups[getIndex(this->m_isSecondPlayer && !opts["same-dual"], this->getStatusID(), Channel::Ghost)],
-            m_playerColor1, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress);
+            m_fields->main, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress);
         spr->setColor(color);
         // this is how robtop set his own ghost trails
         if (color == ccc3(0, 0, 0))
@@ -609,7 +612,7 @@ class $modify(ChromaPlayer, PlayerObject) {
                 // check position
                 if (detectTPline(tele, from, to))
                     tele->setColor(getChroma(setups[getIndex(this->m_isSecondPlayer && !opts["same-dual"], this->getStatusID(), Channel::TPLine)],
-                        m_playerColor1, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress));
+                        m_fields->main, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress));
             }
         }
     }

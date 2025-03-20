@@ -1,4 +1,9 @@
 I'm busy these days, mods update may not be that fast.
+# 3.4.2
+### Bugfix
+Fix default color sometimes may be slightly different from it should be  
+Remove meaningless error log  
+  
 # 3.4.1
 ### Bugfix
 Fix switch button crash (so late)  
