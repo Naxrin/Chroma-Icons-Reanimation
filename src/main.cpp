@@ -140,8 +140,8 @@ class $modify(EditorMenu, EditorUI) {
 // timewarp
 #include <Geode/modify/GJBaseGameLayer.hpp>
 class $modify(MyBaseGameLayer, GJBaseGameLayer) {
-    void updateTimeWarp(GameObject* obj, float p) override {
-        GJBaseGameLayer::updateTimeWarp(obj, p);
+    void updateTimeWarp(float p) override {
+        GJBaseGameLayer::updateTimeWarp(p);
         timewarp = p;
     }
 
