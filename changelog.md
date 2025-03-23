@@ -1,4 +1,10 @@
 I'm busy these days, mods update may not be that fast.
+
+# 3.4.3
+### Bugfix
+Fix mac crash  
+Thanks @hiimjustin000  
+  
 # 3.4.2
 ### Bugfix
 Fix default color sometimes may be slightly different from it should be  
