@@ -376,11 +376,19 @@ class $modify(ChromaPlayer, PlayerObject) {
                 m_fields->spider = fmt::format("spider_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("spider") : gm->getPlayerSpider()));
         } else
             m_fields->spider = fmt::format("spider_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("spider") : gm->getPlayerSpider()));
-        
+
         // colors
-        m_fields->main = gm->colorForIdx(usingSDI ? SDI->getSavedValue<int64_t>("color1") : gm->getPlayerColor());
-        m_fields->second = gm->colorForIdx(usingSDI ? SDI->getSavedValue<int64_t>("color2") : gm->getPlayerColor2());
-        m_fields->glow = gm->colorForIdx(usingSDI ? SDI->getSavedValue<int64_t>("colorglow") : gm->getPlayerGlowColor());
+        if (this->m_isSecondPlayer) {
+            m_fields->main = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("color1") : gm->getPlayerColor2());
+            m_fields->second = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("color2") : gm->getPlayerColor());
+            m_fields->glow = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("colorglow") : gm->getPlayerGlowColor());
+        } else {
+            m_fields->main = gm->colorForIdx(gm->getPlayerColor());
+            m_fields->second = gm->colorForIdx(gm->getPlayerColor2());
+            m_fields->glow = gm->colorForIdx(gm->getPlayerGlowColor());
+        }
+
+
     }
 
     // update override, chroma icons regarding current setup
@@ -692,6 +700,7 @@ $on_mod(Loaded) {
         {"dark-theme", true},
         {"???", false}
     };
+    
     for (auto [key, val] : defaultOpts)
         opts[key] = Mod::get()->getSavedValue<bool>(key, val);
 }

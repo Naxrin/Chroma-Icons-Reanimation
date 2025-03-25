@@ -1,5 +1,8 @@
-I'm busy these days, mods update may not be that fast.
-
+I'm playing Celeste for Farewell Goldberry these days, mods update may not be that fast.
+# 3.4.4
+### Bugfix
+Fix default color on p2 icon issue  
+  
 # 3.4.3
 ### Bugfix
 Fix mac crash  
