@@ -182,11 +182,12 @@ class $modify(GameLayer, PlayLayer) {
         percentage = this->getCurrentPercent();
         PlayLayer::postUpdate(d);
         // globed
-        if (!opts["globed"])
+        if (!opts["globed"]) {
             if (globed)
                 globed = false;
             else
-                return;
+                return;            
+        }
         if (!m_fields->is_globed || !m_progressBar->isVisible())
             return;
         auto node = m_progressBar->getChildByID("dankmeme.globed2/progress-bar-wrapper");
