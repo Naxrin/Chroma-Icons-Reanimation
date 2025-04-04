@@ -1,17 +1,25 @@
-I'm playing Celeste for Farewell Goldberry these days, mods update may not be that fast.
+I'm busy these days, mods update may not be that fast.
+# 3.5.0
+### Addition
+- A bit Main Menu Title change;
+- Pause menu entry is now optional.
+### Bugfix
+- Default color on p2 icon issue should really get fixed this time (such a careless mistake)  
+- Fix ghost trail missing texture bug when icon from More Icons applied (I really cannot get how that's happening, but it's fixed after all)
+  
 # 3.4.4
 ### Bugfix
-Fix default color on p2 icon issue  
+Fix default color on p2 icon issue9 (But failed)  
   
 # 3.4.3
 ### Bugfix
 Fix mac crash  
-Thanks @hiimjustin000  
+Thanks @hiimjustin000
   
 # 3.4.2
 ### Bugfix
-Fix default color sometimes may be slightly different from it should be  
-Remove meaningless error log  
+- Fix default color sometimes may be slightly different from it should be  
+- Remove meaningless error log  
   
 # 3.4.1
 ### Bugfix
