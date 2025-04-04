@@ -127,7 +127,7 @@ protected:
     // warning
     WarnCell* m_cellWarning;
     // title
-    CCLabelBMFont* m_lbfTitle;
+    TitleCell* m_cellTitle;
     // player switch
     CCMenuItemToggler* m_btnItemPlayer;
     // full icons

@@ -8,6 +8,7 @@ void ChromaLayer::switchTheme() {
     // bg
     m_bg->runAction(CCTintTo::create(ANIM_TIME_M, BG_COLOR));
 
+    m_cellTitle->switchTheme();
     // main-menu buttons 
     for (int tag = 1; tag < 6; tag ++)
         if (auto btn = getChildByID("main-menu")->getChildByTag(tag))
@@ -162,8 +163,8 @@ void ChromaLayer::fadeItemPage() {
     // case Item : return from another Page
     // case terminal : init / exit
     bool in = m_pages.back() == Page::Item || m_pages.back() == Page::Init;
-    // title labelthis->getChildByID("item-menu")->getChildByID("title-label")
-    fade(m_lbfTitle, in, ANIM_TIME_M, in ? 0.6 : 0.3, in ? 0.6 : 0.3);
+    m_cellTitle->Fade(in);
+    //m_cellTitle, in, ANIM_TIME_M, in ? 0.6 : 0.3, in ? 0.6 : 0.3);
     // prepare effects
     if (in && !opts["easy"]) {
         static_cast<CCLabelBMFont*>(this->getChildByID("item-menu")->getChildByTag(8))

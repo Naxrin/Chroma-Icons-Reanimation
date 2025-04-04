@@ -18,7 +18,7 @@ bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     m_bg->setZOrder(-1);
     m_bg->setColor(ccc3(CELL_COLOR));
     m_bg->setID("background");
-    addChild(m_bg);
+    this->addChild(m_bg);
 
     return true;
 }
@@ -107,30 +107,61 @@ bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::s
     if (!CCMenu::init())
         return false;
 
-    m_title = CCLabelBMFont::create(text, "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentCenter);
-    m_title->setScale(0.6);
-    m_title->setContentSize(CCSize(width, 20.f));
-    m_title->setWidth(340.f);
-    m_title->setAnchorPoint(CCPoint(0.5, 0.5));
-    m_title->setColor(ccc3(255, 255, 255));
-    m_title->setID("label");
-    addChild(m_title);
-
     // setup
     if (!BaseCell::setup(pos, CCSize(width, 20.f), tag, id))
         return false;
 
-    m_bg->setVisible(false);
+    auto mask = CCScale9Sprite::create("square.png"_spr, CCRect(0.f, 0.f, 80.f, 80.f));
+    mask->setPosition(CCPoint(width/2 + 5.f, 15.f));
+    mask->setContentSize(CCSize(width + 9.f, 29.f));
+
+    this->m_clip = CCClippingNode::create();
+    m_clip->setContentSize(CCSize(width + 10.f, 30.f));
+    m_clip->setAnchorPoint(CCPoint(0.5, 0.5));
+    m_clip->setStencil(mask);
+    m_clip->setAlphaThreshold(0.3);
+    m_clip->setZOrder(-1);
+
+    this->m_spr = CCSprite::create("titlebg.png"_spr);
+    m_spr->setTextureRect(CCRect(0, 0, width*2, 90.f));
+    m_spr->setOpacity(200);
+
+
+    ccTexParams TexParameters = {GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
+    m_spr->getTexture()->setTexParameters(&TexParameters);
+
+    //m_clip->addChildAtPosition(m_spr, Anchor::Center);
+    m_clip->addChild(m_spr);
+    m_bg->addChildAtPosition(m_clip, Anchor::Center);
+
+    //m_spr->setPosition(CCPoint(295, 50));
+    
+    
+    m_spr->runAction(CCRepeatForever::create(CCSequence::create(
+        CallFuncExt::create([this]() { m_spr->setPosition(CCPoint(275, 40.1)); }),
+        //CCDelayTime::create(5),
+        //CallFuncExt::create([this]() { m_spr->setPosition(CCPoint(40.5, -13)); }),
+        //CCDelayTime::create(5),
+        CCMoveTo::create(30, CCPoint(40.5, -13)),
+        nullptr
+    )));
+
+    m_title = CCLabelBMFont::create(text, "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentCenter);
+    m_title->setScale(0.6);
+    m_title->setContentSize(CCSize(width, 25.f));
+    m_title->setWidth(300.f);
+    m_title->setAnchorPoint(CCPoint(0.5, 0.5));
+    //m_title->setColor(ccc3(255, 255, 255));
+    m_title->setID("label");
+    this->addChildAtPosition(m_title, Anchor::Center);
+
     this->display_pos = pos;
-    setTag(tag);
-    setID(id);
-    // set subnode position
-    m_title->setPosition(CCPoint(width/2, 10.f));
     return true;
 }
 
 void TitleCell::Fade(bool in) {
     this->BaseCell::Fade(in);
+    fade(m_spr, in, ANIM_TIME_L, -1, -1, 144);
     this->runAction(CCSequence::create(
         CCEaseExponentialOut::create(CCMoveTo::create(ANIM_TIME_M, CCPoint(display_pos.x, display_pos.y - 30.f * in))),
         nullptr

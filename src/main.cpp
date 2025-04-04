@@ -76,7 +76,8 @@ class $modify(IconLayer, GJGarageLayer) {
 class $modify(PoseLayer, PauseLayer) {
 	void customSetup() {
         PauseLayer::customSetup();
-
+        if (!opts["pause"])
+            return;
         auto winSize = CCDirector::sharedDirector()->getWinSize();
         // button
         auto img = CCSprite::create("rgbicon.png"_spr);
@@ -301,94 +302,17 @@ class $modify(ChromaPlayer, PlayerObject) {
         float ghost_counter = 0;
         // default color
         ccColor3B main, second, glow;
-        // frame name for ghost trail sprite name
-        std::string frame, ball, dart, swing, robot, spider;
     };
     // record this player's pointer
     bool init(int p0, int p1, GJBaseGameLayer *p2, cocos2d::CCLayer *p3, bool p4) {
         reset[this] = false;
-        // get sprite names for ghost trails generation
-        this->getTextureNames();
-        return PlayerObject::init(p0, p1, p2, p3, p4);
-    }
-
-    // compact with separate dual icons and more icons
-    void getTextureNames() {
-        auto MI = Loader::get()->getLoadedMod("hiimjustin000.more_icons");
+        // default colors
         auto SDI = Loader::get()->getLoadedMod("weebify.separate_dual_icons");
-        bool usingSDI = SDI && m_isSecondPlayer;
-        // frame
-        if (MI) {
-            auto name = MI->getSavedValue<std::string>(usingSDI ? "icon-dual" : "icon");
-            if (name != "")
-                m_fields->frame = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
-            else
-                m_fields->frame = fmt::format("player_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("cube") : gm->getPlayerFrame()));
-        } else
-            m_fields->frame = fmt::format("player_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("cube") : gm->getPlayerFrame()));
+        m_fields->main = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("color1") : gm->getPlayerColor());
+        m_fields->second = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("color2") : gm->getPlayerColor2());
+        m_fields->glow = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("colorglow") : gm->getPlayerGlowColor());
 
-        // ball
-        if (MI) {
-            auto name = MI->getSavedValue<std::string>(usingSDI ? "ball-dual" : "ball");
-            if (name != "")
-                m_fields->ball = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
-            else
-                m_fields->ball = fmt::format("player_ball_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("roll") : gm->getPlayerBall()));
-        } else
-            m_fields->ball = fmt::format("player_ball_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("roll") : gm->getPlayerBall()));
-
-        // wave
-        if (MI) {
-            auto name = MI->getSavedValue<std::string>(usingSDI ? "wave-dual" : "wave");
-            if (name != "")
-                m_fields->dart = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
-            else
-                m_fields->dart = fmt::format("dart_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("dart") : gm->getPlayerDart()));
-        } else
-            m_fields->dart = fmt::format("dart_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("dart") : gm->getPlayerDart()));
-
-        // swing
-        if (MI) {
-            auto name = MI->getSavedValue<std::string>(usingSDI ? "swing-dual" : "swing");
-            if (name != "")
-                m_fields->swing = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
-            else
-                m_fields->swing = fmt::format("swing_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("swing") : gm->getPlayerSwing()));
-        } else
-            m_fields->swing = fmt::format("swing_{}_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("swing") : gm->getPlayerSwing()));
-
-        // robot
-        if (MI) {
-            auto name = MI->getSavedValue<std::string>(usingSDI ? "robot-dual" : "robot");
-            if (name != "")
-                m_fields->robot = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
-            else
-                m_fields->robot = fmt::format("robot_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("robot") : gm->getPlayerRobot()));
-        } else
-            m_fields->robot = fmt::format("robot_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("robot") : gm->getPlayerRobot()));
-
-        // spider
-        if (MI) {
-            auto name = MI->getSavedValue<std::string>(usingSDI ? "spider-dual" : "spider");
-            if (name != "")
-                m_fields->spider = fmt::format("hiimjustin000.more_icons/{}_001.png", name);
-            else
-                m_fields->spider = fmt::format("spider_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("spider") : gm->getPlayerSpider()));
-        } else
-            m_fields->spider = fmt::format("spider_{}_01_001.png", toIndexStr(usingSDI ? SDI->getSavedValue<int64_t>("spider") : gm->getPlayerSpider()));
-
-        // colors
-        if (this->m_isSecondPlayer) {
-            m_fields->main = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("color1") : gm->getPlayerColor2());
-            m_fields->second = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("color2") : gm->getPlayerColor());
-            m_fields->glow = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("colorglow") : gm->getPlayerGlowColor());
-        } else {
-            m_fields->main = gm->colorForIdx(gm->getPlayerColor());
-            m_fields->second = gm->colorForIdx(gm->getPlayerColor2());
-            m_fields->glow = gm->colorForIdx(gm->getPlayerGlowColor());
-        }
-
-
+        return PlayerObject::init(p0, p1, p2, p3, p4);
     }
 
     // update override, chroma icons regarding current setup
@@ -439,11 +363,12 @@ class $modify(ChromaPlayer, PlayerObject) {
         Gamemode status = this->getStatusID();
 
         // get the chroma pattern result firstly
-        ccColor3B main = getChroma(setups[getIndex(p, status, Channel::Main)], m_fields->main, lvlphase + od, percentage, progress);
-        ccColor3B secondary = getChroma(setups[getIndex(p, status, Channel::Secondary)], m_fields->second, lvlphase + od + o2, percentage, progress);
+        ccColor3B main = getChroma(setups[getIndex(p, status, Channel::Main)], m_isSecondPlayer ? m_fields->second : m_fields->main, lvlphase + od, percentage, progress);
+        ccColor3B secondary = getChroma(setups[getIndex(p, status, Channel::Secondary)], m_isSecondPlayer ? m_fields->main : m_fields->second, lvlphase + od + o2, percentage, progress);
         ccColor3B glow = getChroma(setups[getIndex(p, status, Channel::Glow)], m_fields->glow, lvlphase + od + o3, percentage, progress);
         ccColor3B white = getChroma(setups[getIndex(p, status, Channel::White)], ccc3(255, 255, 255), lvlphase + od, percentage, progress);
 
+        // globed progress bar
         if (!this->m_isSecondPlayer) {
             if (opts["globed"]) {
                 // recolor
@@ -456,12 +381,10 @@ class $modify(ChromaPlayer, PlayerObject) {
             }
         }
 
-
         // icons
         // for compatibility with Seperate dual icons or other mods
         // here I should always avoid calling their member functions
         bool isRider = false;
-
         // icons with vehicles
         if (m_isShip || m_isBird) {
             isRider = opts["rider"] && (int)status;
@@ -537,48 +460,37 @@ class $modify(ChromaPlayer, PlayerObject) {
 
     // rewrite ghost trail generator
     void generateChromaGhostTrail() {
+        // this is the main sprite my ghost trail will duplicate the sprite from
+        CCSprite* target;
+
         // some arguments
         auto p = this->getPosition();
         auto s = this->getScale();
         auto r = this->getRotation() + (this->m_isSideways ? 90.f : 0.f);
 
-        // name
-        std::string name;
         if (m_isRobot) {
-            auto main = m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1);
-            auto dp = main->getPosition();
-            auto dr = main->getRotation();
+            target = static_cast<CCSprite*>(m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1));
+            auto dp = target->getPosition();
+            auto dr = target->getRotation();
             p.x += dp.x;
             p.y += dp.y;
             r += dr;
-            name = m_fields->robot;
         }
         else if (m_isSpider) {
-            auto main = m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1);
-            auto dp = main->getPosition();
-            auto dr = main->getRotation();
+            target = static_cast<CCSprite*>(m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1));
+            auto dp = target->getPosition();
+            auto dr = target->getRotation();
             p.x += dp.x;
             p.y += dp.y;
             r += dr;
-            name = m_fields->spider;
         }
-        else if (m_isShip || m_isBird) {
-            bool isJetpack = m_isShip && m_isPlatformer;
-            p.x += isJetpack ? 6.f : 0.f;
-            p.y += isJetpack ? 4.f : 5.f;
-            s = s * (isJetpack ? 0.6 : 0.55);
-            name = m_fields->frame;
-        } else if (m_isBall)
-            name = m_fields->ball;
-        else if (m_isDart)
-            name = m_fields->dart;
-        else if (m_isSwing)
-            name = m_fields->swing;
         else
-            name = m_fields->frame;
+            target = m_iconSprite;
 
         // generate
-        auto spr = CCSprite::createWithSpriteFrameName(name.c_str());
+        auto spr = CCSprite::create();
+        spr->setTextureRect(target->getTextureRect());
+        spr->setDisplayFrame(target->displayFrame());
         spr->setPosition(p);
         spr->setScale(s);
         spr->setRotation(r);
@@ -598,7 +510,7 @@ class $modify(ChromaPlayer, PlayerObject) {
         // add to and run action
         this->getParent()->addChild(spr);
         spr->runAction(CCEaseOut::create(CCScaleTo::create(0.5, 0.6), 2));
-        spr->runAction(CCFadeOut::create(0.5));
+        spr->runAction(CCEaseOut::create(CCFadeOut::create(0.5), 2));
         spr->runAction(CCSequence::create(
             CCDelayTime::create(0.5),
             CallFuncExt::create([spr]() { spr->removeFromParentAndCleanup(true); }),
@@ -696,6 +608,7 @@ $on_mod(Loaded) {
         {"sep-second", false},
         {"sep-glow", false},
         {"prev", true},
+        {"pause", true},
         {"blur-bg", false},
         {"dark-theme", true},
         {"???", false}

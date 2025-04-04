@@ -56,6 +56,8 @@ public:
 // preserved unused class
 class TitleCell : public BaseCell {
 protected:
+    CCClippingNode* m_clip;
+    CCSprite* m_spr;
     CCLabelBMFont* m_title;
     CCLayerGradient* m_gradient;
     CCPoint display_pos;

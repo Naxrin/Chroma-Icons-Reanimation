@@ -107,12 +107,10 @@ void ChromaLayer::makeItemPage() {
     menuItem->setID("item-menu");
     this->addChild(menuItem);
 
-    this->m_lbfTitle = CCLabelBMFont::create("Chroma Icons Central", "ErasBold.fnt"_spr, 500.f, CCTextAlignment::kCCTextAlignmentCenter);
-    m_lbfTitle->setPosition(CCPoint(0, m_winSize.height / 2 - 30.f));
-    m_lbfTitle->setWidth(500.f);
-    hide(m_lbfTitle, 0.3);
-    m_lbfTitle->setID("title-label");
-    menuItem->addChild(m_lbfTitle);
+    this->m_cellTitle = TitleCell::create("Chroma Icons Central", CCPoint(0, m_winSize.height / 2), 300, 24, "title-cell");
+    hide(m_cellTitle, 0.5);
+    m_cellTitle->setID("title-label");
+    menuItem->addChild(m_cellTitle);
 
     // full items, easy item, effect row
     this->m_cellItemAdv = ItemCell::create(1);
@@ -498,6 +496,12 @@ void ChromaLayer::makeOptionsPage() {
     H += blurOpt->getContentHeight() + 15.f;
 
     sTag ++;
+    auto pauseOpt = OptionTogglerCell::create("Pause Menu Entry", H, sTag, "pause",
+        "Show mod menu entrance button in Pause Menu. Sure, it's not taking effect until you pause again.");
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(pauseOpt);
+    H += pauseOpt->getContentHeight() + 15.f;
+
+    sTag ++;
     auto prevOpt = OptionTogglerCell::create("Preview Effects", H, sTag, "prev",
         "Preview Chroma Effects inside mod menu.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(prevOpt);
@@ -540,7 +544,7 @@ void ChromaLayer::makeOptionsPage() {
     H += teleOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto ghostOpt = OptionTogglerCell::create("Original Ghost Trail", H, sTag, "dis-ghost",
+    auto ghostOpt = OptionTogglerCell::create("Legacy Ghost Trail", H, sTag, "dis-ghost",
         "Disable this mod's rewritten fixed Ghost Trail and apply RobTop's raw Ghost Trail Effect instead.\n"
         "But this will also result in ghost trail chroma not working.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(ghostOpt);
