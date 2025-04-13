@@ -546,19 +546,19 @@ void ChromaLayer::onInfoButtons(CCObject* sender) {
         task = geode::openInfoPopup(Mod::get()->getID());
         return;
     case 1:
-        system("start https://github.com/Naxrin/Chroma-Icons-Reanimation");
+        CCApplication::sharedApplication()->openURL("https://github.com/Naxrin/Chroma-Icons-Reanimation");
         return;
     case 10:
-        system("start https://www.youtube.com/@Naxrin");
+        CCApplication::sharedApplication()->openURL("https://www.youtube.com/@Naxrin");
         return;
     case 11:
-        system("start https://x.com/Naxrin19");
+        CCApplication::sharedApplication()->openURL("https://x.com/Naxrin19");
         return;
     case 12:
-        system("start https://discordapp.com/users/414986613962309633");
+        CCApplication::sharedApplication()->openURL("https://discordapp.com/users/414986613962309633");
         return;
     case 13:
-        system("start https://space.bilibili.com/25982878");
+        CCApplication::sharedApplication()->openURL("https://space.bilibili.com/25982878");
         return;
     }
 }

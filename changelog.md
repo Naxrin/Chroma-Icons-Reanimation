@@ -2,9 +2,10 @@ I'm busy these days, mods update may not be that fast.
 
 # 3.5.1
 ### Addition
-Add vehicle ghost trail option (not working in legacy ghost trail mode)
+- iOS support (I donot promiss this mod works well there, also happy textures has ios support when?)
+- Add vehicle ghost trail option (not working in legacy ghost trail mode)
 ### Bugfix
-Fix cube ghost trails with vehicle looks as giant as cube mode  
+- Fix cube ghost trails with vehicle looks as giant as cube mode  
 
 # 3.5.0
 ### Addition
@@ -16,12 +17,11 @@ Fix cube ghost trails with vehicle looks as giant as cube mode
   
 # 3.4.4
 ### Bugfix
-Fix default color on p2 icon issue9 (But failed)  
+- Fix default color on p2 icon issue (But failed)  
   
 # 3.4.3
 ### Bugfix
-Fix mac crash  
-Thanks @hiimjustin000
+- Fix mac crash (Thanks @hiimjustin000)
   
 # 3.4.2
 ### Bugfix
@@ -30,7 +30,7 @@ Thanks @hiimjustin000
   
 # 3.4.1
 ### Bugfix
-Fix switch button crash (so late)  
+- Fix switch button crash (so late)  
   
 # 3.4.0
 ### Bugfix
@@ -38,11 +38,13 @@ Fix switch button crash (so late)
 - Chroma Speed is now optional to sync timewarp value or ignore timewarp (sync real world clock)  
 
 # 3.3.2
-Ghost Trail chroma supports mac now (again thanks to @hiimjustin000)  
+### Bugfix
+- Ghost Trail chroma supports mac now (again thanks to @hiimjustin000)  
 
 # 3.3.1
-Add warning page sprite image (I miss that)  
-Some text polish  
+### Bugfix
+- Add warning page sprite image (I miss that)  
+- Some text polish  
   
 # 3.3.0
 Hoping this release will never crash our geometry dash, best wishes
@@ -59,18 +61,20 @@ Hoping this release will never crash our geometry dash, best wishes
 - More chroma pattern options (chromatic phase, brightness, ...)
   
 # 3.2.0-beta.4
-spider teleport line on Mac comes (thanks to @hiimjustin000)  
-Fix white robot / spider sprite chroma crashing the game (I hope)  
-Fix some spelling issues  
-Fix some other issues  
+- spider teleport line on Mac comes (thanks to @hiimjustin000)  
+- Fix white robot / spider sprite chroma crashing the game (I hope)  
+- Fix some spelling issues  
+- Fix some other issues  
 
 # 3.2.0-beta.3
-Fix the *Interface* spelling issue (batch replace mistake)  
-Fix menu stuck when hit esc on menu launch  
+### Bugfix
+- Fix the *Interface* spelling issue (batch replace mistake)  
+- Fix menu stuck when hit esc on menu launch  
 
 # 3.2.0-beta.2
-Fix the bug that Mac version banned Wave Trail rather than spider teleport line (stupid bug)  
-Better ReadMe  
+### Bugfix
+- Fix the bug that Mac version banned Wave Trail rather than spider teleport line (stupid bug)  
+- Better ReadMe  
   
 # 3.2.0-beta.1
 Finally new project worths being submitted to Geode index...
