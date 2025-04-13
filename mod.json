@@ -3,9 +3,10 @@
 	"gd": {
 		"win":"2.2074",
 		"android": "2.2074",
-		"mac": "2.2074"
+		"mac": "2.2074",
+		"ios": "2.2074"
 	},
-	"version": "v3.5.0",
+	"version": "v3.5.1",
 	"id": "naxrin.chroma_icons",
 	"name": "Chroma Icons",
 	"developer": "Naxrin",

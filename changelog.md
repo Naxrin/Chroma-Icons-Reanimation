@@ -1,4 +1,11 @@
-I'm busy these days, mods update may not be that fast.
+I'm busy these days, mods update may not be that fast.  
+
+# 3.5.1
+### Addition
+Add vehicle ghost trail option (not working in legacy ghost trail mode)
+### Bugfix
+Fix cube ghost trails with vehicle looks as giant as cube mode  
+
 # 3.5.0
 ### Addition
 - A bit Main Menu Title change;

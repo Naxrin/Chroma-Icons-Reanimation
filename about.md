@@ -17,19 +17,18 @@ Better performance of Ghost Trails and Teleport Line effect in game;
 Toggle <cg>ON</c> / <cr>OFF</c> the whole mod anytime you want!  
 
 ## <cr>WARNING</c>
-- Despite most effort on stability, Old versions od this mod may perhaps randomly crash your game in playing a level, and I cannot promise this update has completely fixed it. Take it if you are challenging your new hardest level or something.
+- Despite most effort on stability, Old versions of this mod may perhaps randomly crash your game in playing a level, and I cannot promise this update has completely fixed it. Take it if you are challenging your new hardest level or something. **As far as I know, no more in-level crash is reported after 3.4.0 update.**
 - Regarding Pointercrate and some other Lists' policy for Mega Hack v7's Icon Effects, when setting your player icons variable in playing a list level, some chroma patterns may really <cy>**Violate guidelines**</c> and result in your submission getting <cr>**REJECTED**</c>. This mod will NEVER take responsibility for your ignoring this.  
 
 ### <cy>Also Note that:</c>
-- Despite effort made on compatibility, This mod may very probably conflict with other related Icon Color modifier mods (e.g. Same Dual Color). I'm not willing to set them conflict to force you pick one, But you can take a try yourself, also you can contact me to look into your conflict mods;
-- Spider Teleport Line modifying is yet not supported on Mac ~~cuz PlayerObject::onSpiderJump(bool) is not implemented for Mac yet~~  
+- Despite effort made on compatibility, This mod may very probably conflict with other related Icon Color modifier mods (e.g. Same Dual Color). I'm not willing to set them conflict to force you pick one, But you can take a try yourself, also you can contact me to look into your conflict mods.
 
 ## <cy>How to use this mod?</c>
 This mod adds its menu entrance button to:
 - **Icon Select Menu**
-- **Pause Menu**
+- **Pause Menu** (unless option "Pause Menu Entry" OFF)
 - **Level Editor Page** (if option "Editor Test" ON)  
-so you can access the mod menu either in game menu or in playing a level.  
+You can access the mod menu either in garage menu or in playing a level.  
 #### Note that:  
 - Whenever you change any chroma pattern (e.g. in a paused level), your setup / option changes will take effect immediately (e.g. once you resume to play).
 - For detailed manual, see you in **[ReadMe](https://github.com/Naxrin/Chroma-Icons-Reanimation)** in Github repo. I try my best to describle this mod's base logic there.  
@@ -41,3 +40,4 @@ so you can access the mod menu either in game menu or in playing a level.
 ### <cy>Contact me outside Github:</c>
 - Discord: [Naxrin#6957](https://discordapp.com/users/414986613962309633) (recommended)  
 - Twitter: [@Naxrin19](https://x.com/Naxrin19)
+- In-Game ID: Naxrin

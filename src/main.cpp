@@ -188,6 +188,7 @@ class $modify(GameLayer, PlayLayer) {
             else
                 return;            
         }
+
         if (!m_fields->is_globed || !m_progressBar->isVisible())
             return;
         auto node = m_progressBar->getChildByID("dankmeme.globed2/progress-bar-wrapper");
@@ -485,6 +486,18 @@ class $modify(ChromaPlayer, PlayerObject) {
             p.y += dp.y;
             r += dr;
         }
+        else if (m_isShip || m_isBird) {
+            if (opts["vehi-ghost"]) {
+                target = m_vehicleSprite;
+                p.y -= m_isShip ? (m_isPlatformer ? 0.f : 5.f) : 7.f;
+            } else {
+                target = m_iconSprite;
+                bool isJetpack = m_isShip && m_isPlatformer;
+                p.x += isJetpack ? 6.f : 0.f;
+                p.y += isJetpack ? 4.f : 5.f;
+                s = s * (isJetpack ? 0.6 : 0.55);
+            }
+        }
         else
             target = m_iconSprite;
 
@@ -510,7 +523,7 @@ class $modify(ChromaPlayer, PlayerObject) {
 
         // add to and run action
         this->getParent()->addChild(spr);
-        spr->runAction(CCEaseOut::create(CCScaleTo::create(0.5, 0.6), 2));
+        spr->runAction(CCEaseOut::create(CCScaleBy::create(0.5, 0.6), 2));
         spr->runAction(CCEaseOut::create(CCFadeOut::create(0.5), 2));
         spr->runAction(CCSequence::create(
             CCDelayTime::create(0.5),
@@ -604,6 +617,7 @@ $on_mod(Loaded) {
         {"editor", false},
         {"init", true},
         {"dis-ghost", false},
+        {"vehi-ghost", false},
         {"tele-fix", false},
         {"sep-dual", false},
         {"sep-second", false},
@@ -612,7 +626,9 @@ $on_mod(Loaded) {
         {"pause", true},
         {"blur-bg", false},
         {"dark-theme", true},
-        {"???", false}
+        {"???", false},
+        {"hsv", false},
+        {"pick-page", false}
     };
     
     for (auto [key, val] : defaultOpts)
