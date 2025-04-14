@@ -1,11 +1,13 @@
-I'm busy these days, mods update may not be that fast.  
-
 # 3.5.1
 ### Addition
-- iOS support (I donot promiss this mod works well there, also happy textures has ios support when?)
+- iOS support (I donot promiss this mod works well there, feel free to report issues)
 - Add vehicle ghost trail option (not working in legacy ghost trail mode)
 ### Bugfix
 - Fix cube ghost trails with vehicle looks as giant as cube mode  
+### ToDo
+- Individual Phase / Sat / Bright slider  
+- Pick Color from robtop's official color panel
+- Perhaps something else
 
 # 3.5.0
 ### Addition
