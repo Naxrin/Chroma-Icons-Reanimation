@@ -245,8 +245,10 @@ void Shader::cleanup() {
 void RenderTexture::setup(GLsizei width, GLsizei height) {
     GLint drawFbo = 0;
     GLint readFbo = 0;
+    GLint oldRbo = 0;
     glGetIntegerv(0x8CA6, &drawFbo);
     glGetIntegerv(0x8CAA, &readFbo);
+    glGetIntegerv(0x8CA7, &oldRbo);
 
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(0x8D40, fbo);
@@ -266,6 +268,7 @@ void RenderTexture::setup(GLsizei width, GLsizei height) {
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
     glFramebufferRenderbuffer(0x8D40, 0x821A, GL_RENDERBUFFER, rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, oldRbo);
 
     if(glCheckFramebufferStatus(0x8D40) != GL_FRAMEBUFFER_COMPLETE)
         log::error("pp fbo not complete, uh oh! i guess i will have to cut off ur pp now");
@@ -315,13 +318,17 @@ void setupPostProcess() {
 
     #ifdef GEODE_IS_ANDROID
     auto vertexPath = (std::string)CCFileUtils::get()->fullPathForFilename("pp-vert-android.glsl"_spr, false);
+    #elif defined(GEODE_IS_IOS)
+    auto vertexPath = CCFileUtils::get()->fullPathForFilename("pp-vert-ios.glsl"_spr, false);
     #else
-    auto vertexPath = (std::string)CCFileUtils::get()->fullPathForFilename("pp-vert.glsl"_spr, false);
+    auto vertexPath = CCFileUtils::get()->fullPathForFilename("pp-vert.glsl"_spr, false);
     #endif
     #ifdef GEODE_IS_ANDROID
     auto fragmentPath = (std::string)CCFileUtils::get()->fullPathForFilename("pp-frag-android.glsl"_spr, false);
+    #elif defined(GEODE_IS_IOS)
+    auto fragmentPath = CCFileUtils::get()->fullPathForFilename("pp-frag-ios.glsl"_spr, false);
     #else
-    auto fragmentPath = (std::string)CCFileUtils::get()->fullPathForFilename("pp-frag.glsl"_spr, false);
+    auto fragmentPath = CCFileUtils::get()->fullPathForFilename("pp-frag.glsl"_spr, false);
     #endif
 
     auto res = ppShader.compile(vertexPath, fragmentPath);
