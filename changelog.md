@@ -1,3 +1,7 @@
+# 3.5.2
+### Bugfix
+- fix blur effect breaking down in iOS (thanks hiimjasmine)
+  
 # 3.5.1
 ### Addition
 - iOS support (I donot promiss this mod works well there, feel free to report issues)
