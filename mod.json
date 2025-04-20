@@ -1,12 +1,12 @@
 {
-	"geode": "4.3.2",
+	"geode": "4.3.1",
 	"gd": {
 		"win":"2.2074",
 		"android": "2.2074",
 		"mac": "2.2074",
 		"ios": "2.2074"
 	},
-	"version": "v3.5.2",
+	"version": "v3.5.3",
 	"id": "naxrin.chroma_icons",
 	"name": "Chroma Icons",
 	"developer": "Naxrin",
@@ -15,8 +15,8 @@
 	"resources": {
 		"sprites": [
 			"resources/*.png",
-			"resources/font/*.png",
-			"resources/effect/*.png"
+			"resources/effect/*.png",
+			"resources/font/*.png"
 		],
 		"files": [
 			"resources/font/*.fnt",

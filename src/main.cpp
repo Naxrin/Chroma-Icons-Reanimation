@@ -302,18 +302,14 @@ class $modify(ChromaPlayer, PlayerObject) {
     struct Fields {
         // if the counter reaches the period of generator, the game should generate a ghost trail here and reset the counter
         float ghost_counter = 0;
+        // has got default color
+        bool has_default_colors;
         // default color
         ccColor3B main, second, glow;
     };
     // record this player's pointer
     bool init(int p0, int p1, GJBaseGameLayer *p2, cocos2d::CCLayer *p3, bool p4) {
         reset[this] = false;
-        // default colors
-        auto SDI = Loader::get()->getLoadedMod("weebify.separate_dual_icons");
-        m_fields->main = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("color1") : gm->getPlayerColor());
-        m_fields->second = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("color2") : gm->getPlayerColor2());
-        m_fields->glow = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("colorglow") : gm->getPlayerGlowColor());
-
         return PlayerObject::init(p0, p1, p2, p3, p4);
     }
 
@@ -342,9 +338,27 @@ class $modify(ChromaPlayer, PlayerObject) {
             this->processChroma();  
     }
 
+    void getDefaultColors() {
+        // default colors
+        auto SDI = Loader::get()->getLoadedMod("weebify.separate_dual_icons");
+        if (this->m_isSecondPlayer) {
+            m_fields->main = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("color1") : gm->getPlayerColor2());
+            m_fields->second = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("color2") : gm->getPlayerColor());
+            m_fields->glow = gm->colorForIdx(SDI ? SDI->getSavedValue<int64_t>("colorglow") : gm->getPlayerGlowColor());
+        } else {
+            m_fields->main = gm->colorForIdx(gm->getPlayerColor());
+            m_fields->second = gm->colorForIdx(gm->getPlayerColor2());
+            m_fields->glow = gm->colorForIdx(gm->getPlayerGlowColor());
+        }
+    }
+
     // get some phase offsets then set chroma color
     // as sending negative phase value to getChroma(...) is not allowed, all of them should really be positive
     void processChroma() {
+        if (!m_fields->has_default_colors) {
+            m_fields->has_default_colors = true;
+            this->getDefaultColors();
+        }
         // only chroma the visible two
         if ((!opts["activate"] && !reset[this]) || !this->isVisible() || this->getTag() > 0)
             return;
@@ -365,8 +379,8 @@ class $modify(ChromaPlayer, PlayerObject) {
         Gamemode status = this->getStatusID();
 
         // get the chroma pattern result firstly
-        ccColor3B main = getChroma(setups[getIndex(p, status, Channel::Main)], m_isSecondPlayer ? m_fields->second : m_fields->main, lvlphase + od, percentage, progress);
-        ccColor3B secondary = getChroma(setups[getIndex(p, status, Channel::Secondary)], m_isSecondPlayer ? m_fields->main : m_fields->second, lvlphase + od + o2, percentage, progress);
+        ccColor3B main = getChroma(setups[getIndex(p, status, Channel::Main)], m_fields->main, lvlphase + od, percentage, progress);
+        ccColor3B secondary = getChroma(setups[getIndex(p, status, Channel::Secondary)], m_fields->second, lvlphase + od + o2, percentage, progress);
         ccColor3B glow = getChroma(setups[getIndex(p, status, Channel::Glow)], m_fields->glow, lvlphase + od + o3, percentage, progress);
         ccColor3B white = getChroma(setups[getIndex(p, status, Channel::White)], ccc3(255, 255, 255), lvlphase + od, percentage, progress);
 
@@ -546,7 +560,7 @@ class $modify(ChromaPlayer, PlayerObject) {
                 // check position
                 if (detectTPline(tele, from, to))
                     tele->setColor(getChroma(setups[getIndex(this->m_isSecondPlayer && !opts["same-dual"], this->getStatusID(), Channel::TPLine)],
-                        m_fields->main, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress));
+                        gm->getGameVariable("0096") ? m_fields->second : m_fields->main, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress));
             }
         }
     }
