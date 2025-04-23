@@ -1,4 +1,9 @@
-I'm busy these days, mods update may not be that fast.  
+Working for Transparent BG these days, this mod won't be that update active
+
+# 3.5.4
+### Bugfix
+- Fix ghost trails issue when flipped gravity or going upside down
+
 # 3.5.3
 ### Bugfix
 - Fix colors messing up with Separate Dual Icons loaded

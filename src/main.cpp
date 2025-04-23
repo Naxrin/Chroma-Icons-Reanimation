@@ -484,44 +484,36 @@ class $modify(ChromaPlayer, PlayerObject) {
         auto s = this->getScale();
         auto r = this->getRotation() + (this->m_isSideways ? 90.f : 0.f);
 
-        if (m_isRobot) {
+        if (m_isRobot)
             target = static_cast<CCSprite*>(m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1));
-            auto dp = target->getPosition();
-            auto dr = target->getRotation();
-            p.x += dp.x;
-            p.y += dp.y;
-            r += dr;
-        }
-        else if (m_isSpider) {
+        else if (m_isSpider)
             target = static_cast<CCSprite*>(m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1));
-            auto dp = target->getPosition();
-            auto dr = target->getRotation();
-            p.x += dp.x;
-            p.y += dp.y;
-            r += dr;
-        }
-        else if (m_isShip || m_isBird) {
-            if (opts["vehi-ghost"]) {
-                target = m_vehicleSprite;
-                p.y -= m_isShip ? (m_isPlatformer ? 0.f : 5.f) : 7.f;
-            } else {
-                target = m_iconSprite;
-                bool isJetpack = m_isShip && m_isPlatformer;
-                p.x += isJetpack ? 6.f : 0.f;
-                p.y += isJetpack ? 4.f : 5.f;
-                s = s * (isJetpack ? 0.6 : 0.55);
-            }
-        }
+        else if ((m_isShip || m_isBird) && opts["vehi-ghost"])
+            target = m_vehicleSprite;
         else
             target = m_iconSprite;
 
+        auto dp = target->getPosition();
+        auto dr = target->getRotation();
+        auto ds = target->getScale();
+        auto m = m_isUpsideDown ? -1 : 1;
+        if (this->m_isSideways) {
+            p.x += dp.y * m;
+            p.y += dp.x;
+        } else {
+            p.x += dp.x;
+            p.y += dp.y * m;
+        }
+
         // generate
         auto spr = CCSprite::create();
+        // more icons bug
         spr->setTextureRect(target->getTextureRect());
         spr->setDisplayFrame(target->displayFrame());
+        // delta
         spr->setPosition(p);
-        spr->setScale(s);
-        spr->setRotation(r);
+        spr->setScale(s * ds);
+        spr->setRotation(r + dr * m);
         spr->setFlipX(this->m_isGoingLeft != this->m_isSideways);
         spr->setFlipY(this->m_isUpsideDown);
 
