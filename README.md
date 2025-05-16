@@ -1,5 +1,6 @@
 ![](./manual%20images/titlebg.png?raw=true)
 <h1 align="center">$$\text{\color{yellow}Chroma Icons Reanimate Project}$$</h1>
+
 So as you can see, former [Chroma Icons](https://github.com/Naxrin/Chroma-Icons) returns.  
 In this new project, I rewrite almost the whole mod, not only the menu, but also the chroma engine.
 
