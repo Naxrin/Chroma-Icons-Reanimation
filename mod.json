@@ -1,12 +1,12 @@
 {
-	"geode": "4.3.1",
+	"geode": "4.6.1",
 	"gd": {
 		"win":"2.2074",
 		"android": "2.2074",
 		"mac": "2.2074",
 		"ios": "2.2074"
 	},
-	"version": "v3.5.4",
+	"version": "v3.5.5",
 	"id": "naxrin.chroma_icons",
 	"name": "Chroma Icons",
 	"developer": "Naxrin",
@@ -31,7 +31,7 @@
 	    },
 		{
 			"id":"alphalaneous.happy_textures",
-			"version": "1.6.3",
+			"version": "2.0.0",
 			"importance": "required"
 	    },
 		{

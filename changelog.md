@@ -1,5 +1,10 @@
 Working for Transparent BG these days, this mod won't be that update active
 
+# 3.5.5
+### Update
+- Bump Happy Textures Version to 2.0.0 as the requirement;
+- New banner in about.md (planned to release in 3.6.0)
+
 # 3.5.4
 ### Bugfix
 - Fix ghost trails issue when flipped gravity or going upside down
