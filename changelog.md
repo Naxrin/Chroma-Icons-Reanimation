@@ -1,4 +1,9 @@
-Working for Transparent BG these days, this mod won't be that update active
+# 3.5.6
+### Bugfix
+- Fix crash with Icon Kit;
+### Note
+- Icon Kit is using a shader i guess, my mod will not work properly on playyer icons' sprites with Icon Kit. And ghost trail will be disabled under Robot / Spider mode (w/ icon kit loaded), I don't know how to fix that for now. In a word, only crash is fixed.
+- Chroma Icons is not a completed / dead project, but updating this need time and it is not coming soon :/
 
 # 3.5.5
 ### Update

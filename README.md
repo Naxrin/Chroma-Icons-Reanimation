@@ -141,11 +141,10 @@ In future update I may set them to Advanced-Mode Only.
 Customize appearance of the mod menu.  
   
 ## Claim
-All stuff related to blur background in this mod are copy from TheSillyDoggo's [Blur BG](https://github.com/TheSillyDoggo/Blur-BG)  
-Will pull request soon and set that as dependency if Blur BG is added to index later.  
+- All stuff related to blur background in this mod are copy from TheSillyDoggo's [Blur BG](https://github.com/TheSillyDoggo/Blur-BG)  
   
-## Contact me outside Github:
-- Discord: Naxrin#6957 (recommended)  
-- Twitter: @Naxrin19  
-  
-~~But why not directly create an issue here?~~
+### <cy>Contact / Report Bugs</c>
+- Github issue
+- Discord: [Naxrin#6957](https://discordapp.com/users/414986613962309633) (recommended)  
+- Twitter / X: [@Naxrin19](https://x.com/Naxrin19) (not really check it often)
+- In-Game ID: Naxrin

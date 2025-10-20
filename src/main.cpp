@@ -35,6 +35,8 @@ extern std::map<short, ChromaSetup> setups;
 // main/second/glow/detail of globed progress bar icon
 ccColor3B barm, bars, barg, barw;
 
+bool IconKit = Loader::get()->isModLoaded("undefined0.icon-kit");
+
 // garage button
 #include <Geode/modify/GJGarageLayer.hpp>
 class $modify(IconLayer, GJGarageLayer) {
@@ -307,6 +309,12 @@ class $modify(ChromaPlayer, PlayerObject) {
         // default color
         ccColor3B main, second, glow;
     };
+
+	static void onModify(auto& self) {
+        if (!self.setHookPriorityPost("PlayerObject::update", Priority::Late))
+            log::warn("Failed to set hook priority.");
+    }
+
     // record this player's pointer
     bool init(int p0, int p1, GJBaseGameLayer *p2, cocos2d::CCLayer *p3, bool p4) {
         reset[this] = false;
@@ -485,13 +493,18 @@ class $modify(ChromaPlayer, PlayerObject) {
         auto r = this->getRotation() + (this->m_isSideways ? 90.f : 0.f);
 
         if (m_isRobot)
-            target = static_cast<CCSprite*>(m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1));
+            target = IconKit ? static_cast<CCSprite*>(m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByID("undefined0.icon-kit/funny-robot-sprite"))
+                : static_cast<CCSprite*>(m_robotSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1));
         else if (m_isSpider)
-            target = static_cast<CCSprite*>(m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1));
+            target = IconKit ? static_cast<CCSprite*>(m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByID("undefined0.icon-kit/funny-spider-sprite"))
+                : static_cast<CCSprite*>(m_spiderSprite->getChildByType<CCPartAnimSprite>(0)->getChildByTag(1));
         else if ((m_isShip || m_isBird) && opts["vehi-ghost"])
             target = m_vehicleSprite;
         else
             target = m_iconSprite;
+
+        if (!target)
+            return;
 
         auto dp = target->getPosition();
         auto dr = target->getRotation();

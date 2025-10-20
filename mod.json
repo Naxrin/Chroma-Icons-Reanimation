@@ -1,17 +1,19 @@
 {
-	"geode": "4.6.1",
+	"geode": "4.9.0",
 	"gd": {
 		"win":"2.2074",
 		"android": "2.2074",
 		"mac": "2.2074",
 		"ios": "2.2074"
 	},
-	"version": "v3.5.5",
+	"version": "v3.5.6",
 	"id": "naxrin.chroma_icons",
 	"name": "Chroma Icons",
 	"developer": "Naxrin",
 	"description": "Chroma Everything of Your Icons!",
-	"repository":"https://github.com/Naxrin/Chroma-Icons-Reanimation",
+	"links": {
+		"source": "https://github.com/Naxrin/Chroma-Icons-Reanimation"
+	},
 	"resources": {
 		"sprites": [
 			"resources/*.png",
@@ -23,21 +25,19 @@
 			"resources/blur/*.glsl"
 		]
 	},
-	"dependencies": [
-		{
-			"id":"geode.node-ids",
+	"dependencies": {
+		"geode.node-ids": {
 			"version": "1.20.1",
 			"importance": "required"
 	    },
-		{
-			"id":"alphalaneous.happy_textures",
+		"alphalaneous.happy_textures": {
 			"version": "2.0.0",
 			"importance": "required"
 	    },
-		{
-			"id":"hiimjustin000.more_icons",
+		"hiimjustin000.more_icons": {
 			"version": "1.4.6",
-			"importance": "suggested"
-	    }
-	]
+			"importance": "suggested"			
+		}
+	}
+
 }
