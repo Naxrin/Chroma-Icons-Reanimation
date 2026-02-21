@@ -29,7 +29,7 @@ inline void hide(T node, float scaleX, float scaleY) {
 
 // fubao is like a clever neko witch
 // miss her super much
-class ChromaLayer : public Popup<>, public ColorPickerDelegate {
+class ChromaLayer : public Popup, public ColorPickerDelegate {
 protected:
     /********** VARIENT CENTRAL ***********/
 
@@ -196,28 +196,16 @@ protected:
     // hint content
     CCLabelBMFont* m_lbfHintContent;
 
-    /********** LISTENERS ***********/
-
-    EventListener<EventFilter<SignalEvent<bool>>> listenerBool
-        = EventListener<EventFilter<SignalEvent<bool>>>(
-            [this](SignalEvent<bool>* event) -> ListenerResult { return this->handleBoolSignal(event); });
-
-    EventListener<EventFilter<SignalEvent<int>>> listenerInt
-        = EventListener<EventFilter<SignalEvent<int>>>(
-            [this](SignalEvent<int>* event) -> ListenerResult { return this->handleIntSignal(event); });
-
-    EventListener<EventFilter<SignalEvent<float>>> listenerFloat
-        = EventListener<EventFilter<SignalEvent<float>>>(
-            [this](SignalEvent<float>* event) -> ListenerResult { return this->handleFloatSignal(event); });
-
-    EventListener<EventFilter<SignalEvent<ccColor3B>>> listenerColor
-        = EventListener<EventFilter<SignalEvent<ccColor3B>>>(
-            [this] (SignalEvent<ccColor3B>* event) -> ListenerResult { return this->handleColorSignal(event); });
+    // radios
+    std::vector<ListenerHandle> m_radios;
 
     /*********** INITIAL SETUP ***********/
 
     // makup initial UI
-    bool setup() override;
+    bool init() override;
+
+    // initial radios
+    void installRadios();
 
     // make item page
     void makeItemPage();
@@ -300,20 +288,6 @@ protected:
     // run info ui animation
     void fadeInfoPage();
 
-    /*********** EVENT HANDLERS ***********/
-
-    // handle bool signal
-    ListenerResult handleBoolSignal(SignalEvent<bool>* event);
-
-    // handle int signal
-    ListenerResult handleIntSignal(SignalEvent<int>* event);
-
-    // handle float signal
-    ListenerResult handleFloatSignal(SignalEvent<float>* event);
-
-    // handle color signal
-    ListenerResult handleColorSignal(SignalEvent<ccColor3B>* event);
-
     /*************** CALLBACK ***************/
 
     // switch player
@@ -383,7 +357,7 @@ public:
     static ChromaLayer* create() {
         auto layer = new ChromaLayer();
 
-        if (layer && layer->initAnchored(420.f, 280.f)) {
+        if (layer && layer->init()) {
             layer->autorelease();
             return layer;
         };

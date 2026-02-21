@@ -1,5 +1,4 @@
 #include "Layer.hpp"
-#include <random>
 
 // menu type identifier
 enum class LayerType {

@@ -94,8 +94,9 @@ void PickItemButton::setPlayerStatus() {
             // config
             auto name = MI->getSavedValue<std::string>(MInames[index] + (ptwo ? "-dual" : ""));
             // post event
-            DispatchEvent<SimplePlayer*, std::string, IconType>(
-                "hiimjustin000.more_icons/simple-player", player, name, IconType(index)).post();
+            /*
+            Dispatch<SimplePlayer*, std::string, IconType>(
+                "hiimjustin000.more_icons/simple-player", player, name, IconType(index)).post();*/
         }           
     }
     if (SDI && ptwo) {
@@ -209,7 +210,7 @@ bool SliderBundleBase::init(std::string topic, const char* title, float value, f
     m_inputer->setScale(inputerScale);
     m_inputer->setFilter(fmt::format("1234567890{}{}", this->is_int ? "" : ".", this->min < 0 ? "-" : ""));
     m_inputer->setDelegate(this);
-    m_inputer->getChildByType<CCScale9Sprite>(0)->setVisible(false);
+    //m_inputer->getChildByType<CCScale9Sprite>(0)->setVisible(false);
     m_inputer->setID("text-input");
     this->addChild(m_inputer);
 

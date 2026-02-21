@@ -1,3 +1,15 @@
+# 4.5.6
+### Addition
+- Port to Geode 5 @ gd 2.208
+- Along with event rewritten
+### Notice
+- More Icons is not ported yet, current footage will have compatibility issues with More Icons loaded in the future (won't crash your game though)
+### ToDo
+- New Logic
+- More modes and more free options
+- New UI (perhaps)
+- Add Solid Wave Trail option (soon)
+
 # 3.5.6
 ### Bugfix
 - Fix crash with Icon Kit;

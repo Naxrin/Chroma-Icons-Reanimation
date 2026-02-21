@@ -1,4 +1,5 @@
 #include "cells.hpp"
+#include "Geode/ui/NineSlice.hpp"
 
 extern std::map<std::string, bool> opts;
 
@@ -12,7 +13,7 @@ bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     this->setID(id);
 
     // bg
-    m_bg = CCScale9Sprite::create("square.png"_spr);
+    m_bg = NineSlice::create("square.png"_spr);
     m_bg->setPosition(CCPoint(size.width/2, size.height/2));
     m_bg->setContentSize(CCSize(size.width+10, size.height+10));
     m_bg->setZOrder(-1);
@@ -248,7 +249,7 @@ void OptionTogglerCell::onOption(CCObject* sender) {
     // option
     opts[this->getID()] = yes;  
     // post signal
-    SignalEvent<bool>(this->getID(), yes).post();
+    Signal<bool>(this->getID()).send(yes);
 
     // switch
     if (this->getID() == "activate") {
@@ -486,7 +487,7 @@ bool ColorValueCell::init(int type) {
     m_inputer->setFilter("1234567890");
     m_inputer->setMaxCharCount(3);
     m_inputer->setDelegate(this);
-    m_inputer->getChildByType<CCScale9Sprite>(0)->setVisible(false);
+    m_inputer->getChildByType<NineSlice>(0)->setVisible(false);
     m_inputer->setScale(0.9);
     m_inputer->setID("text-input");
     this->addChild(m_inputer);
@@ -515,7 +516,7 @@ void ColorValueCell::textChanged(CCTextInputNode* p) {
         if (value > 255)
             value = 255;
         m_slider->setValue(Val2Slider(value));
-        SignalEvent("color-" + rgbLabels[type], value).post();
+        Signal<int>("color-" + rgbLabels[type]).send(value);
     }
 
 }
@@ -531,24 +532,24 @@ void ColorValueCell::textInputClosed(CCTextInputNode* p) {
         input = std::to_string(value);
     }
     p->setString(input);
-    SignalEvent("color-" + rgbLabels[type], value).post();
+    Signal<int>("color-" + rgbLabels[type]).send(value);
 }
 
 void ColorValueCell::onSlider(CCObject* sender) {
     value = Slider2Val(m_slider->getValue());
     m_inputer->setString(std::to_string(value));
-    SignalEvent("color-" + rgbLabels[type], value).post();
+    Signal<int>("color-" + rgbLabels[type]).send(value);
 }
 void ColorValueCell::sliderBegan(Slider *p) {
-    SignalEvent("drag-slider", true).post();
+    Signal<bool>("drag-slider").send(true);
     // tint bg
     this->tint(ANIM_TIME_M, 50 * (type==0), 50 * (type==1), 50 * (type==2));
 }
 void ColorValueCell::sliderEnded(Slider *p) {
-    SignalEvent("drag-slider", false).post();
+    Signal<bool>("drag-slider").send(false);
     // tint bg
     m_bg->runAction(CCTintTo::create(ANIM_TIME_M, CELL_COLOR));
-    SignalEvent("color-" + rgbLabels[type], value).post();
+    Signal<int>("color-" + rgbLabels[type]).send(value);
 };
 
 void ColorValueCell::Fade(bool in) {
@@ -579,7 +580,7 @@ bool ColorHexCell::init() {
     m_inputer->setFilter("1234567890ABCDEFabcdef");
     m_inputer->setMaxCharCount(6);
     m_inputer->setDelegate(this);
-    m_inputer->getChildByType<CCScale9Sprite>(0)->setVisible(false);
+    m_inputer->getChildByType<NineSlice>(0)->setVisible(false);
     m_inputer->setID("text-input");
     m_inputer->setScale(0.9);
     this->addChild(m_inputer);
@@ -598,7 +599,7 @@ bool ColorHexCell::init() {
 void ColorHexCell::textChanged(CCTextInputNode* p) {
     str = p->getString();
     if (auto color = cc3bFromHexString(p->getString(), true))
-        SignalEvent("color-hex", color.unwrap()).post();
+        Signal<ccColor3B>("color-hex").send(color.unwrap());
 }
 
 void ColorHexCell::Fade(bool in) {

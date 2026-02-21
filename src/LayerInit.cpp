@@ -4,7 +4,10 @@ extern std::map<std::string, bool> opts;
 extern float speed;
 
 // makup initial UI (only main page)
-bool ChromaLayer::setup() {
+bool ChromaLayer::init() {
+    if (!Popup::init(420.f, 280.f))
+        return false;
+    
     // set id
     this->setID("chroma-icons-central"_spr);
     this->m_gamemode = this->m_gamemodeAdv = opts["easy"] ? Gamemode::Icon : Gamemode::Cube;
@@ -97,6 +100,8 @@ bool ChromaLayer::setup() {
 
     menuMain->setOpacity(0);
     menuMain->setScale(1.4);
+
+    this->installRadios();
 
     return true;
 }

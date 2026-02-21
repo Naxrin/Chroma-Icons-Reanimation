@@ -1,4 +1,5 @@
 #include "Layer.hpp"
+#include <regex>
 
 extern std::map<short, ChromaSetup> setups;
 extern std::map<std::string, bool> opts;
@@ -268,7 +269,7 @@ void ChromaLayer::fadePopupPage() {
             fade(static_cast<CCMenuItem*>(node), in, ANIM_TIME_M);
         else {
             auto id = node->getID();
-            float scale = stof(id);
+            float scale = numFromString<float>(id).unwrap();
             fade(node, in, ANIM_TIME_M, in ? scale : scale / 2, in ? scale : scale / 2);
         }
 

@@ -1,4 +1,5 @@
 // This file describes how the layer process direct callback from his buttons and signal from other menu classes inside.
+#include "Geode/loader/Event.hpp"
 #include "Layer.hpp"
 #include <Geode/ui/GeodeUI.hpp>
 
@@ -9,9 +10,9 @@ extern float speed;
 std::map<PlayerObject*, bool> reset;
 
 /**************** EVENT HANDLER *******************/
-ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
-    // activate
-    if (event->name == "activate") {
+
+void ChromaLayer::installRadios() {
+    this->m_radios.push_back(Signal<bool>("activate").listen([this] (bool activate) -> ListenerResult {
         if (!reset.empty())
             for (auto [key, _] : reset)
                 reset[key] = true;
@@ -22,32 +23,35 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
         m_cellItemEffect->toggleChroma();
 
         // setup item
-        if (!m_hasSetupPage)
-            return ListenerResult::Stop;
-        for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsAdv->m_contentLayer->getChildren()))
-            cell->toggleChroma(cell == m_currentTab);
-        for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsEasy->m_contentLayer->getChildren()))
-            cell->toggleChroma(cell == m_currentTab);
-    }
-    
-    // switch
-    else if (event->name == "prev") {
+        if (m_hasSetupPage){
+            for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsAdv->m_contentLayer->getChildren()))
+                cell->toggleChroma(cell == m_currentTab);
+            for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsEasy->m_contentLayer->getChildren()))
+                cell->toggleChroma(cell == m_currentTab);            
+        }
+
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<bool>("prev").listen([this] (bool prev) -> ListenerResult {
         if (opts["activate"]) {
             // toggle preview
             m_cellItemAdv->toggleChroma();
             m_cellItemEasy->toggleChroma();
             m_cellItemEffect->toggleChroma();
         }
-    }
 
-    // switch theme
-    else if (event->name == "dark-theme")
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<bool>("dark-theme").listen([this] (bool dark) -> ListenerResult {
         this->switchTheme();
+        return ListenerResult::Stop;
+    }));
 
-    // blur bg switch
-    else if (event->name == "blur-bg") {
+    this->m_radios.push_back(Signal<bool>("blur-bg").listen([this] (bool blur) -> ListenerResult {
         if (m_blur) {
-            if (event->value) {
+            if (blur) {
                 this->m_blur->setVisible(true);
                 this->m_blur->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 255)));
                 this->m_bg->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 144)));
@@ -56,61 +60,20 @@ ListenerResult ChromaLayer::handleBoolSignal(SignalEvent<bool>* event) {
                 this->m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, 196));
             }
         }
-    }
+        return ListenerResult::Stop;
+    }));
 
-    // check best toggler in workspace
-    else if (event->name == "best") {
-        m_currentSetup.best = event->value;
-        this->dumpConfig();
-    }
+    this->m_radios.push_back(Signal<bool>("drag-slider").listen([this] (bool drag) -> ListenerResult {
+        this->m_onSlider = drag;
+        return ListenerResult::Stop;
+    }));
 
-
-    // never allow on close when dragging slider
-    else if (event->name == "drag-slider")
-        this->m_onSlider = event->value;
-
-    return ListenerResult::Stop;
-}
-
-ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
-    // drag speed slider
-    if (event->name == "mode") {
-        this->m_currentSetup.mode = event->value;
-        this->m_cellWorkspace->refreshUI(m_currentSetup, true);
-        this->dumpConfig();
-    }
-
-    // set duty value
-    else if (event->name == "duty") {
-        // cache
-        ccColor3B grad1 = m_currentSetup.gradient.begin()->second;
-        ccColor3B grad2 = m_currentSetup.gradient.rbegin()->second;
-        // clear
-        m_currentSetup.gradient.clear();
-        // construct
-        this->m_currentSetup.gradient[0] = grad1;
-        int d = event->value ? (int)round(event->value * 18 / 5) : 1;
-        this->m_currentSetup.gradient[d] = grad2;
-        if (d > 180)
-            this->m_currentSetup.gradient[2 * d - 360] = grad1;
-        if (d < 180)
-            this->m_currentSetup.gradient[360 - d] = grad2;
-        this->dumpConfig();
-    }
-
-    // set saturation
-    else if (event->name == "satu") {
-        this->m_currentSetup.satu = event->value;
-        this->dumpConfig();
-    }
-
-    // pick an item from item page or setup page
-    else if (event->name == "pick") {
+    this->m_radios.push_back(Signal<int>("pick").listen([this] (int tab) -> ListenerResult {
         // from item menu icon
         if (this->m_pages.back() == Page::Item) {
             if (!this->m_hasSetupPage)
                 this->makeSetupPage();
-            this->switchTab(event->value);
+            this->switchTab(tab);
             this->m_cellWorkspace->refreshUI(m_currentSetup, false);
             this->m_pages.push_back(Page::Setup);
             this->fadeItemPage();
@@ -124,11 +87,11 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
                     fade(m_btnApply, m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
                 }),
                 nullptr
-            ));            
+            ));
         }
         // from setup menu icon
         else if (this->m_pages.back() == Page::Setup) {
-            bool really_changed = this->switchTab(event->value);
+            bool really_changed = this->switchTab(tab);
             if (really_changed) {
 
                 // show or hide channel switch arrow
@@ -154,10 +117,10 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
                 ));          
             }
         }
-    }
+        return ListenerResult::Stop;
+    }));
 
-    // launch color page
-    else if (event->name == "color") {
+    this->m_radios.push_back(Signal<int>("color").listen([this] (int tag) -> ListenerResult {
         if (!this->m_hasColorPage)
             this->makeColorPage();
 
@@ -172,7 +135,7 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
             break;
         }
         // color page
-        this->m_colorTag = event->value;
+        this->m_colorTag = tag;
         ccColor3B col = getColorTarget()->getColor();
         this->m_oriColor = col;
         this->m_crtColor = col;
@@ -187,35 +150,20 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
             }),
             nullptr
         ));
-    }
+        return ListenerResult::Stop;
+    }));
 
-    // R cell
-    else if (event->name == "color-R") {
-        m_crtColor.r = event->value;
-        this->refreshColorPage(1);
-    }
-    // G cell
-    else if (event->name == "color-G") {
-        m_crtColor.g = event->value;
-        this->refreshColorPage(1);
-    }
-    // B cell
-    else if (event->name == "color-B") {
-        m_crtColor.b = event->value;
-        this->refreshColorPage(1);
-    }
-
-    // warn page feedback
-    else if (event->name == "warning")
-        switch (event->value) {
+    this->m_radios.push_back(Signal<int>("warning").listen([this] (int warn) -> ListenerResult {
+        switch (warn) {
         // never remind
         case 2:
-            Mod::get()->setSavedValue("notify", false);
+            Mod::get()->setSavedValue("notified", true);
         // remind next time
         case 1:
             m_pages.pop_back();
             // leave warn page
             this->fadeWarnPage();
+            // go to main menu
             m_pages.push_back(Page::Init);
             // fade in item page
             this->fadeMainMenu();
@@ -228,26 +176,76 @@ ListenerResult ChromaLayer::handleIntSignal(SignalEvent<int>* event) {
         default:
             this->onClose(nullptr);
         }
-        
-    return ListenerResult::Stop;
-}
+        return ListenerResult::Stop;
+    }));
 
-ListenerResult ChromaLayer::handleFloatSignal(SignalEvent<float>* event) {
-    // drag speed slider
-    if (event->name == "speed") {
-        Mod::get()->setSavedValue("speed", event->value);
-        speed = event->value;
-    }
-    return ListenerResult::Stop;
-}
+    this->m_radios.push_back(Signal<int>("mode").listen([this] (int mode) -> ListenerResult {
+        this->m_currentSetup.mode = mode;
+        this->m_cellWorkspace->refreshUI(m_currentSetup, true);
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
 
-ListenerResult ChromaLayer::handleColorSignal(SignalEvent<ccColor3B>* event) {
-    // drag speed slider
-    if (event->name == "color-hex") {
-        m_crtColor = event->value;
+    this->m_radios.push_back(Signal<ccColor3B>("color-hex").listen([this] (ccColor3B color) -> ListenerResult {
+        m_crtColor = color;
         this->refreshColorPage(2);
-    }
-    return ListenerResult::Stop;
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<float>("speed").listen([this] (float speed) -> ListenerResult {
+        Mod::get()->setSavedValue("speed", speed);
+        //this->speed = speed;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("duty").listen([this] (int duty) -> ListenerResult {
+        // cache
+        ccColor3B grad1 = m_currentSetup.gradient.begin()->second;
+        ccColor3B grad2 = m_currentSetup.gradient.rbegin()->second;
+        // clear
+        m_currentSetup.gradient.clear();
+        // construct
+        this->m_currentSetup.gradient[0] = grad1;
+        int d = duty ? (int)round(duty * 18 / 5) : 1;
+        this->m_currentSetup.gradient[d] = grad2;
+        if (d > 180)
+            this->m_currentSetup.gradient[2 * d - 360] = grad1;
+        if (d < 180)
+            this->m_currentSetup.gradient[360 - d] = grad2;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("satu").listen([this] (int satu) -> ListenerResult {
+        this->m_currentSetup.satu = satu;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("color-R").listen([this] (int r) -> ListenerResult {
+        m_crtColor.r = r;
+        this->refreshColorPage(1);
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("color-G").listen([this] (int g) -> ListenerResult {
+        m_crtColor.g = g;
+        this->refreshColorPage(1);
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("color-b").listen([this] (int b) -> ListenerResult {
+        m_crtColor.r = b;
+        this->refreshColorPage(b);
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<bool>("best").listen([this] (bool best) -> ListenerResult {
+        m_currentSetup.best = best;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
 }
 
 /**************** DIRECT CALLBACK *******************/
@@ -540,10 +538,10 @@ void ChromaLayer::onInfoPage(CCObject*) {
 }
 
 void ChromaLayer::onInfoButtons(CCObject* sender) {
-    Task<bool> task;
+    
     switch (sender->getTag()) {
     case 0:
-        task = geode::openInfoPopup(Mod::get()->getID());
+        geode::openInfoPopup(Mod::get()->getID());
         return;
     case 1:
         CCApplication::sharedApplication()->openURL("https://github.com/Naxrin/Chroma-Icons-Reanimation");

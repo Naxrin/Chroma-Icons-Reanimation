@@ -4,7 +4,6 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/loader/Dispatch.hpp>
-#include <regex>
 
 using namespace geode::prelude;
 
@@ -140,14 +139,8 @@ struct matjson::Serialize<ChromaSetup> {
 
 // Integrated Event Signal Emitter for mod menu
 template<typename T>
-class SignalEvent : public Event {
-public:
-    std::string name;
-    T value;
-    SignalEvent(std::string name, T value) : Event() {
-        this->name = name;
-        this->value = value;
-    }
+struct Signal : public Event<Signal<T>, bool(T), std::string> {
+    using Event<Signal<T>, bool(T), std::string>::Event;
 };
 
 class GJItemEffect : public CCSprite {

@@ -138,20 +138,20 @@ public:
     }
     // mute onClose
     void sliderBegan(Slider *p) override {
-        SignalEvent("drag-slider", true).post();
+        Signal<bool>("drag-slider").send(true);
     };
     // unmute onClose and post event
     void sliderEnded(Slider *p) override {
-        SignalEvent("drag-slider", false).post();
+        Signal<bool>("drag-slider").send(false);
         this->setVal(this->fromSlider(m_slider->getValue()));
         postEvent();
     };
     // post event
     virtual void postEvent() {
         if (this->is_int)
-            SignalEvent(this->topic, (int)value).post();
+            Signal<int>(this->topic).send((int)value);
         else
-            SignalEvent(this->topic, value).post();
+            Signal<float>(this->topic).send(value);
     }
     float getVal() {
         return this->value;
@@ -199,13 +199,13 @@ protected:
     void onToggle(CCObject*) {
         // mode
         if (type == OptionLineType::Title)
-            SignalEvent("mode", mode).post();
+            Signal<int>("mode").send(mode);
         // best toggler
         else if (type == OptionLineType::Toggler)
-            SignalEvent("best", !m_toggler->isToggled()).post();
+            Signal<bool>("best").send(!m_toggler->isToggled());
     };
     void onPickColor(CCObject* sender) {
-        SignalEvent("color", sender->getTag()).post();
+        Signal<int>("color").send(sender->getTag());
     };
 public:
     // line ui type

@@ -2,12 +2,13 @@
 // This file includes all self-defined cell class
 #pragma once
 
+#include "Geode/ui/NineSlice.hpp"
 #include "mynode.hpp"
 
-// This class works as a CCNode with a CCScale9Sprite background
+// This class works as a CCNode with a new CCScale9Sprite background
 class BaseCell : public CCMenu {
 protected:
-    CCScale9Sprite* m_bg;
+    NineSlice* m_bg;
     // setup
     bool setup(CCPoint point, CCSize size, int tag, std::string id);
 public:
@@ -34,7 +35,7 @@ protected:
 
     bool init() override;
     void onClick(CCObject* sender) {
-        SignalEvent("warning", sender->getTag()).post();
+        Signal<int>("warning").send(sender->getTag());
     }
 public:
     void Fade(bool in) override {
@@ -148,7 +149,7 @@ protected:
     // tag = 1/2/3 -> adv/easy/effect
     bool init(int tag);
     void onPickItem(CCObject* sender) {
-        SignalEvent("pick", sender->getTag()).post();
+        Signal<int>("pick").send(sender->getTag());
     }
 public:
     void Fade(bool) override;
@@ -194,7 +195,7 @@ protected:
     bool init(int index, float Y, int tag);
     // click the button
     void onPickItem(CCObject* sender) {
-        SignalEvent("pick", this->index).post();
+        Signal<int>("pick").send(this->index);
     }
 public:
     void switchPlayer() {
