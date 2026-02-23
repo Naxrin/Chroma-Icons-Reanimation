@@ -10,7 +10,7 @@ void ChromaLayer::show() {
     this->getChildByType<CCLayer>(0)->setVisible(false);
     // fade the bg from 0 to 120
     this->setOpacity(0);
-    this->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 100)));
+    //this->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 100)));
     // check warn
     bool warn = false;
     if (Mod::get()->getSavedValue<bool>("notify", true))
@@ -42,16 +42,7 @@ void ChromaLayer::show() {
 
     // run base function
     Popup::show();
-    float opacity = 196.f;
-    // blur
-    if (Mod::get()->getSavedValue<bool>("blur-bg", true)) {
-        m_blur->runAction(CCEaseExponentialOut::create(CCFadeIn::create(ANIM_TIME_L)));   
-        opacity = 144.f;
-    }
-    else {
-        m_blur->setVisible(false);
-        m_blur->setOpacity(0);
-    }
+    float opacity = 160.f;
     m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, opacity));
 }
 

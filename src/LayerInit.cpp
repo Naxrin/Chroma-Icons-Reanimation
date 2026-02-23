@@ -20,19 +20,9 @@ bool ChromaLayer::init() {
     m_bg->setZOrder(-2);
     m_bg->setID("bg");
     this->addChild(m_bg);
-
     // blur
-    // for pre-release TheSillyDoggo's blur-bg is not needed
-    // this mod make up blur background by himself
-    if (auto blur = this->getChildByType<CCBlurLayer>(0))
-        m_blur = blur;
-    else {
-        m_blur = CCBlurLayer::create();
-        m_blur->setID("chroma-blur-layer");
-        m_blur->setZOrder(-69);
-        //m_blur->runAction(CCFadeTo::create(0.5f, 255));
-        this->addChild(m_blur);
-    }
+    if (opts["blur-bg"])
+    BlurAPI::addBlur(this->m_bg);
     
     /********** Main Menu **********/
     auto menuMain = CCMenu::create();
@@ -93,7 +83,6 @@ bool ChromaLayer::init() {
     m_btnMode->setTag(3);
     m_btnMode->setCascadeOpacityEnabled(true);
     m_btnMode->setCascadeColorEnabled(true);
-    //m_modeBtn->setColor(opts["easy"] ? ccc3(127, 127, 255) : ccc3(255, 127, 127));
     m_btnMode->setColor(ccc3(CELL_COLOR));    
     m_btnMode->toggle(opts["easy"]);
     menuMain->addChild(m_btnMode);
@@ -655,7 +644,6 @@ void ChromaLayer::makeInfoPage() {
     menuManual->setID("manual-menu");
     menuManual->setPosition(CCPoint(0.f, 50.f));
     menuManual->setAnchorPoint(CCPoint(0.5, 0.5));
-    menuManual->ignoreAnchorPointForPosition(false);
     menuManual->setContentSize(CCSize(300.f, 20.f));
     menuInfo->addChild(menuManual);
 
@@ -674,14 +662,13 @@ void ChromaLayer::makeInfoPage() {
     menuManual->setLayout(AxisLayout::create()
         ->setGap(10.f)
         ->setAxisAlignment(AxisAlignment::Center)
+        ->ignoreInvisibleChildren(false)
     );
-    menuManual->updateLayout();
 
     auto menuAuthor = CCMenu::create();
     menuAuthor->setID("author-menu");
     menuAuthor->setPosition(CCPoint(0.f, -20.f));
     menuAuthor->setAnchorPoint(CCPoint(0.5, 0.5));
-    menuAuthor->ignoreAnchorPointForPosition(false);
     menuAuthor->setContentSize(CCSize(300.f, 20.f));
     menuInfo->addChild(menuAuthor);
 
@@ -703,8 +690,8 @@ void ChromaLayer::makeInfoPage() {
     menuAuthor->setLayout(AxisLayout::create()
         ->setGap(10.f)
         ->setAxisAlignment(AxisAlignment::Center)
+        ->ignoreInvisibleChildren(false)
     );
-    menuAuthor->updateLayout();
 
     auto lbfCreditTitle = CCLabelBMFont::create("Special Thanks", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     lbfCreditTitle->setPosition(CCPoint(0.f, -60.f));

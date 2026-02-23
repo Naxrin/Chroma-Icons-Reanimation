@@ -3,7 +3,7 @@
 #include "include/cells.hpp"
 
 #include <Geode/ui/Popup.hpp>
-#include "blur/CCBlurLayer.hpp"
+#include "BlurAPI.hpp"
 
 // interface code in menu
 enum class Page {
@@ -106,9 +106,6 @@ protected:
 
     // background
     CCLayerColor* m_bg = nullptr;
-    // blur layer
-    CCBlurLayer* m_blur = nullptr;
-
 
     // all cell nodes to switch theme (except option cells)
     CCArrayExt<BaseCell*> m_cells;

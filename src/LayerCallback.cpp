@@ -1,5 +1,4 @@
 // This file describes how the layer process direct callback from his buttons and signal from other menu classes inside.
-#include "Geode/loader/Event.hpp"
 #include "Layer.hpp"
 #include <Geode/ui/GeodeUI.hpp>
 
@@ -50,6 +49,7 @@ void ChromaLayer::installRadios() {
     }));
 
     this->m_radios.push_back(Signal<bool>("blur-bg").listen([this] (bool blur) -> ListenerResult {
+        /*
         if (m_blur) {
             if (blur) {
                 this->m_blur->setVisible(true);
@@ -59,7 +59,11 @@ void ChromaLayer::installRadios() {
                 this->m_blur->runAction(CCFadeOut::create(ANIM_TIME_L));
                 this->m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, 196));
             }
-        }
+        }*/
+        if (blur)
+            BlurAPI::addBlur(this->m_bg);
+        else
+            BlurAPI::removeBlur(this->m_bg);
         return ListenerResult::Stop;
     }));
 
@@ -693,9 +697,6 @@ void ChromaLayer::onClose(CCObject* sender) {
         this->fadeMainMenu();
         this->runAction(CCFadeTo::create(ANIM_TIME_L, 0));
         m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, 0));
-        // blur
-        if (m_blur)
-            m_blur->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 0)));
         // delayed base close
         this->runAction(CCSequence::create(
             CCDelayTime::create(ANIM_TIME_L),
@@ -708,9 +709,6 @@ void ChromaLayer::onClose(CCObject* sender) {
         this->fadeWarnPage();
         this->runAction(CCFadeTo::create(ANIM_TIME_L, 0));
         m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, 0));
-        // blur
-        if (m_blur)
-            m_blur->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 0)));
         this->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 0)));
         this->runAction(CCSequence::create(
             CCDelayTime::create(ANIM_TIME_L),
