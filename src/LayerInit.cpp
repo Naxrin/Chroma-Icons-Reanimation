@@ -21,8 +21,9 @@ bool ChromaLayer::init() {
     m_bg->setID("bg");
     this->addChild(m_bg);
     // blur
-    if (opts["blur-bg"])
     BlurAPI::addBlur(this->m_bg);
+    BlurAPI::getOptions(this->m_bg)->forcePasses = true;
+    BlurAPI::getOptions(this->m_bg)->passes = 1 + 9 * opts["blur-bg"];
     
     /********** Main Menu **********/
     auto menuMain = CCMenu::create();

@@ -59,11 +59,12 @@ void ChromaLayer::installRadios() {
                 this->m_blur->runAction(CCFadeOut::create(ANIM_TIME_L));
                 this->m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, 196));
             }
-        }*/
+        }
         if (blur)
             BlurAPI::addBlur(this->m_bg);
         else
-            BlurAPI::removeBlur(this->m_bg);
+            BlurAPI::removeBlur(this->m_bg);*/
+        BlurAPI::getOptions(this->m_bg)->passes = 1 + 9 * blur;
         return ListenerResult::Stop;
     }));
 
