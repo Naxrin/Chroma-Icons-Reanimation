@@ -2,7 +2,6 @@
 // This file includes all self-defined cell class
 #pragma once
 
-#include "Geode/ui/NineSlice.hpp"
 #include "mynode.hpp"
 
 // This class works as a CCNode with a new CCScale9Sprite background
@@ -28,7 +27,7 @@ public:
 class WarnCell : public BaseCell {
 protected:
     CCLabelBMFont* m_title;
-    CCSprite* m_text;
+    MDTextArea* m_text;
     CCMenuItemSpriteExtra* m_btnConfirm;
     CCMenuItemSpriteExtra* m_btnRemind;
     CCMenuItemSpriteExtra* m_btnEscape;
@@ -40,7 +39,10 @@ protected:
 public:
     void Fade(bool in) override {
         BaseCell::Fade(in);
-        fade(m_text, in, ANIM_TIME_L, in ? 0.94 : 0.47, in ? 0.94 : 0.47);
+        fade(m_text, in, ANIM_TIME_L, 1.2 * in, 1.2 * in);
+        //m_text->getChildByIndex(0)->runAction(CCFadeTo::create(ANIM_TIME_L, 75 * in));
+        //m_text->getScrollLayer()->getChildByIndex(0)->runAction(CCFadeTo::create(ANIM_TIME_L, 255 * in));
+
     }
 
     static WarnCell* create() {

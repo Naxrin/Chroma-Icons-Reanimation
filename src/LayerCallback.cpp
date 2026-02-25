@@ -49,21 +49,6 @@ void ChromaLayer::installRadios() {
     }));
 
     this->m_radios.push_back(Signal<bool>("blur-bg").listen([this] (bool blur) -> ListenerResult {
-        /*
-        if (m_blur) {
-            if (blur) {
-                this->m_blur->setVisible(true);
-                this->m_blur->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 255)));
-                this->m_bg->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 144)));
-            } else {
-                this->m_blur->runAction(CCFadeOut::create(ANIM_TIME_L));
-                this->m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, 196));
-            }
-        }
-        if (blur)
-            BlurAPI::addBlur(this->m_bg);
-        else
-            BlurAPI::removeBlur(this->m_bg);*/
         BlurAPI::getOptions(this->m_bg)->passes = 1 + 9 * blur;
         return ListenerResult::Stop;
     }));

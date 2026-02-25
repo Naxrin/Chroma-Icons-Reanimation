@@ -47,16 +47,25 @@ bool WarnCell::init() {
     m_title->setScale(0.8);
     this->addChild(m_title);
 
-    m_text = CCSprite::create("warning.png"_spr); // fmt::format("warning.png"_spr, Mod::get()->getSavedValue<bool>("dark-theme", true) ? "black" : "white"
+    this->m_text = MDTextArea::create(
+        "- It looks like your are playing an extreme demon, perhaps also a list demon (Chroma Icons doesn't access Pointercrate so idk)."
+        "Grateful for your enjoyiing this mod though, I should remind you:"
+        "- Regarding Pointercrate and some other lists' guidelines and policies, despite time-varient player colors may be allowed sometimes,"
+        "<cr>quite a lot</c> behaviors of this mod may break the lists' guidelines for submission, <cr>especially you editing chroma patterns in halfway beating a demon;</c>"
+        "Those will likely result in your submission getting <cr>**REJECTED**</c>."
+        "- Considering list points might be one of the reasons you are right here ~~or even the only~~, are you still gonna go ahead, my friend?",
+        ccp(333.f, 120.f)
+    );
+    //m_text->getChildByIndex(0)->runAction(CCFadeTo::create(0, 0));
+    //m_text->getScrollLayer()->getChildByIndex(0)->runAction(CCFadeTo::create(0, 0));
     m_text->setPosition(CCPoint(210.f, 170.f));
-    m_text->setScale(0.94);
-    //m_text->setContentSize(CCSize(400.f, 120.f));
+    m_text->setScale(1.2);
     this->addChild(m_text);
 
     auto labConfirm = CCLabelBMFont::create("YES ALWAYS", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     labConfirm->setScale(0.4);
     m_btnConfirm = CCMenuItemSpriteExtra::create(labConfirm, this, menu_selector(WarnCell::onClick));
-    m_btnConfirm->setPosition(CCPoint(210.f, 90.f));
+    m_btnConfirm->setPosition(CCPoint(210.f, 84.f));
     //m_btnConfirm->setColor(ccc3(255-col, 255-col, 255-col));
     m_btnConfirm->setTag(2);
     this->addChild(m_btnConfirm);
@@ -64,7 +73,7 @@ bool WarnCell::init() {
     auto hintConfirm = CCLabelBMFont::create(
         "I know what this mod means to record submission, never pop it again.",
         "ErasLight.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
-    hintConfirm->setPosition(CCPoint(210.f, 78.f));
+    hintConfirm->setPosition(CCPoint(210.f, 72.f));
     hintConfirm->setColor(ccc3(255, 255, 0));
     hintConfirm->setScale(0.6);
     this->addChild(hintConfirm);
@@ -72,7 +81,7 @@ bool WarnCell::init() {
     auto labRemind = CCLabelBMFont::create("YES THIS TIME", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     labRemind->setScale(0.4);
     m_btnRemind = CCMenuItemSpriteExtra::create(labRemind, this, menu_selector(WarnCell::onClick));
-    m_btnRemind->setPosition(CCPoint(210.f, 55.f));
+    m_btnRemind->setPosition(CCPoint(210.f, 52.f));
     //m_btnRemind->setColor(ccc3(255-col, 255-col, 255-col));
     m_btnRemind->setTag(1);
     this->addChild(m_btnRemind);
@@ -80,7 +89,7 @@ bool WarnCell::init() {
     auto hintRemind = CCLabelBMFont::create(
         "Yes for now but please still remind me next time.",
         "ErasLight.fnt"_spr, 400.f, CCTextAlignment::kCCTextAlignmentCenter);
-    hintRemind->setPosition(CCPoint(210.f, 43.f));
+    hintRemind->setPosition(CCPoint(210.f, 40.f));
     hintRemind->setColor(ccc3(255, 255, 0));
     hintRemind->setScale(0.6);
     this->addChild(hintRemind);
