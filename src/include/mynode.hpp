@@ -79,6 +79,26 @@ public:
     }
 };
 
+// geode's MDTextArea for mod description, but what if I don't need the ScrollLayer
+/*
+class FixedMDTextArea : public MDTextArea {
+protected:
+    bool init(std::string text, CCSize const& size) override {
+        if (!MDTextArea::init(text, size))
+    }
+public:
+    // constructor for effects
+    static FixedMDTextArea* create(std::string text, CCSize const& size) {
+        auto node = new PickItemButton();
+        if (node && node->init(text, size)) {
+            node->autorelease();
+            return node;
+        };
+        CC_SAFE_DELETE(node);
+        return nullptr;
+    }
+}*/
+
 // a node with feedback logic design of a slider + input
 class SliderBundleBase : public CCMenu, public TextInputDelegate, public SliderDelegate {
 protected:

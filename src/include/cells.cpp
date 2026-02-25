@@ -49,10 +49,10 @@ bool WarnCell::init() {
 
     this->m_text = MDTextArea::create(
         "- It looks like your are playing an extreme demon, perhaps also a list demon (Chroma Icons doesn't access Pointercrate so idk)."
-        "Grateful for your enjoyiing this mod though, I should remind you:"
+        "Grateful for your enjoyiing this mod though, I should remind you:\n"
         "- Regarding Pointercrate and some other lists' guidelines and policies, despite time-varient player colors may be allowed sometimes,"
         "<cr>quite a lot</c> behaviors of this mod may break the lists' guidelines for submission, <cr>especially you editing chroma patterns in halfway beating a demon;</c>"
-        "Those will likely result in your submission getting <cr>**REJECTED**</c>."
+        "Those will likely result in your submission getting <cr>**REJECTED**</c>.\n"
         "- Considering list points might be one of the reasons you are right here ~~or even the only~~, are you still gonna go ahead, my friend?",
         ccp(333.f, 120.f)
     );

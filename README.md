@@ -140,8 +140,9 @@ In future update I may set them to Advanced-Mode Only.
 ### Menu Options
 Customize appearance of the mod menu.  
   
-## Claim
-- All stuff related to blur background in this mod are copy from TheSillyDoggo's [Blur BG](https://github.com/TheSillyDoggo/Blur-BG)  
+## Credits
+- Codes for blur background in this mod are copied from TheSillyDoggo's [Blur API](https://github.com/TheSillyDoggo/Blur-API)
+- Also credit his legacy [Blur BG](https://github.com/TheSillyDoggo/Blur-BG), though it's unused since geode 5.x
   
 ### <cy>Contact / Report Bugs</c>
 - Github issue

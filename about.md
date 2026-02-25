@@ -33,8 +33,9 @@ You can access the mod menu either in garage menu or in playing a level.
 - Whenever you change any chroma pattern (e.g. in a paused level), your setup / option changes will take effect immediately (e.g. once you resume to play).
 - For detailed manual, see you in **[ReadMe](https://github.com/Naxrin/Chroma-Icons-Reanimation)** in Github repo. I try my best to describle this mod's base logic there.  
 
-### <cy>Claim</c>
-- All works related to blur background in this mod are copied from TheSillyDoggo's [Blur BG](https://github.com/TheSillyDoggo/Blur-BG)
+### <cy>Credit</c>
+- Codes for blur background in this mod are copied from TheSillyDoggo's [Blur API](https://github.com/TheSillyDoggo/Blur-API)
+- Also credit his legacy [Blur BG](https://github.com/TheSillyDoggo/Blur-BG), though it's unused since geode 5.x
 
 ### <cy>Contact / Report Bugs</c>
 - Github issue

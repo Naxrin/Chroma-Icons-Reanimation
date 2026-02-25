@@ -161,34 +161,21 @@ bool ChromaLayer::switchTab(int tab) {
     return true;
 }
 
-void ChromaLayer::makeHintPopup(std::string title, std::string content) {
+void ChromaLayer::makeHintPopup(std::string title, std::string content, float height) {
     // hint menu
     auto menuHint = CCMenu::create();
+    menuHint->setContentSize(ccp(0.f, 0.f));
+    menuHint->setScaleY(0.f);
     menuHint->setID("popup-menu");
     this->addChild(menuHint);
 
-    // content node
-    auto menuContent = CCMenu::create();
-    menuContent->setPosition(CCPoint(0, 0));
-    menuContent->setAnchorPoint(CCPoint(0.5, 0.5));
-    menuContent->ignoreAnchorPointForPosition(false);
-    menuContent->setCascadeOpacityEnabled(true);
+    auto mdContent = MDTextArea::create(content, ccp(333.f, height));
+    mdContent->setScale(1.2);
+    menuHint->addChild(mdContent);
 
-    auto lbfContent = CCLabelBMFont::create(content.c_str(), "ErasBold.fnt"_spr, 360.f);
-    lbfContent->setColor(ccc3(192, 192, 192));
-    lbfContent->setScale(0.36);
-    auto size = lbfContent->getContentSize();
-    lbfContent->setPosition(CCPoint(0.18 * size.width, 0.18 * size.height));
-    menuContent->addChild(lbfContent);
-
-    menuContent->setContentSize(CCSize(0.36 * size.width, 0.36 * size.height));
-    hide(menuContent, 0.5);
-    menuContent->setID("1");
-    menuContent->setTag(0);
-    menuHint->addChild(menuContent);
 
     auto lbfTitle = CCLabelBMFont::create(title.c_str(), "ErasBold.fnt"_spr, 360.f);
-    lbfTitle->setPositionY(0.18 * size.height + 20.f);
+    lbfTitle->setPositionY(0.6 * height + 10.f);
     hide(lbfTitle, 0.25);
     lbfTitle->setID("0.5");
     lbfTitle->setTag(0);
@@ -197,7 +184,7 @@ void ChromaLayer::makeHintPopup(std::string title, std::string content) {
     auto lbfOkay = CCLabelBMFont::create("Okay", "ErasBold.fnt"_spr, 200.f);
     lbfOkay->setScale(0.5);
     auto btnOkay = CCMenuItemSpriteExtra::create(lbfOkay, this, menu_selector(ChromaLayer::onClose));
-    btnOkay->setPositionY(-0.18 * size.height - 20.f);
+    btnOkay->setPositionY(-0.6 * height - 10.f);
     hide(btnOkay, 0);
     btnOkay->setTag(1);
     menuHint->addChild(btnOkay);

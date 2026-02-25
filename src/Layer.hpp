@@ -237,7 +237,7 @@ protected:
     bool switchTab(int tab);
 
     // make a hint popup
-    void makeHintPopup(std::string title, std::string content);
+    void makeHintPopup(std::string title, std::string content, float height);
 
 
     // ColorPickerDelegate function override

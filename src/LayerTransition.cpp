@@ -231,7 +231,7 @@ void ChromaLayer::fadeColorPage() {
     if (m_btnColorDisplayOri->getTag() == 2)
         this->transistColorBtn(false, false);
     if (m_btnColorDisplayCur->getTag() == 4)
-    this->transistColorBtn(true, false);
+        this->transistColorBtn(true, false);
 
     // mysterious arrow
     fade(m_sprArrow, in, ANIM_TIME_L, in ? 0.6 : 0.3, in ? 0.6 : 0.3);
@@ -264,16 +264,18 @@ void ChromaLayer::fadePopupPage() {
     auto menu = this->getChildByID("popup-menu");
     if (!in && !menu)
         return;
+    fade(menu, in, ANIM_TIME_M, 1, in);
+
+    /*
     for (auto node : CCArrayExt<CCNode*>(menu->getChildren())) {
         if (node->getTag())
             fade(static_cast<CCMenuItem*>(node), in, ANIM_TIME_M);
         else {
             auto id = node->getID();
-            float scale = numFromString<float>(id).unwrap();
             fade(node, in, ANIM_TIME_M, in ? scale : scale / 2, in ? scale : scale / 2);
         }
+    }*/
 
-    }
     if (!in)
         this->runAction(CCSequence::create(
             CCDelayTime::create(ANIM_TIME_M),
