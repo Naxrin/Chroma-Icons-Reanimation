@@ -175,17 +175,18 @@ void ChromaLayer::makeHintPopup(std::string title, std::string content, float he
 
 
     auto lbfTitle = CCLabelBMFont::create(title.c_str(), "ErasBold.fnt"_spr, 360.f);
-    lbfTitle->setPositionY(0.6 * height + 10.f);
-    hide(lbfTitle, 0.25);
-    lbfTitle->setID("0.5");
+    lbfTitle->setPositionY(0.6 * height + 15.f);
+    hide(lbfTitle, 1, 0);
+    lbfTitle->setID("info-title");
     lbfTitle->setTag(0);
     menuHint->addChild(lbfTitle);
 
     auto lbfOkay = CCLabelBMFont::create("Okay", "ErasBold.fnt"_spr, 200.f);
     lbfOkay->setScale(0.5);
     auto btnOkay = CCMenuItemSpriteExtra::create(lbfOkay, this, menu_selector(ChromaLayer::onClose));
-    btnOkay->setPositionY(-0.6 * height - 10.f);
-    hide(btnOkay, 0);
+    btnOkay->setPositionY(-0.6 * height - 15.f);
+    hide(btnOkay, 1, 0);
+    btnOkay->setID("info-button");
     btnOkay->setTag(1);
     menuHint->addChild(btnOkay);
 }

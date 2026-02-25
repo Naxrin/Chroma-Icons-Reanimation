@@ -38,7 +38,6 @@ void ChromaLayer::switchTheme() {
         }        
     }
 
-    
     // items page
     for (auto obj : CCArrayExt<BaseCell*>(m_cells))
         obj->switchTheme();
@@ -265,7 +264,8 @@ void ChromaLayer::fadePopupPage() {
     if (!in && !menu)
         return;
     fade(menu, in, ANIM_TIME_M, 1, in);
-
+    fade(menu->getChildByID("info-title"), in, ANIM_TIME_M, 0.6, 0.6 * in);
+    fade(menu->getChildByID("info-button"), in, ANIM_TIME_M, 1, in);
     /*
     for (auto node : CCArrayExt<CCNode*>(menu->getChildren())) {
         if (node->getTag())

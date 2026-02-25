@@ -40,8 +40,6 @@ public:
     void Fade(bool in) override {
         BaseCell::Fade(in);
         fade(m_text, in, ANIM_TIME_L, 1.2 * in, 1.2 * in);
-        //m_text->getChildByIndex(0)->runAction(CCFadeTo::create(ANIM_TIME_L, 75 * in));
-        //m_text->getScrollLayer()->getChildByIndex(0)->runAction(CCFadeTo::create(ANIM_TIME_L, 255 * in));
 
     }
 

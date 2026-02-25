@@ -22,7 +22,6 @@ Toggle <cg>ON</c> / <cr>OFF</c> the whole mod anytime you want!
 - Regarding Pointercrate and some other Lists' policy for Icon Effects of Mega Hack , when setting your player icons variable in playing a list level, some chroma patterns may really <cy>**Violate guidelines**</c> and result in your submission getting <cr>**REJECTED**</c>. This mod will NEVER take responsibility for your ignoring this.
   
 - Despite effort made on compatibility, This mod may very probably conflict with other related Icon Color modifier mods (e.g. Same Dual Color). I'm not willing to set them conflict to force you pick one, so you can take the attempt yourself (most times they won't crash the game), also you can contact me to look into your conflict mods.
-
 ## <cy>How to use this mod?</c>
 This mod adds its menu entrance button to:
 - **Icon Select Menu**

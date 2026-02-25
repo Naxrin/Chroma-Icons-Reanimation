@@ -309,7 +309,7 @@ void ChromaLayer::onShowPopup(CCObject* sender) {
                 opts["easy"] ? "You are now in Easy Mode, **\"Icon\"** means your current config will work regardless of your player icons' gamemode."
                     : fmt::format("Your current modifying chroma pattern will only affect your player icon when she is in **{}** mode.",
                     items[(int)this->m_gamemode]),
-                24.f
+                30.f
             );
             break;
         // channel hint
@@ -318,13 +318,13 @@ void ChromaLayer::onShowPopup(CCObject* sender) {
                 "Channel Indicator",
                 "Channel Indicator means the target icon sprite part or effect you're currently modifying for current gamemode.\n"
                 "- Main / Second / Glow -> Robtop's official paint area.\n"
-                "- White -> Extra detail sprite that keeps white in original games.\n"
-                "**Also note that:  **\n"
+                "- White -> Extra detail sprite that keeps white in original games.  \n"
+                "**Also note that:**\n"
                 "- Ghost Trail is overwritten fixed and may not perfectly match RobTop's work.\n"
                 "- You can turn off my fix but ghost trail chroma will not work then.\n"
                 "- Rainbow and Fire Regular Trail will neither get rendered by RobTop nor Chroma Icons.\n"
                 "- Spider TP line is also fixed, this fix is optional but teleport line chroma **will not work** with this fix OFF.",
-                120.f
+                160.f
             );
             break;
         }

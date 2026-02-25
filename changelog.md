@@ -1,17 +1,17 @@
 # 4.5.6
 ### Addition
 - Port to Geode 5 @ gd 2.208
-- Along with event rewritten (it should works the same as before)
+- Along with event rewritten (it should work the same as before)
 - Better blur effects (Thanks to TheSillyDoggo's [Blur API](https://github.com/TheSillyDoggo/Blur-API))
-- Minor changes to option menu cells, the checkbox is now moved to the right-top corner for future update
 - Better warn page, the warn content image is removed to minimize mod package size.
 - Teleport line fix and Ghost Trail fix now works without master switch ON. (But sure you should check their own options.)
-### Notice
-- More Icons mod is not ported yet, current footage will have compatibility issues with More Icons loaded in the future (won't crash your game though)
+- Particle effect in title bar will not go outside the round corner now. (not my work, thanks to NineSlice invention)
+### Known Issues
+- More Icons mod is not ported yet, current package will have compatibility issues with More Icons loaded in the future (won't crash your game though)
+- Blur background acts not properly in white background, and it is not working on Apple devices.
 ### ToDo
 - New Logic
 - More modes and more free options
-- New UI (perhaps)
 - Add Solid Wave Trail option (soon)
 
 # 3.5.6

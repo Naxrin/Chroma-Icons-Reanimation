@@ -180,6 +180,7 @@ class $modify(GameLayer, PlayLayer) {
     void postUpdate(float d) {
         // iterate phase and update progress
         lvlphase = fmod(lvlphase + 360 * d * speed / (opts["igntw"] ? timewarp : 1), 360.f);
+        log::debug("lvlphase = {}", lvlphase);
         percentage = this->getCurrentPercent();
         PlayLayer::postUpdate(d);
         // globed
@@ -326,7 +327,7 @@ class $modify(ChromaPlayer, PlayerObject) {
         m_fields->ghost_counter += d;
         if (m_fields->ghost_counter > 3) {
             // enabled ghost and using my proxy
-            if (m_ghostType == GhostType::Enabled && opts["activate"] && !opts["dis-ghost"])
+            if (m_ghostType == GhostType::Enabled && !opts["dis-ghost"]) //  && opts["activate"]
                 this->generateChromaGhostTrail();
             m_fields->ghost_counter = fmod(m_fields->ghost_counter, 3);
         }
@@ -366,11 +367,13 @@ class $modify(ChromaPlayer, PlayerObject) {
             m_fields->has_default_colors = true;
             this->getDefaultColors();
         }
-        // only chroma the visible two
+        // only deal with the visible two
         if ((!opts["activate"] && !reset[this]) || !this->isVisible() || this->getTag() > 0)
             return;
+        // editor mode
         if (layerType == LayerType::LevelEditorLayer && !opts["editor"])
             return;
+        // lol
         if (layerType == LayerType::MenuLayer) {
             if (opts["???"])
                 percentage = 100 * this->getPositionX() / CCDirector::sharedDirector()->getWinSize().width;
@@ -529,10 +532,11 @@ class $modify(ChromaPlayer, PlayerObject) {
         spr->setFlipX(this->m_isGoingLeft != this->m_isSideways);
         spr->setFlipY(this->m_isUpsideDown);
 
-        // this mod is chroma icons not ghost trail fix        
+        // this mod is chroma icons not ghost trail fix
         auto color = getChroma(setups[getIndex(this->m_isSecondPlayer && !opts["same-dual"], this->getStatusID(), Channel::Ghost)],
             m_fields->main, lvlphase + ((this->m_isSecondPlayer && opts["sep-dual"]) ? 180.f : 0), percentage, progress);
         spr->setColor(color);
+
         // this is how robtop set his own ghost trails
         if (color == ccc3(0, 0, 0))
             spr->setBlendFunc({GL_ONE, GL_ONE_MINUS_SRC_ALPHA});
@@ -552,8 +556,6 @@ class $modify(ChromaPlayer, PlayerObject) {
 
     void playSpiderDashEffect(CCPoint from, CCPoint to) {
         PlayerObject::playSpiderDashEffect(from, to);
-        if (!opts["activate"])
-            return;
         
         for (auto node : CCArrayExt<CCNode*>(this->getParent()->getChildren())) {
             // stupid judge
