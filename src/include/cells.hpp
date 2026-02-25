@@ -99,15 +99,20 @@ public:
 class OptionTogglerCell : public BaseCell {
 protected:
     bool yes;
+    std::string m_title;
+    std::string m_desc;
     CCMenuItemToggler* m_toggler;
     CCLabelBMFont* m_label;
-    CCLabelBMFont* m_hint;
+    CCMenuItemSpriteExtra* m_hint;
 
     // Option Toggle
-    bool init(const char* title, float y, int tag, std::string id, const char* desc);
+    bool init(std::string title, float y, int tag, std::string id, std::string desc);
 public:
     // for switch animation
     void onOption(CCObject*);
+    // for description
+    void onDesc(CCObject*);
+    // fade
     void Fade(bool) override;
     
     static OptionTogglerCell* create(const char* title, float y, int tag, std::string id, const char* desc) {

@@ -203,41 +203,40 @@ bool OptionTitleCell::init(const char* text, float y, int tag, std::string id) {
 }
 
 // toggler option
-bool OptionTogglerCell::init(const char* title, float y, int tag, std::string id, const char* desc) {
+bool OptionTogglerCell::init(std::string title, float y, int tag, std::string id, std::string desc) {
     if (!CCMenu::init())
         return false;
 
     this->yes = Mod::get()->getSavedValue<bool>(id);
-    // add hint first to see the height
-    m_hint = CCLabelBMFont::create(desc, "ErasLight.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
-    m_hint->setScale(0.7);
-    m_hint->setWidth(290.f);
-    m_hint->setAnchorPoint(CCPoint(0.f, 0.f));
-    m_hint->setColor({255, 255, 0});
-    m_hint->setID("hint");
-    addChild(m_hint);
+    this->m_title = title;
+    this->m_desc = desc;
 
     m_toggler = CCMenuItemToggler::createWithStandardSprites(this, menu_selector(OptionTogglerCell::onOption), 0.6);
+    m_toggler->setPosition(ccp(290.f, 10.f));
     m_toggler->setCascadeOpacityEnabled(true);
     m_toggler->setID("toggler");
     m_toggler->toggle(yes);
     addChild(m_toggler);
 
-    m_label = CCLabelBMFont::create(title, "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_label = CCLabelBMFont::create(title.c_str(), "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
+    if (title == "activate")
+        m_label->setString(yes ? "Switch : ON" : "Switch : OFF");
+    m_label->setPosition(ccp(10.f, 10.f));
     m_label->setScale(0.45);
     m_label->setContentSize(CCSize(275.f, 20.f));
-    m_label->setWidth(340.f);
-    m_label->setAnchorPoint(CCPoint(0.f, 0.5));
+    //m_label->setWidth(340.f);
+    m_label->setAnchorPoint(CCPoint(0.f, 0.5f));
     m_label->setID("label");
     addChild(m_label);
 
-    // set subnode position
-    m_label->setPosition(CCPoint(25.f, 10.f + 0.7 * m_hint->getContentHeight()));
-    m_toggler->setPosition(CCPoint(10.f, 10.f + 0.7 * m_hint->getContentHeight()));
-    m_hint->setPosition(CCPoint(10.f, 0.f));
+    auto spr = CCSprite::create("infoBtn.png"_spr);
+    spr->setScale(0.4);
+    m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(OptionTogglerCell::onDesc));
+    m_hint->setPosition(ccp(m_label->getContentWidth() * 0.45 + 20.f, 10.f));
+    addChild(m_hint);
 
     // setup
-    if (!BaseCell::setup(CCPoint(160.f, y-10.f + 0.35*m_hint->getContentHeight()), CCSize(300.f, 0.7 * m_hint->getContentHeight() +20.f), tag, id))
+    if (!BaseCell::setup(CCPoint(160.f, y - 10.f), CCSize(300.f, 20.f), tag, id))
         return false;
 
     // switch!
@@ -266,7 +265,13 @@ void OptionTogglerCell::onOption(CCObject* sender) {
         m_label->setColor(ccc3(255-255*yes, 255*yes, 0));
         // tint bg
         this->tint(ANIM_TIME_M, 80 * (!yes), 80 * (yes), 0);
+        // desc button
+        m_hint->setPosition(ccp(m_label->getContentWidth() * 0.45 + 20.f, 10.f));
     }
+}
+
+void OptionTogglerCell::onDesc(CCObject* sender) {
+    Signal<std::pair<std::string, std::string>>("option-desc").send({m_title, m_desc});
 }
 
 void OptionTogglerCell::Fade(bool in) {

@@ -22,8 +22,7 @@
 			"resources/font/*.png"
 		],
 		"files": [
-			"resources/font/*.fnt",
-			"resources/blur/*.glsl"
+			"resources/font/*.fnt"
 		]
 	},
 	"dependencies": {

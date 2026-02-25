@@ -266,15 +266,6 @@ void ChromaLayer::fadePopupPage() {
     fade(menu, in, ANIM_TIME_M, 1, in);
     fade(menu->getChildByID("info-title"), in, ANIM_TIME_M, 0.6, 0.6 * in);
     fade(menu->getChildByID("info-button"), in, ANIM_TIME_M, 1, in);
-    /*
-    for (auto node : CCArrayExt<CCNode*>(menu->getChildren())) {
-        if (node->getTag())
-            fade(static_cast<CCMenuItem*>(node), in, ANIM_TIME_M);
-        else {
-            auto id = node->getID();
-            fade(node, in, ANIM_TIME_M, in ? scale : scale / 2, in ? scale : scale / 2);
-        }
-    }*/
 
     if (!in)
         this->runAction(CCSequence::create(

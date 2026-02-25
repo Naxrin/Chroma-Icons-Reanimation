@@ -175,7 +175,7 @@ void ChromaLayer::makeHintPopup(std::string title, std::string content, float he
 
 
     auto lbfTitle = CCLabelBMFont::create(title.c_str(), "ErasBold.fnt"_spr, 360.f);
-    lbfTitle->setPositionY(0.6 * height + 15.f);
+    lbfTitle->setPositionY(0.6 * height + 18.f);
     hide(lbfTitle, 1, 0);
     lbfTitle->setID("info-title");
     lbfTitle->setTag(0);

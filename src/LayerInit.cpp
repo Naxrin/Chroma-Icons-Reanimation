@@ -480,19 +480,20 @@ void ChromaLayer::makeOptionsPage() {
 
     sTag ++;
     auto darkOpt = OptionTogglerCell::create("Dark Theme", H, sTag, "dark-theme",
-        "Deep Dark Fantasy...");
+        "Deep Dark Fantasy...  \nWhite Background makes blur not working well for now, it's a known issue.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(darkOpt);
     H += darkOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto blurOpt = OptionTogglerCell::create("Blur Background", H, sTag, "blur-bg",
-        "Add a gaussian blur effect to the background. Give it up if you feel this effect can't worth your device lag.");
+        "Add a gaussian blur effect to the background.  \nGive it up if you feel this effect can't worth your device lag.  \n"
+        "If you are playing on your Apple device, don't waste your time reporting bugs, it's a known issue.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(blurOpt);
     H += blurOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto pauseOpt = OptionTogglerCell::create("Pause Menu Entry", H, sTag, "pause",
-        "Show mod menu entrance button in Pause Menu. Sure, it's not taking effect until you pause again.");
+        "Show mod menu entrance button in Pause Menu.  \nSure, it's not taking effect until you pause again.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(pauseOpt);
     H += pauseOpt->getContentHeight() + 15.f;
 
@@ -509,19 +510,21 @@ void ChromaLayer::makeOptionsPage() {
 
     sTag ++;
     auto sepglowOpt = OptionTogglerCell::create("Separate Glow Color Phase", H, sTag, "sep-glow",
-        "Set phase (for Chromatic / Gradient mode) of Glow Color keeps 120 degrees delay from Main Color.\nOtherwise Glow Color aligns with Main Color");
+        "Set phase (for Chromatic / Gradient mode) of Glow Color keeps 120 degrees delay from Main Color.\n"
+        "Otherwise Glow Color aligns with Main Color");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(sepglowOpt);
     H += sepglowOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto sepsecondOpt = OptionTogglerCell::create("Separate Secondary Color Phase", H, sTag, "sep-second",
-        "Set phase (for Chromatic / Gradient mode) of Secondary Color keeps 120 degrees lead from Main Color.\nOtherwise Secondary Color aligns with Main Color");
+        "Set phase (for Chromatic / Gradient mode) of Secondary Color keeps 120 degrees lead from Main Color.  \n"
+        "Otherwise Secondary Color aligns with Main Color");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(sepsecondOpt);
     H += sepsecondOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto sepdualOpt = OptionTogglerCell::create("Separate Dual Mode Phase", H, sTag, "sep-dual",
-        "Set color phase (for Chromatic / Gradient mode) of P2 keeps 180 degrees away from P1.\n"
+        "Set color phase (for Chromatic / Gradient mode) of P2 keeps 180 degrees away from P1.  \n"
         "Otherwise the two players just cycles the same phase.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(sepdualOpt);
     H += sepdualOpt->getContentHeight() + 15.f;
@@ -533,22 +536,22 @@ void ChromaLayer::makeOptionsPage() {
 
     sTag ++;
     auto teleOpt = OptionTogglerCell::create("Align Spider TP Line", H, sTag, "tele-fix",
-        "Not related to icons chroma though, this option will fix spider teleport jump (or just triggering a purple ring / pad) "
+        "Not related to icons chroma though, this option will fix spider teleport jump (or just triggering a purple ring / pad)  \n"
         "effect line strictly to the center point between the player positions before and after being teleported.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(teleOpt);
     H += teleOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto ghostOpt = OptionTogglerCell::create("Legacy Ghost Trail", H, sTag, "dis-ghost",
-        "Disable this mod's rewritten fixed Ghost Trail and apply RobTop's raw Ghost Trail Effect instead.\n"
+        "Disable this mod's rewritten fixed Ghost Trail and apply RobTop's raw Ghost Trail Effect instead.  \n"
         "But this will also result in ghost trail chroma not working.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(ghostOpt);
     H += ghostOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto initOpt = OptionTogglerCell::create("Chroma on Initial", H, sTag, "init",
-        "Both PlayLayer and LevelEditorLayer may have a lag between the player happens and your player starts to move. "
-        "If OFF, you can see your players of raw color when you pause quickly enough.");
+        "Both PlayLayer and LevelEditorLayer may have a lag between the player appears and she starts to move.  \n"
+        "If <cr>unchecked</c>, you can see your players of raw color when you pause quickly enough.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(initOpt);
     H += initOpt->getContentHeight() + 15.f;
 
@@ -559,34 +562,34 @@ void ChromaLayer::makeOptionsPage() {
 
     sTag ++;
     auto editorOpt = OptionTogglerCell::create("Editor Test", H, sTag, "editor",
-        "Apply to Editor Playtest. Will also add a button in your editor page if checked.\n"
+        "Apply to Editor Playtest. Will also add a button in your editor page if <cg>checked</c>.  \n"
         "But I do not promise your device will not lag there.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(editorOpt);
     H += editorOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto globedOpt = OptionTogglerCell::create("Globed Progress Indicator", H, sTag, "globed",
-        "In case Globed loaded, your icon indicator of progress bar will apply your first player's chroma pattern when this option checked.");
+        "If <cg>checked</c>, in case you are playing with Globed online, your own icon indicator of progress bar will apply your first player's chroma pattern.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(globedOpt);
     H += globedOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto igntwOpt = OptionTogglerCell::create("Ignore Timewarp", H, sTag, "igntw",
-        "If checked, chroma speed will keep constant during timewarp change (sync real world clock).");
+        "If <cg>checked</c>, chroma speed will keep constant during timewarp trigger taking effect (sync with real world clock).");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(igntwOpt);
     H += igntwOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto riderOpt = OptionTogglerCell::create("Separate Riders", H, sTag, "rider",
-        "If checked, the cube rider of ship / ufo / jetpack will follow Cube mode's color."
-        "\nOtherwise she follow her vehicle's color.");
+        "If <cg>checked</c>, the cube rider of a vehicle (ship / ufo / jetpack) will follow Cube mode's chroma pattern.\n"
+        "Otherwise she follow her vehicle's.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(riderOpt);
     H += riderOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto samedualOpt = OptionTogglerCell::create("Symmetric Chroma Pattern", H, sTag, "same-dual",
-        "Let Player 2 follow P1's chroma pattern in playing.\n"
-        "This only merges your chroma pattern, but their default colors may be different!\n"
+        "Let Player 2 just follow Player 1's chroma pattern in playing, ignoring its own config.  \n"
+        "This only merges your chroma pattern, but their default colors may be different!  \n"
         "NOT affecting menu preview.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(samedualOpt);
     H += samedualOpt->getContentHeight() + 15.f;
@@ -598,8 +601,8 @@ void ChromaLayer::makeOptionsPage() {
 
     sTag ++;
     auto switchOpt = OptionTogglerCell::create("Switch", H, sTag, "activate",
-        "Master Switch of this mod.\n"
-        "If disabled, all item icons (except current tab in setup page) in the mod menu will be set to grey-white and ignore Preview Effects option.");
+        "<cy>Master Switch</c> of this mod.  \n"
+        "If <cr>disabled</c>, all item icons (except current tab in setup page) in the mod menu will be set to grey-white ignoring Preview Effects option.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(switchOpt);
     H += switchOpt->getContentHeight() + 15.f;
 
