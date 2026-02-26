@@ -18,7 +18,7 @@ public:
     }
     // tint
     void tint(float d, int r, int g, int b);
-    inline void switchTheme() {
+    inline virtual void switchTheme() {
         this->m_bg->runAction(CCTintTo::create(ANIM_TIME_M, CELL_COLOR));
     }
 };
@@ -112,6 +112,11 @@ public:
     void onOption(CCObject*);
     // for description
     void onDesc(CCObject*);
+    // switch theme
+    void switchTheme() override {
+        this->BaseCell::switchTheme();
+        this->m_hint->setColor(ccc3(CELL_COLOR));
+    }
     // fade
     void Fade(bool) override;
     

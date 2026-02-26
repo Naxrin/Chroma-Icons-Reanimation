@@ -10,21 +10,25 @@ bool ChromaLayer::init() {
     
     // set id
     this->setID("chroma-icons-central"_spr);
+    this->setColor(ccc3(BG_COLOR));
+    this->setCascadeColorEnabled(false);
     this->m_gamemode = this->m_gamemodeAdv = opts["easy"] ? Gamemode::Icon : Gamemode::Cube;
 
     /********** BG **********/
 
     // bg regarding theme color
-    this->m_bg = CCLayerColor::create(ccc4(BG_COLOR, 0));
+    this->m_bg = CCLayerColor::create(ccc4(0, 0, 0, 0));
     m_bg->setContentSize(m_winSize);
     m_bg->setZOrder(-2);
     m_bg->setID("bg");
     this->addChild(m_bg);
     // blur
     BlurAPI::addBlur(this->m_bg);
+    m_bg->setVisible(opts["blur-bg"]);
+    /*
     BlurAPI::getOptions(this->m_bg)->forcePasses = true;
-    BlurAPI::getOptions(this->m_bg)->passes = 1 + 9 * opts["blur-bg"];
-    
+    BlurAPI::getOptions(this->m_bg)->passes = 1 + 4 * opts["blur-bg"];
+    */
     /********** Main Menu **********/
     auto menuMain = CCMenu::create();
     menuMain->setPosition(CCPoint(0, 0));
@@ -484,12 +488,14 @@ void ChromaLayer::makeOptionsPage() {
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(darkOpt);
     H += darkOpt->getContentHeight() + 15.f;
 
+    #ifdef GEODE_IS_WINDOWS
     sTag ++;
     auto blurOpt = OptionTogglerCell::create("Blur Background", H, sTag, "blur-bg",
         "Add a gaussian blur effect to the background.  \nGive it up if you feel this effect can't worth your device lag.  \n"
         "If you are playing on your Apple device, don't waste your time reporting bugs, it's a known issue.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(blurOpt);
     H += blurOpt->getContentHeight() + 15.f;
+    #endif
 
     sTag ++;
     auto pauseOpt = OptionTogglerCell::create("Pause Menu Entry", H, sTag, "pause",

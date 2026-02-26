@@ -49,7 +49,9 @@ void ChromaLayer::installRadios() {
     }));
 
     this->m_radios.push_back(Signal<bool>("blur-bg").listen([this] (bool blur) -> ListenerResult {
-        BlurAPI::getOptions(this->m_bg)->passes = 1 + 9 * blur;
+        //BlurAPI::getOptions(this->m_bg)->passes = 1 + 4 * blur;
+        m_bg->setVisible(blur);
+        this->setOpacity(170 - 70 * blur);
         return ListenerResult::Stop;
     }));
 

@@ -219,9 +219,7 @@ bool OptionTogglerCell::init(std::string title, float y, int tag, std::string id
     addChild(m_toggler);
 
     m_label = CCLabelBMFont::create(title.c_str(), "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
-    if (title == "activate")
-        m_label->setString(yes ? "Switch : ON" : "Switch : OFF");
-    m_label->setPosition(ccp(10.f, 10.f));
+    m_label->setPosition(ccp(5.f, 10.f));
     m_label->setScale(0.45);
     m_label->setContentSize(CCSize(275.f, 20.f));
     //m_label->setWidth(340.f);
@@ -230,9 +228,10 @@ bool OptionTogglerCell::init(std::string title, float y, int tag, std::string id
     addChild(m_label);
 
     auto spr = CCSprite::create("infoBtn.png"_spr);
-    spr->setScale(0.4);
+    spr->setScale(0.35);
     m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(OptionTogglerCell::onDesc));
-    m_hint->setPosition(ccp(m_label->getContentWidth() * 0.45 + 20.f, 10.f));
+    m_hint->setColor(ccc3(CELL_COLOR));
+    
     addChild(m_hint);
 
     // setup
@@ -243,9 +242,12 @@ bool OptionTogglerCell::init(std::string title, float y, int tag, std::string id
     if (id == "activate") {
         m_label->setCString(yes ? "Switch : ON" : "Switch : OFF");
         m_label->setColor(ccc3(255-255*yes, 255*yes, 0));
+
         // tint bg
         this->tint(0, 80 * (!yes), 80 * (yes), 0);
     }
+    m_hint->setPosition(ccp(m_label->getContentWidth() * 0.45 + 15.f, 10.f));    
+
     return true;
 }
 

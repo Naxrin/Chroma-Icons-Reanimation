@@ -180,7 +180,6 @@ class $modify(GameLayer, PlayLayer) {
     void postUpdate(float d) {
         // iterate phase and update progress
         lvlphase = fmod(lvlphase + 360 * d * speed / (opts["igntw"] ? timewarp : 1), 360.f);
-        log::debug("lvlphase = {}", lvlphase);
         percentage = this->getCurrentPercent();
         PlayLayer::postUpdate(d);
         // globed

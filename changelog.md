@@ -1,3 +1,10 @@
+# 4.5.7
+### Bugfix
+- Fix light theme with blur etffect not working;
+- Remove the blur option in non-windows platform (they will truly not work for now);
+- The desc button of Master Switch is now placed correctly, and they now sync with theme switch real time;
+- The blur backgrounnd now looks better.
+
 # 4.5.6
 ### Addition
 - Port to Geode 5 @ gd 2.208

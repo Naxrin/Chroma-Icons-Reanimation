@@ -10,7 +10,12 @@ void ChromaLayer::show() {
     this->getChildByType<CCLayer>(0)->setVisible(false);
     // fade the bg from 0 to 120
     this->setOpacity(0);
-    //this->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 100)));
+    #ifdef GEODE_IS_WINDOWS
+    GLubyte bgalpha = 170 - 70 * opts["blur-bg"];
+    #else
+    GLubyte bgalpha = 170;
+    #endif
+    this->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, bgalpha)));
     // check warn
     bool warn = false;
     if (Mod::get()->getSavedValue<bool>("notify", true))
@@ -42,8 +47,8 @@ void ChromaLayer::show() {
 
     // run base function
     Popup::show();
-    float opacity = 160.f;
-    m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, opacity));
+    //float opacity = 160.f;
+    //m_bg->runAction(CCFadeTo::create(ANIM_TIME_L, opacity));
 }
 
 // schedule update rewrite

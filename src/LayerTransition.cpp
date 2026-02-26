@@ -7,7 +7,7 @@ extern float speed;
 
 void ChromaLayer::switchTheme() {
     // bg
-    m_bg->runAction(CCTintTo::create(ANIM_TIME_M, BG_COLOR));
+    this->runAction(CCTintTo::create(ANIM_TIME_M, BG_COLOR));
 
     m_cellTitle->switchTheme();
     // main-menu buttons 
