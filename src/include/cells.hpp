@@ -248,14 +248,14 @@ public:
 class SetupOptionCell : public BaseCell {
 protected:
     //std::string key;
-    ChromaSetup setup;
+    ChromaPattern setup;
     // i hate cascading his opacity
     //SetupOptionLine* sliderLine = nullptr;
     bool init();
 public:
     CCArrayExt<SetupOptionLine*> m_aryMenus;
     // refresh ui status when sth happens. fade = true if needs animation
-    void refreshUI(ChromaSetup setup, bool fade = false);
+    void refreshUI(ChromaPattern setup, bool fade = false);
     void Fade(bool in, int dir = 0);
     static SetupOptionCell* create() {
         auto node = new SetupOptionCell();

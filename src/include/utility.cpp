@@ -12,7 +12,7 @@ std::map<std::string, bool> opts;
 // speed option
 float speed;
 // setup center
-std::map<short, ChromaSetup> setups;
+std::map<short, ChromaPattern> setups;
 
 void fade(CCNode* node, bool in, float time, float scaleX, float scaleY, int opacity) {
     // convert default Val
@@ -188,7 +188,7 @@ inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpo
     });
 }*/
 
-ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress) {
+ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress) {
     if (!opts["activate"])
         return defaultVal;
 

@@ -12,7 +12,6 @@ set(SKIP_BUILDING_CODEGEN OFF)
 project(RGBIcons VERSION 1.1.0)
 
 file(GLOB SOURCES
-    src/blur/*
     src/include/*
     src/*
 )

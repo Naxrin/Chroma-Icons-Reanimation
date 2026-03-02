@@ -413,7 +413,7 @@ bool SetupOptionCell::init() {
     return true;
 }
 
-void SetupOptionCell::refreshUI(ChromaSetup setup, bool fade) {
+void SetupOptionCell::refreshUI(ChromaPattern setup, bool fade) {
     float Y = this->getContentHeight() - 5.f;
     // temply we read the progress like this to avoid crash as possible as i can
     int duty = 180;

@@ -1,3 +1,13 @@
+# 4.6.0
+### Addition
+- Add phase and brightness option for chromatic mode
+- Better gradient mode
+- More Options
+- Better text area
+### Bugfix
+- Fix frequency slider not taking effect real time.
+- Less toxic codes
+
 # 4.5.7
 ### Bugfix
 - Fix light theme with blur etffect not working;

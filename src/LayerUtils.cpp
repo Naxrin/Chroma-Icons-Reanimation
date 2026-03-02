@@ -1,6 +1,6 @@
 #include "Layer.hpp"
 
-extern std::map<short, ChromaSetup> setups;
+extern std::map<short, ChromaPattern> setups;
 extern std::map<std::string, bool> opts;
 extern float speed;
 

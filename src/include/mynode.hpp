@@ -3,12 +3,14 @@
 
 #include "utility.hpp"
 #include <Geode/ui/TextInput.hpp>
+#include <algorithm>
 
+/*
 inline float limiter(float target, float min = 0, float max = 1) {
     if (target > max) return max;
     if (target < min) return min;
     return target;
-}
+}*/
 
 // get child by index and cast to type
 template<typename T>
@@ -99,6 +101,7 @@ public:
     }
 }*/
 
+/**/
 // a node with feedback logic design of a slider + input
 class SliderBundleBase : public CCMenu, public TextInputDelegate, public SliderDelegate {
 protected:
@@ -121,12 +124,12 @@ protected:
     // left arrow
     CCMenuItemSpriteExtra* m_btnLeft = nullptr;
     // right arrow
-    CCMenuItemSpriteExtra* m_btnRight = nullptr;    
+    CCMenuItemSpriteExtra* m_btnRight = nullptr;  
     // value to slider (this may return a value out of 1~0 range, unfiltered)
     std::function<float (float)> toSlider;
     // slider to value
     std::function<float (float)> fromSlider;
-    // init
+    // worst init function ever
     bool init(std::string topic, const char* title, float value, float max, float min, bool is_int, bool has_arrow, \
         float labelScale,  float sliderScale, float inputerScale, float arrowScale, float sliderPosX, float inputerPosX, float labelWidth, float inputerWidth, float arrowDistance,\
         std::function<float (float)> toSlider, std::function<float (float)> fromSlider);
@@ -134,15 +137,12 @@ public:
     // update value from text input
     void textChanged(CCTextInputNode* p) override {
         std::string input = p->getString();
-        if (input != "")
-            this->setVal(limiter(stof(input)), 1);
+        this->setVal(std::clamp(numFromString<float>(input, 2).unwrapOrDefault(), 0.f, 1.f));
     }
     // check value > max case
     void textInputClosed(CCTextInputNode* p) override {
         std::string input = p->getString();
-        if (input == "")
-            input = "0";
-        this->setVal(limiter(stof(input), min, max), 1);
+        this->setVal(std::clamp(numFromString<float>(input, 2).unwrapOrDefault(), (float)min, (float)max));
         postEvent();
     }
     // change chroma frequency by slider
@@ -152,7 +152,7 @@ public:
     // on arrow
     void onArrow(CCObject* sender) {
         float delta = sender->getTag() == 2 ? 0.1 : -0.1;
-        float news = limiter(this->toSlider(value) + delta);
+        float news = std::clamp(this->toSlider(value) + delta, 0.f, 1.f);
         this->setVal(this->fromSlider(news));
         postEvent();
     }

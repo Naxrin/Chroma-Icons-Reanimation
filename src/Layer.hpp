@@ -84,7 +84,7 @@ protected:
     float m_percentage = 0;
 
     // current config data
-    ChromaSetup m_currentSetup = DEFAULT_SETUP;
+    ChromaPattern m_currentSetup = DEFAULT_SETUP;
 
     // current color
     // @note varient inside color page
@@ -97,7 +97,7 @@ protected:
     SetupItemCell* m_currentTab = nullptr;
 
     std::pair<bool, ccColor3B> m_clipColor;
-    std::pair<bool, ChromaSetup> m_clipSetup;
+    std::pair<bool, ChromaPattern> m_clipSetup;
 
     // mute onClose if called
     bool m_onSlider = false;

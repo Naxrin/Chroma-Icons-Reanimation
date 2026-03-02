@@ -29,7 +29,7 @@ extern std::map<std::string, bool> opts;
 // speed option
 extern float speed;
 // setup center
-extern std::map<short, ChromaSetup> setups;
+extern std::map<short, ChromaPattern> setups;
 
 // main/second/glow/detail of globed progress bar icon
 ccColor3B barm, bars, barg, barw;
@@ -615,13 +615,13 @@ $on_mod(Loaded) {
         // icons
         for (short gmid = 0; gmid < 10; gmid++)
             for (short chnl = 0; chnl < 8; chnl++)
-                setups[getIndex(p, Gamemode(gmid), Channel(chnl))] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode(gmid), Channel(chnl)), DEFAULT_SETUP);
+                setups[getIndex(p, Gamemode(gmid), Channel(chnl))] = Mod::get()->getSavedValue<ChromaPattern>(getConfigKey(p, Gamemode(gmid), Channel(chnl)), DEFAULT_SETUP);
         // wave trail
-        setups[getIndex(p, Gamemode::Icon, Channel::WaveTrail)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode::Icon, Channel::WaveTrail), DEFAULT_SETUP);
-        setups[getIndex(p, Gamemode::Wave, Channel::WaveTrail)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode::Wave, Channel::WaveTrail), DEFAULT_SETUP);
+        setups[getIndex(p, Gamemode::Icon, Channel::WaveTrail)] = Mod::get()->getSavedValue<ChromaPattern>(getConfigKey(p, Gamemode::Icon, Channel::WaveTrail), DEFAULT_SETUP);
+        setups[getIndex(p, Gamemode::Wave, Channel::WaveTrail)] = Mod::get()->getSavedValue<ChromaPattern>(getConfigKey(p, Gamemode::Wave, Channel::WaveTrail), DEFAULT_SETUP);
         // ufo shell
-        setups[getIndex(p, Gamemode::Icon, Channel::UFOShell)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode::Icon, Channel::UFOShell), DEFAULT_SETUP);
-        setups[getIndex(p, Gamemode::Ufo, Channel::UFOShell)] = Mod::get()->getSavedValue<ChromaSetup>(getConfigKey(p, Gamemode::Ufo, Channel::UFOShell), DEFAULT_SETUP);
+        setups[getIndex(p, Gamemode::Icon, Channel::UFOShell)] = Mod::get()->getSavedValue<ChromaPattern>(getConfigKey(p, Gamemode::Icon, Channel::UFOShell), DEFAULT_SETUP);
+        setups[getIndex(p, Gamemode::Ufo, Channel::UFOShell)] = Mod::get()->getSavedValue<ChromaPattern>(getConfigKey(p, Gamemode::Ufo, Channel::UFOShell), DEFAULT_SETUP);
     }
     // speed
     speed = Mod::get()->getSavedValue<float>("speed", 1);

@@ -72,53 +72,66 @@ mapline MapfromJson(matjson::Value const& json, int def, int max);
 matjson::Value MaptoJson(mapline const& vec);
 
 // The whole set of a color channel config
-struct ChromaSetup {
+struct ChromaPattern {
     // chroma mode Default/Static/Chromatic/Gradient/Progress
     int mode;
-    // chroma saturation eg.100=rgb/50=pastel
-    int satu;
-    // current/best progress for progress related mode
-    bool best;
     // static color
     ccColor3B color;
+    // chromatic phase offset
+    int phase;
+    // chroma saturation eg.100=rgb/50=pastel
+    int satu;
+    // chromatic brightness
+    int brit;
     // gradient map
     mapline gradient;
     // progress map
     mapline progress;
+    // current percentage or best progress for progress related mode
+    bool best;    
 };
 
 // default chroma setup for this mod
-#define DEFAULT_SETUP ChromaSetup{\
-    .mode = 0, .satu = 50, .best = false, .color = ccc3(255, 255, 255),\
+#define DEFAULT_SETUP ChromaPattern{\
+    .mode = 0,\
+    .color = ccc3(255, 255, 255),\
+    .phase = 0,\
+    .satu = 50,\
+    .brit = 100,\
     .gradient = {{0, ccc3(255, 255, 255)}, {180, ccc3(255, 255, 255)}},\
-    .progress = {{0, ccc3(255, 255, 255)}, {100, ccc3(255, 255, 255)}} }
-
-/*********** serialize chromasetup **********/
+    .progress = {{0, ccc3(255, 255, 255)}, {100, ccc3(255, 255, 255)}},\
+    .best = false\
+}
+/*********** serialize ChromaPattern **********/
 template<>
-struct matjson::Serialize<ChromaSetup> {
+struct matjson::Serialize<ChromaPattern> {
     // load json file
     // for int value we take the remainder to avoid out of range issue
-    static Result<ChromaSetup> fromJson(matjson::Value const& value) {
-        return Ok(ChromaSetup{
-            .mode = ((int)value["mode"].asInt().unwrapOr(0)) % 5,
-            .satu = ((int)value["saturation"].asInt().unwrapOr(50)) % 101,
-            .best = value["best"].asBool().unwrapOr(false),
+    static Result<ChromaPattern> fromJson(matjson::Value const& value) {
+        return Ok(ChromaPattern{
+            .mode = value.contains("mode") ? ((int)value["mode"].asInt().unwrapOr(0)) % 5 : 0,
             .color = value["color"].asString().andThen([](auto str) { return cc3bFromHexString(str, true); })
                 .unwrapOr(ccc3(255,255,255)),
+            .phase = value.contains("phase") ? ((int)value["phase"].asInt().unwrapOr(0)) % 360 : 0, 
+            .satu = value.contains("saturation") ? ((int)value["saturation"].asInt().unwrapOr(50)) % 101 : 50,
+            .brit = value.contains("brightness") ? ((int)value["brighttness"].asInt().unwrapOr(100)) % 101 : 100,
             .gradient = MapfromJson(value["gradient"], 180, 360),
-            .progress = MapfromJson(value["progress"], 100, 101)
+            .progress = MapfromJson(value["progress"], 100, 101),
+            .best = value["best"].asBool().unwrapOr(false)
         });
     }
 
     // dump to json file
-    static matjson::Value toJson(ChromaSetup const& value) {
+    static matjson::Value toJson(ChromaPattern const& value) {
         return matjson::makeObject({
             {"mode", value.mode},
-            {"saturation", value.satu},
-            {"best", value.best},
             {"color", cc3bToHexString(value.color)},
+            {"phase", value.phase},
+            {"saturation", value.satu},
+            {"brightness", value.brit},
             {"gradient", MaptoJson(value.gradient)},
-            {"progress", MaptoJson(value.progress)}
+            {"progress", MaptoJson(value.progress)},
+            {"best", value.best}
         });
     }
 
@@ -168,7 +181,7 @@ struct myColorHSV {
 // @param phase current phase
 // @param percentage current level percentage
 // @param progress current level progress
-ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress);
+ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress);
 
 // get index for in-level pointer
 // @param p2 is player 2

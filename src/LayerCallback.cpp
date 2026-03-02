@@ -2,7 +2,7 @@
 #include "Layer.hpp"
 #include <Geode/ui/GeodeUI.hpp>
 
-extern std::map<short, ChromaSetup> setups;
+extern std::map<short, ChromaPattern> setups;
 extern std::map<std::string, bool> opts;
 extern float speed;
 // reset chroma
@@ -184,9 +184,9 @@ void ChromaLayer::installRadios() {
         return ListenerResult::Stop;
     }));
 
-    this->m_radios.push_back(Signal<float>("speed").listen([this] (float speed) -> ListenerResult {
-        Mod::get()->setSavedValue("speed", speed);
-        //this->speed = speed;
+    this->m_radios.push_back(Signal<float>("speed").listen([this] (float s) -> ListenerResult {
+        Mod::get()->setSavedValue("speed", s);
+        speed = s;
         this->dumpConfig();
         return ListenerResult::Stop;
     }));
