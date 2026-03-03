@@ -1,12 +1,18 @@
 #pragma once
 
 #include "utility.hpp"
+
 // Geode's MD Text Area but no scroll layer
 class FixedMDTextArea :
     public CCLayer,
     public CCLabelProtocol,
     public FLAlertLayerProtocol {
 private:
+    std::string m_text;
+    CCSize m_size;
+    TextRenderer* m_renderer;
+    NineSlice* m_bgSprite;
+    CCMenu* m_content;
     static std::string translateNewlines(std::string const& str);
 
     bool init(std::string str, cocos2d::CCSize const& size);
@@ -29,6 +35,7 @@ public:
      * @param str String to render
      * @param size Size of the textarea
      */
+     
     static FixedMDTextArea* create(std::string str, cocos2d::CCSize const& size);
 
     /**
@@ -39,6 +46,7 @@ public:
      * @param size Size of the textarea
      * @param compatibilityMode Enables functionality that may be useful for wrapping a generic alert, such as newline support
      */
+
     static FixedMDTextArea* create(std::string str, cocos2d::CCSize const& size, bool compatibilityMode);
 
     /**

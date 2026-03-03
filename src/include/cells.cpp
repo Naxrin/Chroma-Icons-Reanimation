@@ -56,10 +56,10 @@ bool WarnCell::init() {
         "- Considering list points might be one of the reasons you are right here ~~or even the only~~, are you still gonna go ahead, my friend?",
         ccp(333.f, 120.f)
     );
-    //m_text->getChildByIndex(0)->runAction(CCFadeTo::create(0, 0));
-    //m_text->getScrollLayer()->getChildByIndex(0)->runAction(CCFadeTo::create(0, 0));
+
     m_text->setPosition(CCPoint(210.f, 170.f));
     m_text->setScale(1.2);
+    m_text->getScrollLayer()->m_disableMovement = true;
     this->addChild(m_text);
 
     auto labConfirm = CCLabelBMFont::create("YES ALWAYS", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
@@ -432,7 +432,7 @@ void SetupOptionCell::refreshUI(ChromaPattern setup, bool fade) {
             node->toggleTitle(node->mode == setup.mode, fade);
         } else
             switch (node->type) {
-            case OptionLineType::SingleColor:
+            case OptionLineType::Color:
                 node->m_colpk->setColor(setup.color);
                 break;
             case OptionLineType::MultiColor:
@@ -539,21 +539,14 @@ void ColorValueCell::textChanged(CCTextInputNode* p) {
 
 void ColorValueCell::textInputClosed(CCTextInputNode* p) {
     std::string input = p->getString();
-    if (input == "")
-        input = std::to_string(value);
-    else {
-        value = stof(input);
-        if (value > 255)
-            value = 255;
-        input = std::to_string(value);
-    }
+    this->value = numFromString<float>(input).unwrapOr(this->value);
     p->setString(input);
     Signal<int>("color-" + rgbLabels[type]).send(value);
 }
 
 void ColorValueCell::onSlider(CCObject* sender) {
     value = Slider2Val(m_slider->getValue());
-    m_inputer->setString(std::to_string(value));
+    m_inputer->setString(numToString(value));
     Signal<int>("color-" + rgbLabels[type]).send(value);
 }
 void ColorValueCell::sliderBegan(Slider *p) {

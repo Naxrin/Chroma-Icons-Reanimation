@@ -176,6 +176,7 @@ void ChromaLayer::makeHintPopup(std::string title, std::string content, float he
 
     auto mdContent = MDTextArea::create(content, ccp(333.f, height));
     mdContent->setScale(1.2);
+    mdContent->getScrollLayer()->m_disableMovement = true;
     menuHint->addChild(mdContent);
 
 

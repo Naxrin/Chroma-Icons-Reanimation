@@ -249,18 +249,12 @@ void SliderBundleBase::setVal(float value, short mode) {
         this->value = value;
     if (mode < 1 && m_inputer) {
         // inputer
-        if (this->is_int)
-            m_inputer->setString(std::to_string((int)value));            
-        else {
-            std::ostringstream stream;
-            stream << std::fixed << std::setprecision(2) << value;
-            m_inputer->setString(stream.str());
-        }
+        m_inputer->setString(numToString(value, 2));
     }
     if (mode > -1 && m_slider)  {
         // slider
         float unfiltered = this->toSlider(value);
-        m_slider->setValue(limiter(unfiltered));
+        m_slider->setValue(std::clamp(unfiltered, 0.f, 1.f));
     }
 }
 
@@ -280,7 +274,7 @@ bool SpeedSliderBundle::init() {
         return false;
     if (!SliderBundleBase::init("speed", "Frequency", Mod::get()->getSavedValue<float>("speed", 1), 360, 0, false, true,
         0.6, 0.6, 0.8, 0.3, 160.f, 275.f, 140.f, 60.f, 35.f,
-        [](float value) -> float { return limiter(sqrt(value/5)); },
+        [](float value) -> float { return std::clamp(sqrt(value/5), 0.f, 1.f); },
         [](float s) -> float { return 5 * s * s; }
     )) return false;
 
@@ -299,12 +293,16 @@ void SpeedSliderBundle::Fade(bool in) {
 }
 
 const char* titles[5] = {"Default", "Static", "Chromatic", "Gradient", "Progress"};
-const char* descs[5] = {
+std::string descs[5] = {
     "As if this mod isn't loaded here.",
-    "Set to your given static one.",
-    "Our favourite Hue Cycle Mode. Set saturation percent to 50 if you want pastel like icons",
-    "Pick two colors to cycle gradient or set duty value close to 100 or 0 so it looks like pulse.",
-    "Let this color gradient from one to another during your gameplay. In plat levels your current progress is always regarded 0."
+    "Set to any color you prefer.",
+    "Our favourite Hue Cycle Mode.  \n"
+    "- Phase option gives an alter offset besides <cy>Separate Dual Phase</c> and so on. \n"
+    "- Set saturation percent to 50 if you want pastel like icons. \n"
+    "- Do you really need Brightness slider?",
+    "Design the cycle pattern by your own",
+    "Let this color gradient from one to another regarding your percentage or progress.  \n"
+    "In plat levels your current progress is always regarded 0."
 };
 
 bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
@@ -351,7 +349,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         this->addChild(m_toggler);
         break;
     case OptionLineType::Desc:
-        label = CCLabelBMFont::create(descs[mode], "ErasLight.fnt"_spr, 220.f, CCTextAlignment::kCCTextAlignmentLeft);
+        label = CCLabelBMFont::create(descs[mode].c_str(), "ErasLight.fnt"_spr, 220.f, CCTextAlignment::kCCTextAlignmentLeft);
         label->setScale(0.8);
         label->setPosition(CCPoint(10.f, 10.f));
         label->setAnchorPoint(CCPoint(0.f, 0.5));
@@ -360,7 +358,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
 
         this->setContentHeight(label->getContentHeight());
         break;
-    case OptionLineType::SingleColor:
+    case OptionLineType::Color:
         sqr = ColorChannelSprite::create();
         sqr->setScale(0.5);
         this->m_colpk = CCMenuItemSpriteExtra::create(sqr, this, menu_selector(SetupOptionLine::onPickColor));

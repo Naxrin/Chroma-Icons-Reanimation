@@ -2,6 +2,7 @@
 // This file includes all self-defined cell class
 #pragma once
 
+#include "Geode/ui/MDTextArea.hpp"
 #include "mynode.hpp"
 
 // This class works as a CCNode with a new CCScale9Sprite background
@@ -250,7 +251,6 @@ protected:
     //std::string key;
     ChromaPattern setup;
     // i hate cascading his opacity
-    //SetupOptionLine* sliderLine = nullptr;
     bool init();
 public:
     CCArrayExt<SetupOptionLine*> m_aryMenus;
