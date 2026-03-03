@@ -3,14 +3,6 @@
 
 #include "utility.hpp"
 #include <Geode/ui/TextInput.hpp>
-#include <algorithm>
-
-/*
-inline float limiter(float target, float min = 0, float max = 1) {
-    if (target > max) return max;
-    if (target < min) return min;
-    return target;
-}*/
 
 // get child by index and cast to type
 template<typename T>
@@ -92,8 +84,8 @@ protected:
     float max;
     // min value
     float min;
-    // is int
-    bool is_int;
+    // precision
+    float precision;
     // label
     CCLabelBMFont* m_label = nullptr;
     // inputer
@@ -109,7 +101,7 @@ protected:
     // slider to value
     std::function<float (float)> fromSlider;
     // worst init function ever
-    bool init(std::string topic, const char* title, float value, float max, float min, bool is_int, bool has_arrow, \
+    bool init(std::string topic, const char* title, float value, float max, float min, int precision, bool has_arrow, \
         float labelScale,  float sliderScale, float inputerScale, float arrowScale, float sliderPosX, float inputerPosX, float labelWidth, float inputerWidth, float arrowDistance,\
         std::function<float (float)> toSlider, std::function<float (float)> fromSlider);
 public:
@@ -147,10 +139,10 @@ public:
     };
     // post event
     virtual void postEvent() {
-        if (this->is_int)
-            Signal<int>(this->topic).send((int)value);
-        else
+        if (this->precision)
             Signal<float>(this->topic).send(value);
+        else
+            Signal<int>(this->topic).send((int)value);
     }
     float getVal() {
         return this->value;

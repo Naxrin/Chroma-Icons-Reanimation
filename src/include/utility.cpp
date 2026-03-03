@@ -1,5 +1,4 @@
 #include "utility.hpp"
-#include <regex>
 
 // level
 GJGameLevel* Level;
@@ -66,12 +65,14 @@ mapline MapfromJson(matjson::Value const& json, int def, int max) {
     if (json.isNull() || !json.isObject())
         return {{0, ccc3(255, 255, 255)}, {def, ccc3(255, 255, 255)}};
     mapline map;
-    for (auto& [key, val] : json)
-        // regex check to avoid stoi crash, meanwhile block negative value
-        // also kick out out of range value
-        if (std::regex_match(key, std::regex("[0-9]+")) && stoi(key) < max && val.isString())
-            map[stoi(key)] = val.asString().andThen([](auto str)
-                { return cc3bFromHexString(str, true); }).unwrapOr(ccc3(255,255,255));
+    for (auto& [key, val] : json) {
+        auto keynum = numFromString<int>(key).unwrapOr(max);
+        // block irregular weird value
+        if (keynum >= 0 && keynum < max && val.isString())
+            map[keynum] = val.asString().andThen([](auto str)
+                { return cc3bFromHexString(str, true); }).unwrapOr(ccc3(255,255,255));        
+    }
+
     return map;
 }
 
@@ -79,7 +80,7 @@ mapline MapfromJson(matjson::Value const& json, int def, int max) {
 matjson::Value MaptoJson(mapline const& map) {
     matjson::Value json;
     for (auto pair: map)
-        json[std::to_string(pair.first)] = cc3bToHexString(pair.second);
+        json[numToString(pair.first)] = cc3bToHexString(pair.second);
     return json;
 }
 
@@ -163,8 +164,8 @@ inline myColorHSV RGBtoHSV(ccColor3B rgb) {
 }
 
 // get RGB cycle color
-inline ccColor3B getRainbow(float hue, float saturation) {
-    return HSVtoRGB(myColorHSV{hue, saturation / 100, 1});
+inline ccColor3B getRainbow(float hue, float saturation, float brightness) {
+    return HSVtoRGB(myColorHSV{hue, saturation / 100, brightness / 100});
 }
 
 inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpos &r) {
@@ -175,18 +176,6 @@ inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpo
         l.second.b + p * (r.second.b - l.second.b)
     );
 }
-/*
-inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpos &r) {
-    float p = (middle - l.first) / (r.first - l.first);
-    auto L = RGBtoHSV(l.second);
-    auto R = RGBtoHSV(r.second);
-    int Rev = 360 * (R.h-L.h > 180.f);
-    return HSVtoRGB(myColorHSV{
-        L.h + Rev + p * (R.h - L.h - Rev),
-        L.s + p * (R.s - L.s),
-        L.v + p * (R.v - L.v)
-    });
-}*/
 
 ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress) {
     if (!opts["activate"])
@@ -201,7 +190,7 @@ ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, flo
     // chromatic
     case 2:
         phase = fmod(phase, 360.f);
-        return getRainbow(phase, setup.satu);
+        return getRainbow(setup.phase + (1 - 2 * setup.rev) * phase, setup.satu, setup.brit);
     // gradient
     case 3:
         // dont crash the game at least
@@ -210,17 +199,20 @@ ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, flo
         }
         phase = fmod(phase, 360.f);
         for (pairpos r : setup.gradient) {
+            // currently not reached the first checkpoint
             if (r.first > phase) {
                 if (r == *setup.progress.begin()) {
                     pairpos illu = std::make_pair(setup.gradient.rbegin()->first - 360, setup.gradient.rbegin()->second);
-                    return getGradient(phase, illu, r);                    
+                    return getGradient(phase, illu, r);
                 }
                 return getGradient(phase, l, r);
             }
-            // this may be the left
+            // if this may be the left
             l = r;
         }
+        // perhaps?
         return getGradient(phase, l, std::make_pair(setup.gradient.begin()->first + 360, setup.gradient.begin()->second));
+    // progress
     case 4:
         // dont crash the game at least
         if (setup.progress.empty()) {

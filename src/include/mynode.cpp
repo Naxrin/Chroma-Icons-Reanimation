@@ -182,7 +182,7 @@ void PickItemButton::toggleChroma(bool current) {
     }
 }
 
-bool SliderBundleBase::init(std::string topic, const char* title, float value, float max, float min, bool is_int, bool has_arrow, \
+bool SliderBundleBase::init(std::string topic, const char* title, float value, float max, float min, int precision, bool has_arrow, \
     float labelScale, float sliderScale, float inputerScale, float arrowScale, float sliderPosX, float inputerPosX, float labelWidth, float inputerWidth, float arrowDistance,\
     std::function<float (float)> toSlider, std::function<float (float)> fromSlider) {
 
@@ -190,7 +190,7 @@ bool SliderBundleBase::init(std::string topic, const char* title, float value, f
 
     this->max = max;
     this->min = min;
-    this->is_int = is_int;
+    this->precision = precision;
 
     this->toSlider = toSlider;
     this->fromSlider = fromSlider;
@@ -208,7 +208,7 @@ bool SliderBundleBase::init(std::string topic, const char* title, float value, f
     this->m_inputer = TextInput::create(inputerWidth, title, "ErasBold.fnt"_spr);
     m_inputer->setPosition(CCPoint(inputerPosX, 10.f));
     m_inputer->setScale(inputerScale);
-    m_inputer->setFilter(fmt::format("1234567890{}{}", this->is_int ? "" : ".", this->min < 0 ? "-" : ""));
+    m_inputer->setFilter(fmt::format("1234567890{}{}", this->precision ? "." : "", this->min < 0 ? "-" : ""));
     m_inputer->setDelegate(this);
     //m_inputer->getChildByType<CCScale9Sprite>(0)->setVisible(false);
     m_inputer->setID("text-input");
@@ -249,7 +249,7 @@ void SliderBundleBase::setVal(float value, short mode) {
         this->value = value;
     if (mode < 1 && m_inputer) {
         // inputer
-        m_inputer->setString(numToString(value, 2));
+        m_inputer->setString(numToString(value, precision));
     }
     if (mode > -1 && m_slider)  {
         // slider
@@ -272,7 +272,7 @@ void SliderBundleBase::helpFade(bool in) {
 bool SpeedSliderBundle::init() {
     if (!CCMenu::init())
         return false;
-    if (!SliderBundleBase::init("speed", "Frequency", Mod::get()->getSavedValue<float>("speed", 1), 360, 0, false, true,
+    if (!SliderBundleBase::init("speed", "Frequency", Mod::get()->getSavedValue<float>("speed", 1), 360, 0, 2, true,
         0.6, 0.6, 0.8, 0.3, 160.f, 275.f, 140.f, 60.f, 35.f,
         [](float value) -> float { return std::clamp(sqrt(value/5), 0.f, 1.f); },
         [](float s) -> float { return 5 * s * s; }
@@ -405,13 +405,13 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
     case OptionLineType::Slider:
         this->setID(mode == 3 ? "duty" :"satu");
         if (mode == 3)
-            return SliderBundleBase::init("duty", "Duty %", 50, 99, 0, true, true,
+            return SliderBundleBase::init("duty", "Duty %", 50, 99, 0, 0, true,
                 0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 40.f, 25.f,
                 [](float value) -> float { return value / 99; },
                 [](float s) -> float { return 99 * s; }
             );
         else
-            return SliderBundleBase::init("satu", "Saturation", 50, 100, 0, true, true,
+            return SliderBundleBase::init("satu", "Saturation", 50, 100, 0, 0, true,
                 0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 40.f, 25.f,
                 [](float value) -> float { return value / 100; },
                 [](float s) -> float { return 100 * s; }

@@ -289,6 +289,64 @@ void OptionTogglerCell::Fade(bool in) {
         btn->setEnabled(false);
 }
 
+bool OptionSliderCell::init(const char* title, float y, int tag, std::string id, std::string desc, float min, float max, int precision,
+    std::function<float (float)> toSlider, std::function<float (float)> fromSlider) {
+    if (!CCMenu::init())
+        return false;
+
+    this->id = id;
+    this->setTag(tag);
+
+    this->value = Mod::get()->getSavedValue<bool>(id);
+    this->min = min;
+    this->max = max;
+    this->precision = precision;
+
+    this->toSlider = toSlider;
+    this->fromSlider = fromSlider;
+
+    this->m_title = title;
+    this->m_desc = desc;
+
+    m_label = CCLabelBMFont::create(title, "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_label->setPosition(ccp(5.f, 10.f));
+    m_label->setScale(0.45);
+    m_label->setContentSize(CCSize(275.f, 20.f));
+    //m_label->setWidth(340.f);
+    m_label->setAnchorPoint(CCPoint(0.f, 0.5f));
+    m_label->setID("label");
+    this->addChild(m_label);
+
+    auto spr = CCSprite::create("infoBtn.png"_spr);
+    spr->setScale(0.35);
+    this->m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(OptionTogglerCell::onDesc));
+    m_hint->setColor(ccc3(CELL_COLOR));
+    this->addChild(m_hint);
+
+    this->m_slider = Slider::create(this, menu_selector(OptionSliderCell::onSlider));
+    m_slider->setPosition(ccp(200.f, 10.f));
+    m_slider->setScale(0.4f);
+    m_slider->setID("slider");
+    m_slider->setValue(toSlider(value));
+    this->addChild(m_slider);
+
+    this->m_display = CCLabelBMFont::create(numToString(this->value, precision).c_str(), "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_display->setPosition(ccp(5.f, 10.f));
+    m_display->setScale(0.45);
+    m_display->setContentSize(CCSize(275.f, 20.f));
+    //m_label->setWidth(340.f);
+    m_display->setAnchorPoint(CCPoint(0.f, 0.5f));
+    m_display->setID("display");
+    this->addChild(m_display);
+
+    // setup
+    if (!BaseCell::setup(CCPoint(160.f, y - 10.f), CCSize(300.f, 20.f), tag, id))
+        return false;
+
+    m_hint->setPosition(ccp(m_label->getContentWidth() * 0.45 + 15.f, 10.f));
+    return true;
+}
+
 bool ItemCell::init(int tag) {
     if (!CCMenu::init())
         return false;

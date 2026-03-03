@@ -83,6 +83,8 @@ struct ChromaPattern {
     int satu;
     // chromatic brightness
     int brit;
+    // reverse
+    bool rev;    
     // gradient map
     mapline gradient;
     // progress map
@@ -98,6 +100,7 @@ struct ChromaPattern {
     .phase = 0,\
     .satu = 50,\
     .brit = 100,\
+    .rev = false,\
     .gradient = {{0, ccc3(255, 255, 255)}, {180, ccc3(255, 255, 255)}},\
     .progress = {{0, ccc3(255, 255, 255)}, {100, ccc3(255, 255, 255)}},\
     .best = false\
@@ -115,9 +118,10 @@ struct matjson::Serialize<ChromaPattern> {
             .phase = value.contains("phase") ? ((int)value["phase"].asInt().unwrapOr(0)) % 360 : 0, 
             .satu = value.contains("saturation") ? ((int)value["saturation"].asInt().unwrapOr(50)) % 101 : 50,
             .brit = value.contains("brightness") ? ((int)value["brighttness"].asInt().unwrapOr(100)) % 101 : 100,
-            .gradient = MapfromJson(value["gradient"], 180, 360),
-            .progress = MapfromJson(value["progress"], 100, 101),
-            .best = value["best"].asBool().unwrapOr(false)
+            .rev = value.contains("reverse") ? value["reverse"].asBool().unwrapOr(false) : false,
+            .gradient = value.contains("gradient") ? MapfromJson(value["gradient"], 180, 360) : mapline({{0, ccc3(255, 255, 255)}, {180, ccc3(255, 255, 255)}}),
+            .progress = value.contains("progress") ? MapfromJson(value["progress"], 100, 101) : mapline({{0, ccc3(255, 255, 255)}, {100, ccc3(255, 255, 255)}}),
+            .best = value.contains("best") ? value["best"].asBool().unwrapOr(false) : false
         });
     }
 
@@ -129,6 +133,7 @@ struct matjson::Serialize<ChromaPattern> {
             {"phase", value.phase},
             {"saturation", value.satu},
             {"brightness", value.brit},
+            {"reverse", value.rev},
             {"gradient", MaptoJson(value.gradient)},
             {"progress", MaptoJson(value.progress)},
             {"best", value.best}
@@ -137,13 +142,6 @@ struct matjson::Serialize<ChromaPattern> {
 
     // judge json file with max tolerance
     static bool isJson(matjson::Value value) {
-        if (!value.isObject()) return false;
-        if (!value.contains("mode") || !value["mode"].isNumber()) return false;
-        if (!value.contains("saturation") || !value["saturation"].isNumber()) return false;
-        if (!value.contains("best") || !value["best"].isBool()) return false;
-        if (!value.contains("color") || !value["color"].isString()) return false;
-        if (!value.contains("gradient") || !value["gradient"].isObject()) return false;
-        if (!value.contains("progress") || !value["progress"].isObject()) return false;
         return true;
     }
 };

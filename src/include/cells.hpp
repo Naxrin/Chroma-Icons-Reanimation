@@ -2,7 +2,6 @@
 // This file includes all self-defined cell class
 #pragma once
 
-#include "Geode/ui/MDTextArea.hpp"
 #include "mynode.hpp"
 
 // This class works as a CCNode with a new CCScale9Sprite background
@@ -121,7 +120,7 @@ public:
     // fade
     void Fade(bool) override;
     
-    static OptionTogglerCell* create(const char* title, float y, int tag, std::string id, const char* desc) {
+    static OptionTogglerCell* create(const char* title, float y, int tag, std::string id, std::string desc) {
         auto node = new OptionTogglerCell();
         if (node && node->init(title, y, tag, id, desc)) {
             node->autorelease();
@@ -132,25 +131,62 @@ public:
     }
 };
 
-/*
-class OptionSliderCell : public BaseCell {
+
+class OptionSliderCell : public BaseCell, public SliderDelegate {
 protected:
-    SliderBundleBase* bundle;
-    // Option Float
-    bool init(const char* title, float y, int tag, std::string id, const char* desc);
+    std::string id;
+    float value;
+    float min;
+    float max;
+    float precision;
+
+    std::string m_title;
+    std::string m_desc;
+
+    CCLabelBMFont* m_label, * m_display;
+    Slider* m_slider;
+    CCMenuItemSpriteExtra* m_hint;
+
+    // value to slider (this may return a value out of 1~0 range, unfiltered)
+    std::function<float (float)> toSlider;
+    // slider to value
+    std::function<float (float)> fromSlider;
+
+    bool init(const char* title, float y, int tag, std::string id, std::string desc, float min, float max, int precision,
+        std::function<float (float)> toSlider, std::function<float (float)> fromSlider);
+
+    void sliderBegan(Slider* slider) override {
+        Signal<bool>("drag-slider").send(false);
+    }
+    void onSlider(CCObject* sender) {
+        this->value = fromSlider(m_slider->getValue());
+        m_display->setCString(numToString(this->value, this->precision).c_str());
+    }
+    void sliderEnded(Slider* slider) override {
+        Signal<bool>("drag-slider").send(true);
+        postEvent();
+    }
+    void postEvent() {
+        if (this->precision)
+            Signal<float>(this->id).send(value);
+        else
+            Signal<int>(this->id).send((int)value);
+    }
+
 public:
     void Fade(bool) override;
     
-    static OptionSliderCell* create(const char* title, float y, int tag, std::string id, const char* desc) {
+    static OptionSliderCell* create(const char* title, float y, int tag, std::string id, std::string desc, float min, float max, int precision,
+        std::function<float (float)> toSlider, std::function<float (float)> fromSlider) {
         auto node = new OptionSliderCell();
-        if (node && node->init(title, y, tag, id, desc)) {
+        if (node && node->init(title, y, tag, id, desc, min, max, precision, toSlider, fromSlider)) {
             node->autorelease();
             return node;
         };
         CC_SAFE_DELETE(node);
         return nullptr;
     }
-};*/
+};
 
 // This cell works for item menu as a bunch of items
 class ItemCell : public BaseCell {
