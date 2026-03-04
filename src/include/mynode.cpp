@@ -259,11 +259,8 @@ void SliderBundleBase::setVal(float value, short mode) {
 }
 
 void SliderBundleBase::helpFade(bool in) {
-    if (m_slider != nullptr) {
-        m_slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-        m_slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-        m_slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    }
+    if (m_slider != nullptr)
+        fadeSlider(m_slider, in);
     if (m_inputer != nullptr)
         m_inputer->getChildByType<CCTextInputNode>(0)->getChildByType<CCLabelBMFont>(0)->runAction(
             CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));

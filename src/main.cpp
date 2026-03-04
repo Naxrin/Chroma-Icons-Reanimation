@@ -626,6 +626,7 @@ $on_mod(Loaded) {
     // speed
     vals["speed"] = Mod::get()->getSavedValue<float>("speed", 1);
     vals["anim-speed"] = Mod::get()->getSavedValue<float>("anim-speed", 0.4);
+    vals["blur-lvl"] = Mod::get()->getSavedValue<float>("blur-lvl", 5);
     // load options
     std::map<std::string, bool> defaultOpts = {
         {"easy", true},

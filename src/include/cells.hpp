@@ -158,9 +158,18 @@ protected:
     void sliderBegan(Slider* slider) override {
         Signal<bool>("drag-slider").send(true);
     }
+
+    void onDesc(CCObject* sender) {
+        log::debug("title = {} desc = {}", m_title, m_desc);
+        Signal<std::pair<std::string, std::string>>("option-desc").send({m_title, m_desc});
+    }
+
     void onSlider(CCObject* sender) {
         this->value = fromSlider(m_slider->getValue());
-        m_display->setCString(numToString(this->value, this->precision).c_str());
+        if (this->precision)
+            m_display->setCString(numToString(this->value, this->precision).c_str());
+        else
+            m_display->setCString(numToString((int)this->value).c_str());
     }
     void sliderEnded(Slider* slider) override;
 
@@ -172,8 +181,7 @@ protected:
     }
 
 public:
-    void Fade(bool) override;
-    
+    void helpFade(bool in);
     static OptionSliderCell* create(const char* title, float y, int tag, std::string id, std::string desc, float min, float max, int precision,
         std::function<float (float)> toSlider, std::function<float (float)> fromSlider) {
         auto node = new OptionSliderCell();

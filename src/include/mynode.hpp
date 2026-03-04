@@ -108,12 +108,12 @@ public:
     // update value from text input
     void textChanged(CCTextInputNode* p) override {
         std::string input = p->getString();
-        this->setVal(std::clamp(numFromString<float>(input, 2).unwrapOrDefault(), 0.f, 1.f));
+        this->setVal(std::clamp(numFromString<float>(input, precision).unwrapOr(this->value), 0.f, 1.f));
     }
     // check value > max case
     void textInputClosed(CCTextInputNode* p) override {
         std::string input = p->getString();
-        this->setVal(std::clamp(numFromString<float>(input, 2).unwrapOrDefault(), (float)min, (float)max));
+        this->setVal(std::clamp(numFromString<float>(input, precision).unwrapOr(this->value), (float)min, (float)max));
         postEvent();
     }
     // change chroma frequency by slider

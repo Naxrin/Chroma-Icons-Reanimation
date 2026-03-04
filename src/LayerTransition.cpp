@@ -248,7 +248,7 @@ void ChromaLayer::fadeColorPage() {
     for (int i = 0; i < 7; i++)
         m_picker->getChildByType<CCSpriteBatchNode>(0)->getChildByType<CCSprite>(i)->runAction(
             CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_L, 255*in)));
-}
+}       
 
 void ChromaLayer::fadeOptionsPage() {
     bool in = m_pages.back() == Page::Options;
@@ -265,13 +265,6 @@ void ChromaLayer::fadePopupPage() {
     fade(menu, in, ANIM_TIME_M, 1, in);
     fade(menu->getChildByID("info-title"), in, ANIM_TIME_M, 0.6, 0.6 * in);
     fade(menu->getChildByID("info-button"), in, ANIM_TIME_M, 1, in);
-
-    if (!in)
-        this->runAction(CCSequence::create(
-            CCDelayTime::create(ANIM_TIME_M),
-            CallFuncExt::create([menu] () { menu->removeFromParentAndCleanup(true); }),
-            nullptr
-        ));
 }
 
 void ChromaLayer::fadeInfoPage() {

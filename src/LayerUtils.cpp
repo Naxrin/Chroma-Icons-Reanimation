@@ -169,35 +169,26 @@ bool ChromaLayer::switchTab(int tab) {
 }
 
 void ChromaLayer::makeHintPopup(std::string title, std::string content, float height) {
-    // hint menu
-    auto menuHint = CCMenu::create();
-    menuHint->setContentSize(ccp(0.f, 0.f));
-    menuHint->setScaleY(0.f);
-    menuHint->setID("popup-menu");
-    this->addChild(menuHint);
+    if (!this->m_hasPopupPage) {
+        this->makePopupPage();
+        this->m_hasPopupPage = true;
+    }
+
+    if (auto md = m_menuHint->getChildByID("md"))
+        md->removeFromParentAndCleanup(true);
 
     auto mdContent = MDTextArea::create(content, ccp(333.f, height));
     mdContent->setScale(1.2);
     //mdContent->getScrollLayer()->m_disableMovement = true;
     mdContent->getScrollLayer()->setTouchEnabled(false);
-    menuHint->addChild(mdContent);
+    mdContent->setID("md");
+    log::debug("will add child");
+    m_menuHint->addChild(mdContent);
+    log::debug("child added");
+    this->m_lbfHint->setString(title.c_str());
+    this->m_lbfHint->setPositionY(0.6 * height + 18.f);
 
-
-    auto lbfTitle = CCLabelBMFont::create(title.c_str(), "ErasBold.fnt"_spr, 360.f);
-    lbfTitle->setPositionY(0.6 * height + 18.f);
-    hide(lbfTitle, 1, 0);
-    lbfTitle->setID("info-title");
-    lbfTitle->setTag(0);
-    menuHint->addChild(lbfTitle);
-
-    auto lbfOkay = CCLabelBMFont::create("Okay", "ErasBold.fnt"_spr, 200.f);
-    lbfOkay->setScale(0.5);
-    auto btnOkay = CCMenuItemSpriteExtra::create(lbfOkay, this, menu_selector(ChromaLayer::onClose));
-    btnOkay->setPositionY(-0.6 * height - 15.f);
-    hide(btnOkay, 1, 0);
-    btnOkay->setID("info-button");
-    btnOkay->setTag(1);
-    menuHint->addChild(btnOkay);
+    this->m_btnOkay->setPositionY(-0.6 * height - 15.f);
 }
 
 // override ColorPickerDelegate function
@@ -250,6 +241,11 @@ void ChromaLayer::installRadios() {
         //BlurAPI::getOptions(this->m_bg)->passes = 1 + 4 * blur;
         m_bg->setVisible(blur);
         this->setOpacity(170 - 70 * blur);
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("blur-lvl").listen([this] (int level) -> ListenerResult {
+        BlurAPI::getOptions(this->m_bg)->passes = level;
         return ListenerResult::Stop;
     }));
 

@@ -65,6 +65,8 @@ static std::string chnls[] = {
 typedef std::map<int, ccColor3B> mapline;
 typedef std::pair<int, ccColor3B> pairpos;
 
+void fadeSlider(Slider* slider, bool in);
+
 // load int color array from json file
 mapline MapfromJson(matjson::Value const& json, int def, int max);
 

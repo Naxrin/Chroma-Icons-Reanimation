@@ -141,18 +141,11 @@ bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::s
     ccTexParams TexParameters = {GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
     m_spr->getTexture()->setTexParameters(&TexParameters);
 
-    //m_clip->addChildAtPosition(m_spr, Anchor::Center);
     m_clip->addChild(m_spr);
     m_bg->addChildAtPosition(m_clip, Anchor::Center);
 
-    //m_spr->setPosition(CCPoint(295, 50));
-    
-    
     m_spr->runAction(CCRepeatForever::create(CCSequence::create(
         CallFuncExt::create([this]() { m_spr->setPosition(CCPoint(275, 40.1)); }),
-        //CCDelayTime::create(5),
-        //CallFuncExt::create([this]() { m_spr->setPosition(CCPoint(40.5, -13)); }),
-        //CCDelayTime::create(5),
         CCMoveTo::create(30, CCPoint(40.5, -13)),
         nullptr
     )));
@@ -162,7 +155,6 @@ bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::s
     m_title->setContentSize(CCSize(width, 25.f));
     m_title->setWidth(300.f);
     m_title->setAnchorPoint(CCPoint(0.5, 0.5));
-    //m_title->setColor(ccc3(255, 255, 255));
     m_title->setID("label");
     this->addChildAtPosition(m_title, Anchor::Center);
 
@@ -274,6 +266,7 @@ void OptionTogglerCell::onOption(CCObject* sender) {
 }
 
 void OptionTogglerCell::onDesc(CCObject* sender) {
+    log::debug("title = {} desc = {}", m_title, m_desc);
     Signal<std::pair<std::string, std::string>>("option-desc").send({m_title, m_desc});
 }
 
@@ -298,7 +291,7 @@ bool OptionSliderCell::init(const char* title, float y, int tag, std::string id,
     this->id = id;
     this->setTag(tag);
 
-    this->value = Mod::get()->getSavedValue<bool>(id);
+    this->value = Mod::get()->getSavedValue<float>(id);
     this->min = min;
     this->max = max;
     this->precision = precision;
@@ -320,7 +313,7 @@ bool OptionSliderCell::init(const char* title, float y, int tag, std::string id,
 
     auto spr = CCSprite::create("infoBtn.png"_spr);
     spr->setScale(0.35);
-    this->m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(OptionTogglerCell::onDesc));
+    this->m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(OptionSliderCell::onDesc));
     m_hint->setColor(ccc3(CELL_COLOR));
     this->addChild(m_hint);
 
@@ -333,7 +326,9 @@ bool OptionSliderCell::init(const char* title, float y, int tag, std::string id,
     m_slider->m_delegate = this;
     this->addChild(m_slider);
 
-    this->m_display = CCLabelBMFont::create(numToString(this->value, precision).c_str(), "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
+    this->m_display = CCLabelBMFont::create(
+        (precision ? numToString(this->value, precision) : numToString<int>(this->value, precision)).c_str(),
+        "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
     m_display->setPosition(ccp(200.f, 10.f));
     m_display->setScale(0.45);
     m_display->setContentSize(CCSize(50.f, 20.f));
@@ -356,11 +351,8 @@ void OptionSliderCell::sliderEnded(Slider* slider) {
     postEvent();
 }
 
-void OptionSliderCell::Fade(bool in) {
-    BaseCell::Fade(in);
-    m_slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    m_slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    m_slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+void OptionSliderCell::helpFade(bool in) {
+    fadeSlider(m_slider, in);
 }
 
 bool ItemCell::init(int tag) {
@@ -637,9 +629,7 @@ void ColorValueCell::sliderEnded(Slider *p) {
 
 void ColorValueCell::Fade(bool in) {
     BaseCell::Fade(in);
-    m_slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    m_slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    m_slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+    fadeSlider(m_slider, in);
 
     m_inputer->getChildByType<CCTextInputNode>(0)->getChildByType<CCLabelBMFont>(0)->runAction(
         CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));     

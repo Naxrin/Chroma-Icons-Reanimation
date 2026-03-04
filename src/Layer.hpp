@@ -54,6 +54,8 @@ protected:
     bool m_hasHintPage;
     // already has Info Page
     bool m_hasInfoPage;
+    // already has Popup Page
+    bool m_hasPopupPage;
 
     // dual player 1/2
     bool m_ptwo;
@@ -190,8 +192,12 @@ protected:
     // option scroller
     ScrollLayerPlus* m_scrollerOptions;
 
-    // hint content
-    CCLabelBMFont* m_lbfHintContent;
+    // hint menu
+    CCMenu* m_menuHint;
+    // hint title
+    CCLabelBMFont* m_lbfHint;
+    // okay button
+    CCMenuItemSpriteExtra* m_btnOkay;
 
     // radios
     std::vector<ListenerHandle> m_radios;
@@ -218,6 +224,9 @@ protected:
 
     // make info page
     void makeInfoPage();
+
+    // make popup page
+    void makePopupPage();
 
     /*********** UTILITY ***********/
 

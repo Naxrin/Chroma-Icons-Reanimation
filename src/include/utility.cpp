@@ -59,6 +59,11 @@ void fade(CCMenuItem* node, bool in, float time, float scaleX, float scaleY, int
         nullptr));
 }
 
+void fadeSlider(Slider* slider, bool in) {
+    slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+    slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+    slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+}
 
 // load int color array from json file
 mapline MapfromJson(matjson::Value const& json, int def, int max) {

@@ -25,10 +25,10 @@ bool ChromaLayer::init() {
     // blur
     BlurAPI::addBlur(this->m_bg);
     m_bg->setVisible(opts["blur-bg"]);
-    /*
+
     BlurAPI::getOptions(this->m_bg)->forcePasses = true;
-    BlurAPI::getOptions(this->m_bg)->passes = 1 + 4 * opts["blur-bg"];
-    */
+    BlurAPI::getOptions(this->m_bg)->passes = vals["blur-lvl"];
+
     /********** Main Menu **********/
     auto menuMain = CCMenu::create();
     menuMain->setPosition(CCPoint(0, 0));
@@ -489,14 +489,14 @@ void ChromaLayer::makeOptionsPage() {
     H += darkOpt->getContentHeight() + 15.f;
 
     #ifdef GEODE_IS_WINDOWS
-    /*
     sTag ++;
-    auto blurlvlOpt = OptionTogglerCell::create("Blur Level", H, sTag, "blur-lvl",
+    auto blurlvlOpt = OptionSliderCell::create("Blur Level", H, sTag, "blur-lvl",
         "Set how foggy the blur it is.  \n"
-        "You should turn on the blur switch firstly sure.");
-    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(blurOpt);
-    H += blurOpt->getContentHeight() + 15.f;
-    */
+        "You should turn on the blur switch firstly sure.",
+    0.f, 10.f, 0, [] (float val) -> float { return val / 10; }, [] (float s) -> float { return s * 10; });
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(blurlvlOpt);
+    H += blurlvlOpt->getContentHeight() + 15.f;
+    
     sTag ++;
     auto blurOpt = OptionTogglerCell::create("Blur Background", H, sTag, "blur-bg",
         "Add a gaussian blur effect to the background.  \nGive it up if you feel this effect can't worth your device lag.  \n"
@@ -739,4 +739,29 @@ void ChromaLayer::makeInfoPage() {
     menuInfo->addChild(lbfCreditContent);
 
     this->m_hasInfoPage = true;
+}
+
+void ChromaLayer::makePopupPage() {
+   // hint menu
+    this->m_menuHint = CCMenu::create();
+    m_menuHint->setContentSize(ccp(0.f, 0.f));
+    m_menuHint->setScaleY(0.f);
+    m_menuHint->setID("popup-menu");
+    this->addChild(m_menuHint);
+
+    this->m_lbfHint = CCLabelBMFont::create("title", "ErasBold.fnt"_spr, 360.f);
+    m_lbfHint->setPositionY(138.f);
+    hide(m_lbfHint, 1, 0);
+    m_lbfHint->setID("info-title");
+    m_lbfHint->setTag(0);
+    m_menuHint->addChild(m_lbfHint);
+
+    auto lbfOkay = CCLabelBMFont::create("Okay", "ErasBold.fnt"_spr, 200.f);
+    lbfOkay->setScale(0.5);
+    this->m_btnOkay = CCMenuItemSpriteExtra::create(lbfOkay, this, menu_selector(ChromaLayer::onClose));
+    m_btnOkay->setPositionY(-135.f);
+    hide(m_btnOkay, 1, 0);
+    m_btnOkay->setID("info-button");
+    m_btnOkay->setTag(1);
+    m_menuHint->addChild(m_btnOkay);
 }
