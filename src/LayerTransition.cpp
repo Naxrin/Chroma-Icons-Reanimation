@@ -3,7 +3,6 @@
 
 extern std::map<short, ChromaPattern> setups;
 extern std::map<std::string, bool> opts;
-extern float speed;
 
 void ChromaLayer::switchTheme() {
     // bg

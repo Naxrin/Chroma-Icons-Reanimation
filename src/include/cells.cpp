@@ -2,6 +2,7 @@
 #include "Geode/ui/NineSlice.hpp"
 
 extern std::map<std::string, bool> opts;
+extern std::map<std::string, float> vals;
 
 bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     // myself
@@ -324,18 +325,19 @@ bool OptionSliderCell::init(const char* title, float y, int tag, std::string id,
     this->addChild(m_hint);
 
     this->m_slider = Slider::create(this, menu_selector(OptionSliderCell::onSlider));
-    m_slider->setPosition(ccp(200.f, 10.f));
-    m_slider->setScale(0.4f);
+    m_slider->setPosition(ccp(250.f, 10.f));
+    m_slider->setContentSize(ccp(0.f, 0.f));
+    m_slider->setScale(0.45f);
     m_slider->setID("slider");
     m_slider->setValue(toSlider(value));
+    m_slider->m_delegate = this;
     this->addChild(m_slider);
 
     this->m_display = CCLabelBMFont::create(numToString(this->value, precision).c_str(), "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
-    m_display->setPosition(ccp(5.f, 10.f));
+    m_display->setPosition(ccp(200.f, 10.f));
     m_display->setScale(0.45);
-    m_display->setContentSize(CCSize(275.f, 20.f));
-    //m_label->setWidth(340.f);
-    m_display->setAnchorPoint(CCPoint(0.f, 0.5f));
+    m_display->setContentSize(CCSize(50.f, 20.f));
+    m_display->setAnchorPoint(CCPoint(1.f, 0.5f));
     m_display->setID("display");
     this->addChild(m_display);
 
@@ -345,6 +347,20 @@ bool OptionSliderCell::init(const char* title, float y, int tag, std::string id,
 
     m_hint->setPosition(ccp(m_label->getContentWidth() * 0.45 + 15.f, 10.f));
     return true;
+}
+
+void OptionSliderCell::sliderEnded(Slider* slider) {
+    Signal<bool>("drag-slider").send(false);
+    vals[this->id] = this->value;
+    Mod::get()->setSavedValue(this->id, this->value);
+    postEvent();
+}
+
+void OptionSliderCell::Fade(bool in) {
+    BaseCell::Fade(in);
+    m_slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+    m_slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+    m_slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
 }
 
 bool ItemCell::init(int tag) {

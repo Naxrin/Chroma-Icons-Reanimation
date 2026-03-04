@@ -1,7 +1,7 @@
 #include "Layer.hpp"
 
 extern std::map<std::string, bool> opts;
-extern float speed;
+extern std::map<std::string, float> vals;
 
 // makup initial UI (only main page)
 bool ChromaLayer::init() {
@@ -168,7 +168,7 @@ void ChromaLayer::makeItemPage() {
     menuItem->addChild(lbfTarget);
 
     // speed menu
-    auto menuSpeed = SpeedSliderBundle::create(speed);
+    auto menuSpeed = SpeedSliderBundle::create(vals["speed"]);
     menuItem->addChild(menuSpeed);
 
     // toggle preview
@@ -489,6 +489,14 @@ void ChromaLayer::makeOptionsPage() {
     H += darkOpt->getContentHeight() + 15.f;
 
     #ifdef GEODE_IS_WINDOWS
+    /*
+    sTag ++;
+    auto blurlvlOpt = OptionTogglerCell::create("Blur Level", H, sTag, "blur-lvl",
+        "Set how foggy the blur it is.  \n"
+        "You should turn on the blur switch firstly sure.");
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(blurOpt);
+    H += blurOpt->getContentHeight() + 15.f;
+    */
     sTag ++;
     auto blurOpt = OptionTogglerCell::create("Blur Background", H, sTag, "blur-bg",
         "Add a gaussian blur effect to the background.  \nGive it up if you feel this effect can't worth your device lag.  \n"
@@ -498,10 +506,25 @@ void ChromaLayer::makeOptionsPage() {
     #endif
 
     sTag ++;
+    auto animOpt = OptionSliderCell::create("Menu Anim Time", H, sTag, "anim-speed",
+        "Set anim time cost of this mod menu. \n Spamming faster than animations may cause some visual glitches so too slow animations is never recommended.",
+    0.f, 1.f, 1, [] (float val) -> float { return val; }, [] (float s) -> float { return s; });
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(animOpt);
+    H += animOpt->getContentHeight() + 15.f;
+
+    sTag ++;
     auto pauseOpt = OptionTogglerCell::create("Pause Menu Entry", H, sTag, "pause",
         "Show mod menu entrance button in Pause Menu.  \nSure, it's not taking effect until you pause again.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(pauseOpt);
     H += pauseOpt->getContentHeight() + 15.f;
+
+
+    sTag ++;
+    auto editorOpt = OptionTogglerCell::create("Editor Test", H, sTag, "editor",
+        "Apply to Editor Playtest. Will also add a button in your editor page if <cg>checked</c>.  \n"
+        "But I do not promise your device will not lag there.");
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(editorOpt);
+    H += editorOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto prevOpt = OptionTogglerCell::create("Preview Effects", H, sTag, "prev",
@@ -555,23 +578,9 @@ void ChromaLayer::makeOptionsPage() {
     H += ghostOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto initOpt = OptionTogglerCell::create("Chroma on Initial", H, sTag, "init",
-        "Both PlayLayer and LevelEditorLayer may have a lag between the player appears and she starts to move.  \n"
-        "If <cr>unchecked</c>, you can see your players of raw color when you pause quickly enough.");
-    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(initOpt);
-    H += initOpt->getContentHeight() + 15.f;
-
-    sTag ++;
     auto fixTitle = OptionTitleCell::create("Fix Options", H, sTag, "fix-title");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(fixTitle);
     H += 40.f;
-
-    sTag ++;
-    auto editorOpt = OptionTogglerCell::create("Editor Test", H, sTag, "editor",
-        "Apply to Editor Playtest. Will also add a button in your editor page if <cg>checked</c>.  \n"
-        "But I do not promise your device will not lag there.");
-    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(editorOpt);
-    H += editorOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto globedOpt = OptionTogglerCell::create("Globed Progress Indicator", H, sTag, "globed",
@@ -579,6 +588,13 @@ void ChromaLayer::makeOptionsPage() {
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(globedOpt);
     H += globedOpt->getContentHeight() + 15.f;
 
+    sTag ++;
+    auto initOpt = OptionTogglerCell::create("Chroma on Initial", H, sTag, "init",
+        "Both PlayLayer and LevelEditorLayer may have a lag between the player appears and she starts to move.  \n"
+        "If <cr>unchecked</c>, you can see your players of raw color when you pause quickly enough.");
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(initOpt);
+    H += initOpt->getContentHeight() + 15.f;
+    
     sTag ++;
     auto igntwOpt = OptionTogglerCell::create("Ignore Timewarp", H, sTag, "igntw",
         "If <cg>checked</c>, chroma speed will keep constant during timewarp trigger taking effect (sync with real world clock).");

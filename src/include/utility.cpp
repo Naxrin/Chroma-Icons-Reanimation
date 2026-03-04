@@ -9,7 +9,7 @@ float lvlphase = 0.f;
 // bools
 std::map<std::string, bool> opts;
 // speed option
-float speed;
+std::map<std::string, float> vals;
 // setup center
 std::map<short, ChromaPattern> setups;
 

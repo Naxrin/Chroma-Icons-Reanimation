@@ -26,8 +26,8 @@ static bool globed;
 static float timewarp;
 // bools
 extern std::map<std::string, bool> opts;
-// speed option
-extern float speed;
+// float option
+extern std::map<std::string, float> vals;
 // setup center
 extern std::map<short, ChromaPattern> setups;
 
@@ -179,7 +179,7 @@ class $modify(GameLayer, PlayLayer) {
     // edit phase
     void postUpdate(float d) {
         // iterate phase and update progress
-        lvlphase = fmod(lvlphase + 360 * d * speed / (opts["igntw"] ? timewarp : 1), 360.f);
+        lvlphase = fmod(lvlphase + 360 * d * vals["speed"] / (opts["igntw"] ? timewarp : 1), 360.f);
         percentage = this->getCurrentPercent();
         PlayLayer::postUpdate(d);
         // globed
@@ -245,7 +245,7 @@ class $modify(NivelEditorLayer, LevelEditorLayer) {
     // edit phase
     void postUpdate(float d) override {
         if (opts["editor"])
-            lvlphase = fmod(lvlphase + 360 * d * speed / (opts["igntw"] ? timewarp : 1), 360.f);
+            lvlphase = fmod(lvlphase + 360 * d * vals["speed"] / (opts["igntw"] ? timewarp : 1), 360.f);
         LevelEditorLayer::postUpdate(d);
     }
 
@@ -272,7 +272,7 @@ class $modify(MainGameLayer, MenuGameLayer) {
     // edit phase
     void update(float d) override {
         if (opts["???"])
-            lvlphase = fmod(lvlphase + 360 * d * speed / (opts["igntw"] ? timewarp : 1), 360.f);
+            lvlphase = fmod(lvlphase + 360 * d * vals["speed"] / (opts["igntw"] ? timewarp : 1), 360.f);
 
         MenuGameLayer::update(d);
     }
@@ -624,7 +624,8 @@ $on_mod(Loaded) {
         setups[getIndex(p, Gamemode::Ufo, Channel::UFOShell)] = Mod::get()->getSavedValue<ChromaPattern>(getConfigKey(p, Gamemode::Ufo, Channel::UFOShell), DEFAULT_SETUP);
     }
     // speed
-    speed = Mod::get()->getSavedValue<float>("speed", 1);
+    vals["speed"] = Mod::get()->getSavedValue<float>("speed", 1);
+    vals["anim-speed"] = Mod::get()->getSavedValue<float>("anim-speed", 0.4);
     // load options
     std::map<std::string, bool> defaultOpts = {
         {"easy", true},

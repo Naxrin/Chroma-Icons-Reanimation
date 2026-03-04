@@ -156,16 +156,14 @@ protected:
         std::function<float (float)> toSlider, std::function<float (float)> fromSlider);
 
     void sliderBegan(Slider* slider) override {
-        Signal<bool>("drag-slider").send(false);
+        Signal<bool>("drag-slider").send(true);
     }
     void onSlider(CCObject* sender) {
         this->value = fromSlider(m_slider->getValue());
         m_display->setCString(numToString(this->value, this->precision).c_str());
     }
-    void sliderEnded(Slider* slider) override {
-        Signal<bool>("drag-slider").send(true);
-        postEvent();
-    }
+    void sliderEnded(Slider* slider) override;
+
     void postEvent() {
         if (this->precision)
             Signal<float>(this->id).send(value);
@@ -325,9 +323,7 @@ protected:
     void sliderEnded(Slider *p) override;
     // value -> slider
     inline virtual float Val2Slider(int val) {
-        if (val > 255) return 1;
-        if (val < 0) return 0;
-        return (float)val / 255;
+        return std::clamp((float)val, 0.f, 255.f) / 255;
     }
     // slider -> value
     inline virtual int Slider2Val(float s) {
@@ -340,7 +336,7 @@ public:
     }
     inline void setVal(int value) {
         this->value = value;
-        m_inputer->setString(cocos2d::CCString::createWithFormat("%i", value)->getCString());
+        m_inputer->setString(numToString(value));
         m_slider->setValue(Val2Slider(value));
     }
     static ColorValueCell* create(int type) {
