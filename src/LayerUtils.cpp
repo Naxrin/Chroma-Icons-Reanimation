@@ -238,14 +238,13 @@ void ChromaLayer::installRadios() {
     }));
 
     this->m_radios.push_back(Signal<bool>("blur-bg").listen([this] (bool blur) -> ListenerResult {
-        //BlurAPI::getOptions(this->m_bg)->passes = 1 + 4 * blur;
         m_bg->setVisible(blur);
         this->setOpacity(170 - 70 * blur);
         return ListenerResult::Stop;
     }));
 
     this->m_radios.push_back(Signal<int>("blur-lvl").listen([this] (int level) -> ListenerResult {
-        BlurAPI::getOptions(this->m_bg)->passes = level;
+        BlurAPI::getOptions(this->m_bg)->passes = level + 1;
         return ListenerResult::Stop;
     }));
 
@@ -282,8 +281,8 @@ void ChromaLayer::installRadios() {
 
                 // show or hide channel switch arrow
                 bool showArrows = this->m_tab < 14 && !opts["easy"] || !this->m_tab;
-                fade(m_btnSetupArrowLeft, showArrows);
-                fade(m_btnSetupArrowRight, showArrows);
+                fade(m_btnSetupArrowLeft, showArrows, ANIM_TIME_L);
+                fade(m_btnSetupArrowRight, showArrows, ANIM_TIME_L);
 
                 // workspace animation
                 this->m_cellWorkspace->runAction(CCSequence::create(

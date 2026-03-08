@@ -2,6 +2,7 @@
 
 extern std::map<short, ChromaPattern> setups;
 extern std::map<std::string, bool> opts;
+extern std::map<std::string, float> vals;
 
 // UnlockType tags by RobTop
 const static int gametype[9] = {1, 4, 5, 6, 7, 8, 9, 13, 14};
@@ -118,7 +119,7 @@ void PickItemButton::setPlayerStatus() {
 void PickItemButton::delayFade(int delay, bool in) {
     this->runAction(CCSequence::create(
         CCDelayTime::create(0.01 + ANIM_TIME_GAP*(1+delay)),
-        CallFuncExt::create([this, in](void) { fade(this, in); }),
+        CallFuncExt::create([this, in](void) { fade(this, in, ANIM_TIME_L); }),
         nullptr
     ));
 }
@@ -293,11 +294,11 @@ const char* titles[5] = {"Default", "Static", "Chromatic", "Gradient", "Progress
 std::string descs[5] = {
     "As if this mod isn't loaded here.",
     "Set to any color you prefer.",
-    "Our favourite Hue Cycle Mode.  \n"
-    "- Phase option gives an alter offset besides <cy>Separate Dual Phase</c> and so on. \n"
-    "- Set saturation percent to 50 if you want pastel like icons. \n"
-    "- Do you really need Brightness slider?",
-    "Design the cycle pattern by your own",
+    "Our favourite Hue Cycle Mode.  \n",
+    //"- Phase option gives an alter offset besides <cy>Separate Dual Phase</c> and so on. \n"
+    //"- Set saturation percent to 50 if you want pastel like icons. \n"
+    //"- Do you really need Brightness slider?",
+    "Gradient between two colors",
     "Let this color gradient from one to another regarding your percentage or progress.  \n"
     "In plat levels your current progress is always regarded 0."
 };
@@ -416,6 +417,14 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         break;
     }
     return true;
+}
+
+void SetupOptionLine::toggleTitle(bool yes, bool fade) {
+    if (m_toggler)
+        m_toggler->toggle(yes && !fade);
+    if (type == OptionLineType::Title && m_title)
+        // green or gray
+        m_title->runAction(CCTintTo::create(fade * ANIM_TIME_M, 127-127*yes, 127+128*yes, 127-127*yes));
 }
 
 float MyContentLayer::getSomething(float Y, float H) {

@@ -4,6 +4,7 @@
 
 extern std::map<short, ChromaPattern> setups;
 extern std::map<std::string, bool> opts;
+extern std::map<std::string, float> vals;
 
 /**************** DIRECT CALLBACK *******************/
 

@@ -13,14 +13,11 @@ protected:
 public:
 
     // ~by Anal Walker~
-    virtual void Fade(bool in) {
-        fade(this, in, ANIM_TIME_L);
-    }
+    virtual void Fade(bool in);
     // tint
     void tint(float d, int r, int g, int b);
-    inline virtual void switchTheme() {
-        this->m_bg->runAction(CCTintTo::create(ANIM_TIME_M, CELL_COLOR));
-    }
+    // black / white
+    inline virtual void switchTheme();
 };
 
 // notice player when they launch it in extreme demons
@@ -33,15 +30,9 @@ protected:
     CCMenuItemSpriteExtra* m_btnEscape;
 
     bool init() override;
-    void onClick(CCObject* sender) {
-        Signal<int>("warning").send(sender->getTag());
-    }
+    void onClick(CCObject* sender);
 public:
-    void Fade(bool in) override {
-        BaseCell::Fade(in);
-        fade(m_text, in, ANIM_TIME_L, 1.2 * in, 1.2 * in);
-
-    }
+    void Fade(bool in) override;
 
     static WarnCell* create() {
         auto node = new WarnCell();
@@ -113,12 +104,7 @@ public:
     // for description
     void onDesc(CCObject*);
     // switch theme
-    void switchTheme() override {
-        this->BaseCell::switchTheme();
-        this->m_hint->setColor(ccc3(CELL_COLOR));
-    }
-    // fade
-    void Fade(bool) override;
+    void switchTheme();
     
     static OptionTogglerCell* create(const char* title, float y, int tag, std::string id, std::string desc) {
         auto node = new OptionTogglerCell();
@@ -131,10 +117,39 @@ public:
     }
 };
 
+class OptionArrowCell : public BaseCell {
+protected:
+    // not end value
+    int index;
+    std::vector<int> enums;
+    std::string m_title;
+    std::string m_desc;
+    CCMenuItemSpriteExtra* m_btnArrowL;
+    CCMenuItemSpriteExtra* m_btnArrowR;
+    CCLabelBMFont* m_label, * m_display;
+    CCMenuItemSpriteExtra* m_hint;
+
+    std::function<std::string (int)> getReal;
+    // Step Toggle
+    bool init(std::string title, float y, int tag, std::string id, std::string desc, std::vector<int> enums, std::function<std::string (int)> getReal);
+    void onArrow(CCObject* sender);
+    void onDesc(CCObject* sender);
+    // switch theme
+    void switchTheme();
+public:
+    static OptionArrowCell* create(const char* title, float y, int tag, std::string id, std::string desc, std::vector<int> enums, std::function<std::string (int)> getReal) {
+        auto node = new OptionArrowCell();
+        if (node && node->init(title, y, tag, id, desc, enums, getReal)) {
+            node->autorelease();
+            return node;
+        };
+        CC_SAFE_DELETE(node);
+        return nullptr;
+    }
+};
 
 class OptionSliderCell : public BaseCell, public SliderDelegate {
 protected:
-    std::string id;
     float value;
     float min;
     float max;
@@ -155,33 +170,13 @@ protected:
     bool init(const char* title, float y, int tag, std::string id, std::string desc, float min, float max, int precision,
         std::function<float (float)> toSlider, std::function<float (float)> fromSlider);
 
-    void sliderBegan(Slider* slider) override {
-        Signal<bool>("drag-slider").send(true);
-    }
+    void sliderBegan(Slider* slider) override;
+    void sliderEnded(Slider* slider) override;    
 
-    void onDesc(CCObject* sender) {
-        log::debug("title = {} desc = {}", m_title, m_desc);
-        Signal<std::pair<std::string, std::string>>("option-desc").send({m_title, m_desc});
-    }
-
-    void onSlider(CCObject* sender) {
-        this->value = fromSlider(m_slider->getValue());
-        if (this->precision)
-            m_display->setCString(numToString(this->value, this->precision).c_str());
-        else
-            m_display->setCString(numToString((int)this->value).c_str());
-    }
-    void sliderEnded(Slider* slider) override;
-
-    void postEvent() {
-        if (this->precision)
-            Signal<float>(this->id).send(value);
-        else
-            Signal<int>(this->id).send((int)value);
-    }
-
+    void onDesc(CCObject* sender);
+    void onSlider(CCObject* sender);
+    void postEvent();
 public:
-    void helpFade(bool in);
     static OptionSliderCell* create(const char* title, float y, int tag, std::string id, std::string desc, float min, float max, int precision,
         std::function<float (float)> toSlider, std::function<float (float)> fromSlider) {
         auto node = new OptionSliderCell();
@@ -201,28 +196,13 @@ protected:
     std::vector<PickItemButton*> btns;
     // tag = 1/2/3 -> adv/easy/effect
     bool init(int tag);
-    void onPickItem(CCObject* sender) {
-        Signal<int>("pick").send(sender->getTag());
-    }
+    void onPickItem(CCObject* sender);
 public:
     void Fade(bool) override;
-    void runChroma(float const& phase, float const& percentage, int const& progress) {
-        for (auto btn : this->btns)
-            btn->runChroma(phase, percentage, progress);
-    }
-    void toggleChroma() {
-        for (auto btn : this->btns)
-            btn->toggleChroma();
-    }
-    void switchPlayer() {
-        for (auto btn : this->btns)
-            btn->switchPlayer();
-    }
-    void setModeTarget(Gamemode gamemode) {
-        // refresh item menu target
-        for (auto btn : this->btns)
-            btn->setModeTarget(gamemode);
-    }
+    void runChroma(float const& phase, float const& percentage, int const& progress);
+    void toggleChroma();
+    void switchPlayer();
+    void setModeTarget(Gamemode gamemode);
     static ItemCell* create(int tag) {
         auto node = new ItemCell();
         if (node && node->init(tag)) {
@@ -247,36 +227,13 @@ protected:
     // init
     bool init(int index, float Y, int tag);
     // click the button
-    void onPickItem(CCObject* sender) {
-        Signal<int>("pick").send(this->index);
-    }
+    void onPickItem(CCObject* sender);
 public:
-    void switchPlayer() {
-        this->m_btn->switchPlayer();
-    }
-    void toggleChroma(bool on) {
-        this->m_btn->toggleChroma(on);
-    }
-    void runChroma(float phase, float percentage, int progress) {
-        this->m_btn->runChroma(phase, percentage, progress);
-    }
-    void select(bool current) {
-        // stop chroma
-        this->m_btn->toggleChroma(current);
-        // tint gray
-        this->m_label->runAction(CCEaseExponentialOut::create(
-            current ? CCTintTo::create(ANIM_TIME_M, 0, 255, 0) : CCTintTo::create(ANIM_TIME_M, 127, 127, 127)));
-        if (current)
-            this->tint(ANIM_TIME_M, 0, 80, 0);
-        else
-            // tint bg
-            this->switchTheme();
-    }
-    bool setModeTarget(Gamemode gamemode) {
-        if (index > 9)
-            this->m_btn->setModeTarget(gamemode);
-        return index > 9;
-    }
+    void switchPlayer();
+    void toggleChroma(bool on);
+    void runChroma(float phase, float percentage, int progress);
+    void select(bool current);
+    bool setModeTarget(Gamemode gamemode);
     static SetupItemCell* create(int index, float Y, int tag) {
         auto node = new SetupItemCell();
         if (node && node->init(index, Y, tag)) {
@@ -330,23 +287,13 @@ protected:
     void sliderBegan(Slider *p) override;
     void sliderEnded(Slider *p) override;
     // value -> slider
-    inline virtual float Val2Slider(int val) {
-        return std::clamp((float)val, 0.f, 255.f) / 255;
-    }
+    virtual float Val2Slider(int val);
     // slider -> value
-    inline virtual int Slider2Val(float s) {
-        return round(s * 255);
-    }
+    virtual int Slider2Val(float s);
 public:
     void Fade(bool in) override;
-    inline int getVal() {
-        return value;
-    }
-    inline void setVal(int value) {
-        this->value = value;
-        m_inputer->setString(numToString(value));
-        m_slider->setValue(Val2Slider(value));
-    }
+    int getVal();
+    void setVal(int value);
     static ColorValueCell* create(int type) {
         auto node = new ColorValueCell();
         if (node && node->init(type)) {
@@ -370,10 +317,8 @@ protected:
     void textChanged(CCTextInputNode* p) override;
 public:
     void Fade(bool in) override;
-    void setColorValue(ccColor3B color) {
-        this->str = cc3bToHexString(color);
-        m_inputer->setString(str);
-    }
+    void setColorValue(ccColor3B const& color);
+
     static ColorHexCell* create() {
         auto node = new ColorHexCell();
         if (node && node->init()) {

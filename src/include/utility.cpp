@@ -36,7 +36,7 @@ void fade(CCNode* node, bool in, float time, float scaleX, float scaleY, int opa
 }
 
 void fade(CCMenuItem* node, bool in, float time, float scaleX, float scaleY, int opacity) {
-    // convert default Val
+    // convert default Values
     if (opacity < 0)
         opacity = in ? 255 : 0;
     if (scaleX < 0)

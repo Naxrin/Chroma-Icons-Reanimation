@@ -9,25 +9,21 @@ using namespace geode::prelude;
 
 // used for transition between pages
 // @note 0 - 0.5
-#define ANIM_TIME_L Mod::get()->getSavedValue<float>("anim-speed", 0.4)
+#define ANIM_TIME_L 0.1 * vals["anim-time"] + 0.2
 
 // used in delay between old page fades out and new page fades in
 // @note 0 - 0.24
-#define ANIM_TIME_M 0.6 * Mod::get()->getSavedValue<float>("anim-speed", 0.4)
+#define ANIM_TIME_M 0.06 * vals["anim-time"] + 0.12
 
 // used in scroller cell delay adn item cell enter delay
 // @note 0 - 0.05
-#define ANIM_TIME_GAP 0.06 * Mod::get()->getSavedValue<float>("anim-speed", 0.4)
+#define ANIM_TIME_GAP 0.006 * vals["anim-time"] + 0.012
 
 // used for cell color
-#define CELL_COLOR Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0, \
-                    Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0, \
-                    Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0
+#define CELL_COLOR 255 * opts["dark-theme"], 255 * opts["dark-theme"], 255 * opts["dark-theme"]
 
 // used for bg color
-#define BG_COLOR Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255, \
-                    Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255, \
-                    Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255
+#define BG_COLOR 255 * (1 - opts["dark-theme"]), 255 * (1 - opts["dark-theme"]), 255 * (1 - opts["dark-theme"])
 
 /********** Useful Const Value *************/
 
@@ -35,9 +31,9 @@ using namespace geode::prelude;
 static GameManager* gm = GameManager::sharedState();
 
 // fade utility (CCNode)
-void fade(CCNode* node, bool in, float time = ANIM_TIME_L, float scaleX = -1, float scaleY = -1, int opacity = -1);
+void fade(CCNode* node, bool in, float time, float scaleX = -1, float scaleY = -1, int opacity = -1);
 // fade utility (CCMenuItem)
-void fade(CCMenuItem* node, bool in, float time = ANIM_TIME_L, float scaleX = -1, float scaleY = -1, int opacity = -1);
+void fade(CCMenuItem* node, bool in, float time, float scaleX = -1, float scaleY = -1, int opacity = -1);
 
 /********** Item Channel Enumerate Class *************/
 

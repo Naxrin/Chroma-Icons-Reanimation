@@ -73,6 +73,37 @@ public:
     }
 };
 
+// just slider, preserved
+/*
+class SliderLayer : public CCLayer {
+protected:
+    // normalized 0-1
+    float value;
+    // size
+    CCSize size;
+    // base and indicator
+    CCSprite* base, * target;
+    // init
+    bool init(CCSize size);
+    // decide it's touched or not
+    bool ccTouchBegan(CCTouch *touch, CCEvent* event) override;
+    // move touch to update progress
+    void ccTouchMoved(CCTouch *touch, CCEvent* event) override;
+public:
+    // set value
+    void setValue(float value);
+    // create
+    static SliderLayer* create(CCSize size) {
+        auto node = new SliderLayer();
+        if (node && node->init(size)) {
+            node->autorelease();
+            return node;
+        };
+        CC_SAFE_DELETE(node);
+        return nullptr;
+    }
+};*/
+
 // a node with feedback logic design of a slider + input
 class SliderBundleBase : public CCMenu, public TextInputDelegate, public SliderDelegate {
 protected:
@@ -214,13 +245,7 @@ public:
     // color picker2
     CCMenuItemSpriteExtra* m_colpk2 = nullptr;
     // toggle the toggler and set/tint the label' color
-    void toggleTitle(bool yes, bool fade = false) {
-        if (m_toggler)
-            m_toggler->toggle(yes && !fade);
-        if (type == OptionLineType::Title && m_title)
-            // green or gray
-            m_title->runAction(CCTintTo::create(fade*ANIM_TIME_M, 127-127*yes, 127+128*yes, 127-127*yes));
-    }
+    void toggleTitle(bool yes, bool fade = false);
 
     static SetupOptionLine* create(OptionLineType type, int mode, int tag) {
         auto node = new SetupOptionLine();

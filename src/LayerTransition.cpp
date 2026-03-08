@@ -3,6 +3,7 @@
 
 extern std::map<short, ChromaPattern> setups;
 extern std::map<std::string, bool> opts;
+extern std::map<std::string, float> vals;
 
 void ChromaLayer::switchTheme() {
     // bg
@@ -205,8 +206,8 @@ void ChromaLayer::fadeSetupPage() {
 
     // display channel switch arrows if necessary
     bool showArrows = this->m_tab < 14 && !opts["easy"] || !this->m_tab;
-    fade(m_btnSetupArrowLeft, in && showArrows);
-    fade(m_btnSetupArrowRight, in && showArrows);
+    fade(m_btnSetupArrowLeft, in && showArrows, ANIM_TIME_L);
+    fade(m_btnSetupArrowRight, in && showArrows, ANIM_TIME_L);
 
     fade(m_btnSetupCopy, in, ANIM_TIME_M);
     fade(m_btnSetupPaste, in, ANIM_TIME_M);
@@ -281,9 +282,9 @@ void ChromaLayer::fadeInfoPage() {
 
     // btns
     for (auto obj: CCArrayExt<CCNode*>(this->getChildByID("info-menu")->getChildByID("manual-menu")->getChildren()))
-        fade(obj, in);
+        fade(obj, in, ANIM_TIME_L);
     for (auto obj: CCArrayExt<CCNode*>(this->getChildByID("info-menu")->getChildByID("author-menu")->getChildren()))
-        fade(obj, in);
+        fade(obj, in, ANIM_TIME_L);
 
     // thanks
     fade(this->getChildByID("info-menu")->getChildByID("thanks-title"),

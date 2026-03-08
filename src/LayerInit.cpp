@@ -1,4 +1,5 @@
 #include "Layer.hpp"
+#include <ranges>
 
 extern std::map<std::string, bool> opts;
 extern std::map<std::string, float> vals;
@@ -489,6 +490,7 @@ void ChromaLayer::makeOptionsPage() {
     H += darkOpt->getContentHeight() + 15.f;
 
     #ifdef GEODE_IS_WINDOWS
+    /*
     sTag ++;
     auto blurlvlOpt = OptionSliderCell::create("Blur Level", H, sTag, "blur-lvl",
         "Set how foggy the blur it is.  \n"
@@ -496,7 +498,14 @@ void ChromaLayer::makeOptionsPage() {
     0.f, 10.f, 0, [] (float val) -> float { return val / 10; }, [] (float s) -> float { return s * 10; });
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(blurlvlOpt);
     H += blurlvlOpt->getContentHeight() + 15.f;
-    
+    */
+    sTag ++;
+    auto blurlvlOpt = OptionArrowCell::create("Blur Level", H, sTag, "blur-lvl",
+        "Set how foggy the blur it is.  \nYou should turn on the blur switch firstly sure.",
+        std::ranges::views::iota(0, 10) | std::ranges::to<std::vector<int>>(), [] (int index) -> std::string { return numToString<int>(index + 1); });
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(blurlvlOpt);
+    H += blurlvlOpt->getContentHeight() + 15.f;
+
     sTag ++;
     auto blurOpt = OptionTogglerCell::create("Blur Background", H, sTag, "blur-bg",
         "Add a gaussian blur effect to the background.  \nGive it up if you feel this effect can't worth your device lag.  \n"
@@ -505,10 +514,19 @@ void ChromaLayer::makeOptionsPage() {
     H += blurOpt->getContentHeight() + 15.f;
     #endif
 
+    /*
     sTag ++;
     auto animOpt = OptionSliderCell::create("Menu Anim Time", H, sTag, "anim-speed",
         "Set anim time cost of this mod menu. \n Spamming faster than animations may cause some visual glitches so too slow animations is never recommended.",
     0.f, 1.f, 1, [] (float val) -> float { return val; }, [] (float s) -> float { return s; });
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(animOpt);
+    H += animOpt->getContentHeight() + 15.f;
+    */
+
+    sTag ++;
+    auto animOpt = OptionArrowCell::create("Menu Anim Time", H, sTag, "anim-time",
+        "Set anim time cost of this mod menu. \n Spamming faster than animations may cause some visual glitches so too slow animations is never recommended.",
+        std::ranges::views::iota(0, 7) | std::ranges::to<std::vector<int>>(), [] (int index) -> std::string { return numToString<float>(0.2 + index / 10.f, 1); });
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(animOpt);
     H += animOpt->getContentHeight() + 15.f;
 
