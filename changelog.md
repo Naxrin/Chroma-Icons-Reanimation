@@ -1,3 +1,16 @@
+# 4.6.0
+### Addition
+- More fun Options
+- Better markdown text area
+### Bugfix
+- Fix frequency slider not taking effect real time.
+- Less toxic codes (i hope)
+### ToDo
+- Add phase and brightness option for chromatic mode (soon)
+- Better gradient mode (not soon but planned)
+- Presets (planning its logic)
+- Polish my codes
+
 # 4.5.7
 ### Bugfix
 - Fix light theme with blur etffect not working;

@@ -1,7 +1,7 @@
 #include "cells.hpp"
-#include "Geode/ui/NineSlice.hpp"
 
 extern std::map<std::string, bool> opts;
+extern std::map<std::string, float> vals;
 
 bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     // myself
@@ -22,6 +22,14 @@ bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     this->addChild(m_bg);
 
     return true;
+}
+
+void BaseCell::Fade(bool in) {
+    fade(this, in, ANIM_TIME_L);
+}
+
+void BaseCell::switchTheme() {
+    this->m_bg->runAction(CCTintTo::create(ANIM_TIME_M, CELL_COLOR));
 }
 
 void BaseCell::tint(float d, int r, int g, int b) {
@@ -56,10 +64,10 @@ bool WarnCell::init() {
         "- Considering list points might be one of the reasons you are right here ~~or even the only~~, are you still gonna go ahead, my friend?",
         ccp(333.f, 120.f)
     );
-    //m_text->getChildByIndex(0)->runAction(CCFadeTo::create(0, 0));
-    //m_text->getScrollLayer()->getChildByIndex(0)->runAction(CCFadeTo::create(0, 0));
+
     m_text->setPosition(CCPoint(210.f, 170.f));
     m_text->setScale(1.2);
+    m_text->getScrollLayer()->m_disableMovement = true;
     this->addChild(m_text);
 
     auto labConfirm = CCLabelBMFont::create("YES ALWAYS", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
@@ -113,6 +121,15 @@ bool WarnCell::init() {
     return true;
 }
 
+void WarnCell::onClick(CCObject* sender) {
+    Signal<int>("warning").send(sender->getTag());
+}
+
+void WarnCell::Fade(bool in) {
+    BaseCell::Fade(in);
+    fade(m_text, in, ANIM_TIME_L, 1.2 * in, 1.2 * in);
+}
+
 bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::string id) {
     if (!CCMenu::init())
         return false;
@@ -140,18 +157,11 @@ bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::s
     ccTexParams TexParameters = {GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
     m_spr->getTexture()->setTexParameters(&TexParameters);
 
-    //m_clip->addChildAtPosition(m_spr, Anchor::Center);
     m_clip->addChild(m_spr);
     m_bg->addChildAtPosition(m_clip, Anchor::Center);
 
-    //m_spr->setPosition(CCPoint(295, 50));
-    
-    
     m_spr->runAction(CCRepeatForever::create(CCSequence::create(
         CallFuncExt::create([this]() { m_spr->setPosition(CCPoint(275, 40.1)); }),
-        //CCDelayTime::create(5),
-        //CallFuncExt::create([this]() { m_spr->setPosition(CCPoint(40.5, -13)); }),
-        //CCDelayTime::create(5),
         CCMoveTo::create(30, CCPoint(40.5, -13)),
         nullptr
     )));
@@ -161,7 +171,6 @@ bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::s
     m_title->setContentSize(CCSize(width, 25.f));
     m_title->setWidth(300.f);
     m_title->setAnchorPoint(CCPoint(0.5, 0.5));
-    //m_title->setColor(ccc3(255, 255, 255));
     m_title->setID("label");
     this->addChildAtPosition(m_title, Anchor::Center);
 
@@ -273,21 +282,194 @@ void OptionTogglerCell::onOption(CCObject* sender) {
 }
 
 void OptionTogglerCell::onDesc(CCObject* sender) {
+    log::debug("title = {} desc = {}", m_title, m_desc);
     Signal<std::pair<std::string, std::string>>("option-desc").send({m_title, m_desc});
 }
 
-void OptionTogglerCell::Fade(bool in) {
-    BaseCell::Fade(in);
-    auto btn = this->getChildByType<CCMenuItem>(0);
-    if (in)
-        this->runAction(CCSequence::create(
-            CCDelayTime::create(ANIM_TIME_L),
-            CallFuncExt::create([btn](void){ btn->setEnabled(true); }),
-            nullptr
-        ));
-    else
-        btn->setEnabled(false);
+void OptionTogglerCell::switchTheme() {
+    this->BaseCell::switchTheme();
+    this->m_hint->setColor(ccc3(CELL_COLOR));
 }
+
+bool OptionArrowCell::init(std::string title, float y, int tag, std::string id, std::string desc, std::vector<int> enums, std::function<std::string (int)> getReal) {
+    if (!CCMenu::init())
+        return false;
+
+    this->index = Mod::get()->getSavedValue<int64_t>(id);
+    int len = enums.size();
+    // clamp
+    this->index = this->index < 0 ? 0 : (this->index > len ? len : this->index);
+
+    this->m_title = title;
+    this->m_desc = desc;
+    this->enums = enums;
+    this->getReal = getReal;
+
+    m_label = CCLabelBMFont::create(title.c_str(), "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_label->setPosition(ccp(5.f, 10.f));
+    m_label->setScale(0.45);
+    m_label->setContentSize(CCSize(275.f, 20.f));
+    //m_label->setWidth(340.f);
+    m_label->setAnchorPoint(CCPoint(0.f, 0.5f));
+    m_label->setID("label");
+    addChild(m_label);
+
+    this->m_display = CCLabelBMFont::create(
+        (getReal(this->index)).c_str(),
+        "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentCenter);
+    m_display->setPosition(ccp(260.f, 10.f));
+    m_display->setScale(0.45);
+    m_display->setContentSize(CCSize(180.f, 20.f));
+    m_display->setID("display");
+    // this line is NECESSARY, don't ask why i just know it's needed
+    m_display->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    this->addChild(m_display);
+
+    auto spr = CCSprite::create("infoBtn.png"_spr);
+    spr->setScale(0.35);
+    m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(OptionArrowCell::onDesc));
+    m_hint->setColor(ccc3(CELL_COLOR));
+    
+    addChild(m_hint);
+
+    // arrow left
+    auto sprLeft = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+    sprLeft->setScale(0.3f);
+    sprLeft->setFlipX(true);
+    this->m_btnArrowL = CCMenuItemSpriteExtra::create(sprLeft, this, menu_selector(OptionArrowCell::onArrow));
+    m_btnArrowL->setPosition(CCPoint(230.f, 10.f));
+    m_btnArrowL->setTag(-1);
+    this->addChild(m_btnArrowL);
+
+    // arrow right
+    auto sprRight = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+    sprRight->setScale(0.3f);
+    this->m_btnArrowR = CCMenuItemSpriteExtra::create(sprRight, this, menu_selector(OptionArrowCell::onArrow));
+    m_btnArrowR->setPosition(CCPoint(290.f, 10.f));
+    m_btnArrowR->setTag(1);
+    this->addChild(m_btnArrowR);
+
+
+    // setup
+    if (!BaseCell::setup(CCPoint(160.f, y - 10.f), CCSize(300.f, 20.f), tag, id))
+        return false;
+
+        
+    m_hint->setPosition(ccp(m_label->getContentWidth() * 0.45 + 15.f, 10.f));
+
+    return true;
+}
+
+void OptionArrowCell::onArrow(CCObject* sender) {
+    int len = enums.size();
+    this->index = (this->index + sender->getTag() + len) % len;
+    this->m_display->setString(this->getReal(this->index).c_str());
+    vals[this->getID()] = this->index;
+    Mod::get()->setSavedValue(this->getID(), this->index);
+    Signal<int>(this->getID()).send(index);
+}
+
+void OptionArrowCell::onDesc(CCObject* sender) {
+    log::debug("title = {} desc = {}", m_title, m_desc);
+    Signal<std::pair<std::string, std::string>>("option-desc").send({m_title, m_desc});
+}
+
+void OptionArrowCell::switchTheme() {
+    this->BaseCell::switchTheme();
+    this->m_hint->setColor(ccc3(CELL_COLOR));
+}
+
+bool OptionSliderCell::init(const char* title, float y, int tag, std::string id, std::string desc, float min, float max, int precision,
+    std::function<float (float)> toSlider, std::function<float (float)> fromSlider) {
+    if (!CCMenu::init())
+        return false;
+
+    this->setTag(tag);
+
+    this->value = Mod::get()->getSavedValue<float>(id);
+    this->min = min;
+    this->max = max;
+    this->precision = precision;
+
+    this->toSlider = toSlider;
+    this->fromSlider = fromSlider;
+
+    this->m_title = title;
+    this->m_desc = desc;
+
+    m_label = CCLabelBMFont::create(title, "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_label->setPosition(ccp(5.f, 10.f));
+    m_label->setScale(0.45);
+    m_label->setContentSize(CCSize(275.f, 20.f));
+    //m_label->setWidth(340.f);
+    m_label->setAnchorPoint(CCPoint(0.f, 0.5f));
+    m_label->setID("label");
+    this->addChild(m_label);
+
+    auto spr = CCSprite::create("infoBtn.png"_spr);
+    spr->setScale(0.35);
+    this->m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(OptionSliderCell::onDesc));
+    m_hint->setColor(ccc3(CELL_COLOR));
+    this->addChild(m_hint);
+
+    this->m_slider = Slider::create(this, menu_selector(OptionSliderCell::onSlider));
+    m_slider->setPosition(ccp(250.f, 10.f));
+    m_slider->setContentSize(ccp(0.f, 0.f));
+    m_slider->setScale(0.45f);
+    m_slider->setID("slider");
+    m_slider->setValue(toSlider(value));
+    m_slider->m_delegate = this;
+    this->addChild(m_slider);
+
+    this->m_display = CCLabelBMFont::create(
+        (precision ? numToString(this->value, precision) : numToString<int>(this->value, precision)).c_str(),
+        "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
+    m_display->setPosition(ccp(200.f, 10.f));
+    m_display->setScale(0.45);
+    m_display->setContentSize(CCSize(50.f, 20.f));
+    m_display->setAnchorPoint(CCPoint(1.f, 0.5f));
+    m_display->setID("display");
+    this->addChild(m_display);
+
+    // setup
+    if (!BaseCell::setup(CCPoint(160.f, y - 10.f), CCSize(300.f, 20.f), tag, id))
+        return false;
+
+    m_hint->setPosition(ccp(m_label->getContentWidth() * 0.45 + 15.f, 10.f));
+    return true;
+}
+
+void OptionSliderCell::sliderBegan(Slider* slider) {
+    Signal<bool>("drag-slider").send(true);
+}
+
+void OptionSliderCell::sliderEnded(Slider* slider) {
+    Signal<bool>("drag-slider").send(false);
+    vals[this->getID()] = this->value;
+    Mod::get()->setSavedValue(this->getID(), this->value);
+    postEvent();
+}
+
+void OptionSliderCell::onDesc(CCObject* sender) {
+    log::debug("title = {} desc = {}", m_title, m_desc);
+    Signal<std::pair<std::string, std::string>>("option-desc").send({m_title, m_desc});
+}
+
+void OptionSliderCell::onSlider(CCObject* sender) {
+    this->value = fromSlider(m_slider->getValue());
+    if (this->precision)
+        m_display->setCString(numToString(this->value, this->precision).c_str());
+    else
+        m_display->setCString(numToString((int)this->value).c_str());
+}
+
+void OptionSliderCell::postEvent() {
+    if (this->precision)
+        Signal<float>(this->getID()).send(value);
+    else
+        Signal<int>(this->getID()).send((int)value);
+}
+
 
 bool ItemCell::init(int tag) {
     if (!CCMenu::init())
@@ -349,6 +531,10 @@ bool ItemCell::init(int tag) {
     return true;
 }
 
+void ItemCell::onPickItem(CCObject* sender) {
+    Signal<int>("pick").send(sender->getTag());
+}
+
 void ItemCell::Fade(bool in) {
     // bg
     fade(this->m_bg, in, ANIM_TIME_M, in ? 1 : 5, in ? 1 : 0.2);
@@ -357,6 +543,27 @@ void ItemCell::Fade(bool in) {
     for (int i = 0; i < length; i++) {
         btns[i]->delayFade(in ? abs((length - 1 - 2 * i) / 2) : 0, in);
     }
+}
+
+void ItemCell::runChroma(float const& phase, float const& percentage, int const& progress) {
+    for (auto btn : this->btns)
+        btn->runChroma(phase, percentage, progress);
+}
+
+void ItemCell::toggleChroma() {
+    for (auto btn : this->btns)
+        btn->toggleChroma();
+}
+
+void ItemCell::switchPlayer() {
+    for (auto btn : this->btns)
+        btn->switchPlayer();
+}
+
+void ItemCell::setModeTarget(Gamemode gamemode) {
+    // refresh item menu target
+    for (auto btn : this->btns)
+        btn->setModeTarget(gamemode);
 }
 
 bool SetupItemCell::init(int index, float Y, int tag) {
@@ -389,6 +596,41 @@ bool SetupItemCell::init(int index, float Y, int tag) {
     return true;
 }
 
+void SetupItemCell::onPickItem(CCObject* sender) {
+    Signal<int>("pick").send(this->index);
+}
+
+void SetupItemCell::switchPlayer() {
+    this->m_btn->switchPlayer();
+}
+
+void SetupItemCell::toggleChroma(bool on) {
+    this->m_btn->toggleChroma(on);
+}
+
+void SetupItemCell::runChroma(float phase, float percentage, int progress) {
+    this->m_btn->runChroma(phase, percentage, progress);
+}
+
+void SetupItemCell::select(bool current) {
+    // stop chroma
+    this->m_btn->toggleChroma(current);
+    // tint gray
+    this->m_label->runAction(CCEaseExponentialOut::create(
+        current ? CCTintTo::create(ANIM_TIME_M, 0, 255, 0) : CCTintTo::create(ANIM_TIME_M, 127, 127, 127)));
+    if (current)
+        this->tint(ANIM_TIME_M, 0, 80, 0);
+    else
+        // tint bg
+        this->switchTheme();
+}
+
+bool SetupItemCell::setModeTarget(Gamemode gamemode) {
+    if (index > 9)
+        this->m_btn->setModeTarget(gamemode);
+    return index > 9;
+}
+
 bool SetupOptionCell::init() {
     if (!BaseCell::setup(CCPoint(55.f, 0.f), CCSize(240.f, 230.f), 0, "setup-options"))
         return false;
@@ -413,7 +655,7 @@ bool SetupOptionCell::init() {
     return true;
 }
 
-void SetupOptionCell::refreshUI(ChromaSetup setup, bool fade) {
+void SetupOptionCell::refreshUI(ChromaPattern setup, bool fade) {
     float Y = this->getContentHeight() - 5.f;
     // temply we read the progress like this to avoid crash as possible as i can
     int duty = 180;
@@ -432,7 +674,7 @@ void SetupOptionCell::refreshUI(ChromaSetup setup, bool fade) {
             node->toggleTitle(node->mode == setup.mode, fade);
         } else
             switch (node->type) {
-            case OptionLineType::SingleColor:
+            case OptionLineType::Color:
                 node->m_colpk->setColor(setup.color);
                 break;
             case OptionLineType::MultiColor:
@@ -539,21 +781,14 @@ void ColorValueCell::textChanged(CCTextInputNode* p) {
 
 void ColorValueCell::textInputClosed(CCTextInputNode* p) {
     std::string input = p->getString();
-    if (input == "")
-        input = std::to_string(value);
-    else {
-        value = stof(input);
-        if (value > 255)
-            value = 255;
-        input = std::to_string(value);
-    }
+    this->value = numFromString<float>(input).unwrapOr(this->value);
     p->setString(input);
     Signal<int>("color-" + rgbLabels[type]).send(value);
 }
 
 void ColorValueCell::onSlider(CCObject* sender) {
     value = Slider2Val(m_slider->getValue());
-    m_inputer->setString(std::to_string(value));
+    m_inputer->setString(numToString(value));
     Signal<int>("color-" + rgbLabels[type]).send(value);
 }
 void ColorValueCell::sliderBegan(Slider *p) {
@@ -568,11 +803,27 @@ void ColorValueCell::sliderEnded(Slider *p) {
     Signal<int>("color-" + rgbLabels[type]).send(value);
 };
 
+// value -> slider
+float ColorValueCell::Val2Slider(int val) {
+    return std::clamp((float)val, 0.f, 255.f) / 255;
+}
+// slider -> value
+int ColorValueCell::Slider2Val(float s) {
+    return round(s * 255);
+}
+
+int ColorValueCell::getVal() {
+    return value;
+}
+void ColorValueCell::setVal(int value) {
+    this->value = value;
+    m_inputer->setString(numToString(value));
+    m_slider->setValue(Val2Slider(value));
+}
+
 void ColorValueCell::Fade(bool in) {
     BaseCell::Fade(in);
-    m_slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    m_slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    m_slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+    fadeSlider(m_slider, in);
 
     m_inputer->getChildByType<CCTextInputNode>(0)->getChildByType<CCLabelBMFont>(0)->runAction(
         CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));     
@@ -622,4 +873,9 @@ void ColorHexCell::Fade(bool in) {
     BaseCell::Fade(in);
     m_inputer->getChildByType<CCTextInputNode>(0)->getChildByType<CCLabelBMFont>(0)->runAction(
         CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));     
+}
+
+void ColorHexCell::setColorValue(ccColor3B const& color) {
+    this->str = cc3bToHexString(color);
+    m_inputer->setString(str);
 }

@@ -4,12 +4,6 @@
 #include "utility.hpp"
 #include <Geode/ui/TextInput.hpp>
 
-inline float limiter(float target, float min = 0, float max = 1) {
-    if (target > max) return max;
-    if (target < min) return min;
-    return target;
-}
-
 // get child by index and cast to type
 template<typename T>
 inline T getChildByIndex(CCNode *node, int index) {
@@ -79,25 +73,36 @@ public:
     }
 };
 
-// geode's MDTextArea for mod description, but what if I don't need the ScrollLayer
+// just slider, preserved
 /*
-class FixedMDTextArea : public MDTextArea {
+class SliderLayer : public CCLayer {
 protected:
-    bool init(std::string text, CCSize const& size) override {
-        if (!MDTextArea::init(text, size))
-    }
+    // normalized 0-1
+    float value;
+    // size
+    CCSize size;
+    // base and indicator
+    CCSprite* base, * target;
+    // init
+    bool init(CCSize size);
+    // decide it's touched or not
+    bool ccTouchBegan(CCTouch *touch, CCEvent* event) override;
+    // move touch to update progress
+    void ccTouchMoved(CCTouch *touch, CCEvent* event) override;
 public:
-    // constructor for effects
-    static FixedMDTextArea* create(std::string text, CCSize const& size) {
-        auto node = new PickItemButton();
-        if (node && node->init(text, size)) {
+    // set value
+    void setValue(float value);
+    // create
+    static SliderLayer* create(CCSize size) {
+        auto node = new SliderLayer();
+        if (node && node->init(size)) {
             node->autorelease();
             return node;
         };
         CC_SAFE_DELETE(node);
         return nullptr;
     }
-}*/
+};*/
 
 // a node with feedback logic design of a slider + input
 class SliderBundleBase : public CCMenu, public TextInputDelegate, public SliderDelegate {
@@ -110,8 +115,8 @@ protected:
     float max;
     // min value
     float min;
-    // is int
-    bool is_int;
+    // precision
+    float precision;
     // label
     CCLabelBMFont* m_label = nullptr;
     // inputer
@@ -121,28 +126,25 @@ protected:
     // left arrow
     CCMenuItemSpriteExtra* m_btnLeft = nullptr;
     // right arrow
-    CCMenuItemSpriteExtra* m_btnRight = nullptr;    
+    CCMenuItemSpriteExtra* m_btnRight = nullptr;  
     // value to slider (this may return a value out of 1~0 range, unfiltered)
     std::function<float (float)> toSlider;
     // slider to value
     std::function<float (float)> fromSlider;
-    // init
-    bool init(std::string topic, const char* title, float value, float max, float min, bool is_int, bool has_arrow, \
+    // worst init function ever
+    bool init(std::string topic, const char* title, float value, float max, float min, int precision, bool has_arrow, \
         float labelScale,  float sliderScale, float inputerScale, float arrowScale, float sliderPosX, float inputerPosX, float labelWidth, float inputerWidth, float arrowDistance,\
         std::function<float (float)> toSlider, std::function<float (float)> fromSlider);
 public:
     // update value from text input
     void textChanged(CCTextInputNode* p) override {
         std::string input = p->getString();
-        if (input != "")
-            this->setVal(limiter(stof(input)), 1);
+        this->setVal(std::clamp(numFromString<float>(input, precision).unwrapOr(this->value), 0.f, 1.f));
     }
     // check value > max case
     void textInputClosed(CCTextInputNode* p) override {
         std::string input = p->getString();
-        if (input == "")
-            input = "0";
-        this->setVal(limiter(stof(input), min, max), 1);
+        this->setVal(std::clamp(numFromString<float>(input, precision).unwrapOr(this->value), (float)min, (float)max));
         postEvent();
     }
     // change chroma frequency by slider
@@ -152,7 +154,7 @@ public:
     // on arrow
     void onArrow(CCObject* sender) {
         float delta = sender->getTag() == 2 ? 0.1 : -0.1;
-        float news = limiter(this->toSlider(value) + delta);
+        float news = std::clamp(this->toSlider(value) + delta, 0.f, 1.f);
         this->setVal(this->fromSlider(news));
         postEvent();
     }
@@ -168,10 +170,10 @@ public:
     };
     // post event
     virtual void postEvent() {
-        if (this->is_int)
-            Signal<int>(this->topic).send((int)value);
-        else
+        if (this->precision)
             Signal<float>(this->topic).send(value);
+        else
+            Signal<int>(this->topic).send((int)value);
     }
     float getVal() {
         return this->value;
@@ -204,7 +206,7 @@ public:
 enum class OptionLineType {
     Title = 1,
     Desc = 2,
-    SingleColor = 3,
+    Color = 3,
     MultiColor = 4,
     Slider = 5,
     Toggler = 6
@@ -243,13 +245,7 @@ public:
     // color picker2
     CCMenuItemSpriteExtra* m_colpk2 = nullptr;
     // toggle the toggler and set/tint the label' color
-    void toggleTitle(bool yes, bool fade = false) {
-        if (m_toggler)
-            m_toggler->toggle(yes && !fade);
-        if (type == OptionLineType::Title && m_title)
-            // green or gray
-            m_title->runAction(CCTintTo::create(fade*ANIM_TIME_M, 127-127*yes, 127+128*yes, 127-127*yes));
-    }
+    void toggleTitle(bool yes, bool fade = false);
 
     static SetupOptionLine* create(OptionLineType type, int mode, int tag) {
         auto node = new SetupOptionLine();

@@ -1,7 +1,8 @@
 #include "mynode.hpp"
 
-extern std::map<short, ChromaSetup> setups;
+extern std::map<short, ChromaPattern> setups;
 extern std::map<std::string, bool> opts;
+extern std::map<std::string, float> vals;
 
 // UnlockType tags by RobTop
 const static int gametype[9] = {1, 4, 5, 6, 7, 8, 9, 13, 14};
@@ -118,7 +119,7 @@ void PickItemButton::setPlayerStatus() {
 void PickItemButton::delayFade(int delay, bool in) {
     this->runAction(CCSequence::create(
         CCDelayTime::create(0.01 + ANIM_TIME_GAP*(1+delay)),
-        CallFuncExt::create([this, in](void) { fade(this, in); }),
+        CallFuncExt::create([this, in](void) { fade(this, in, ANIM_TIME_L); }),
         nullptr
     ));
 }
@@ -182,7 +183,7 @@ void PickItemButton::toggleChroma(bool current) {
     }
 }
 
-bool SliderBundleBase::init(std::string topic, const char* title, float value, float max, float min, bool is_int, bool has_arrow, \
+bool SliderBundleBase::init(std::string topic, const char* title, float value, float max, float min, int precision, bool has_arrow, \
     float labelScale, float sliderScale, float inputerScale, float arrowScale, float sliderPosX, float inputerPosX, float labelWidth, float inputerWidth, float arrowDistance,\
     std::function<float (float)> toSlider, std::function<float (float)> fromSlider) {
 
@@ -190,7 +191,7 @@ bool SliderBundleBase::init(std::string topic, const char* title, float value, f
 
     this->max = max;
     this->min = min;
-    this->is_int = is_int;
+    this->precision = precision;
 
     this->toSlider = toSlider;
     this->fromSlider = fromSlider;
@@ -208,7 +209,7 @@ bool SliderBundleBase::init(std::string topic, const char* title, float value, f
     this->m_inputer = TextInput::create(inputerWidth, title, "ErasBold.fnt"_spr);
     m_inputer->setPosition(CCPoint(inputerPosX, 10.f));
     m_inputer->setScale(inputerScale);
-    m_inputer->setFilter(fmt::format("1234567890{}{}", this->is_int ? "" : ".", this->min < 0 ? "-" : ""));
+    m_inputer->setFilter(fmt::format("1234567890{}{}", this->precision ? "." : "", this->min < 0 ? "-" : ""));
     m_inputer->setDelegate(this);
     //m_inputer->getChildByType<CCScale9Sprite>(0)->setVisible(false);
     m_inputer->setID("text-input");
@@ -249,27 +250,18 @@ void SliderBundleBase::setVal(float value, short mode) {
         this->value = value;
     if (mode < 1 && m_inputer) {
         // inputer
-        if (this->is_int)
-            m_inputer->setString(std::to_string((int)value));            
-        else {
-            std::ostringstream stream;
-            stream << std::fixed << std::setprecision(2) << value;
-            m_inputer->setString(stream.str());
-        }
+        m_inputer->setString(numToString(value, precision));
     }
     if (mode > -1 && m_slider)  {
         // slider
         float unfiltered = this->toSlider(value);
-        m_slider->setValue(limiter(unfiltered));
+        m_slider->setValue(std::clamp(unfiltered, 0.f, 1.f));
     }
 }
 
 void SliderBundleBase::helpFade(bool in) {
-    if (m_slider != nullptr) {
-        m_slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-        m_slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-        m_slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    }
+    if (m_slider != nullptr)
+        fadeSlider(m_slider, in);
     if (m_inputer != nullptr)
         m_inputer->getChildByType<CCTextInputNode>(0)->getChildByType<CCLabelBMFont>(0)->runAction(
             CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
@@ -278,9 +270,9 @@ void SliderBundleBase::helpFade(bool in) {
 bool SpeedSliderBundle::init() {
     if (!CCMenu::init())
         return false;
-    if (!SliderBundleBase::init("speed", "Frequency", Mod::get()->getSavedValue<float>("speed", 1), 360, 0, false, true,
+    if (!SliderBundleBase::init("speed", "Frequency", Mod::get()->getSavedValue<float>("speed", 1), 360, 0, 2, true,
         0.6, 0.6, 0.8, 0.3, 160.f, 275.f, 140.f, 60.f, 35.f,
-        [](float value) -> float { return limiter(sqrt(value/5)); },
+        [](float value) -> float { return std::clamp(sqrt(value/5), 0.f, 1.f); },
         [](float s) -> float { return 5 * s * s; }
     )) return false;
 
@@ -299,12 +291,16 @@ void SpeedSliderBundle::Fade(bool in) {
 }
 
 const char* titles[5] = {"Default", "Static", "Chromatic", "Gradient", "Progress"};
-const char* descs[5] = {
+std::string descs[5] = {
     "As if this mod isn't loaded here.",
-    "Set to your given static one.",
-    "Our favourite Hue Cycle Mode. Set saturation percent to 50 if you want pastel like icons",
-    "Pick two colors to cycle gradient or set duty value close to 100 or 0 so it looks like pulse.",
-    "Let this color gradient from one to another during your gameplay. In plat levels your current progress is always regarded 0."
+    "Set to any color you prefer.",
+    "Our favourite Hue Cycle Mode.  \n",
+    //"- Phase option gives an alter offset besides <cy>Separate Dual Phase</c> and so on. \n"
+    //"- Set saturation percent to 50 if you want pastel like icons. \n"
+    //"- Do you really need Brightness slider?",
+    "Gradient between two colors",
+    "Let this color gradient from one to another regarding your percentage or progress.  \n"
+    "In plat levels your current progress is always regarded 0."
 };
 
 bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
@@ -351,7 +347,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         this->addChild(m_toggler);
         break;
     case OptionLineType::Desc:
-        label = CCLabelBMFont::create(descs[mode], "ErasLight.fnt"_spr, 220.f, CCTextAlignment::kCCTextAlignmentLeft);
+        label = CCLabelBMFont::create(descs[mode].c_str(), "ErasLight.fnt"_spr, 220.f, CCTextAlignment::kCCTextAlignmentLeft);
         label->setScale(0.8);
         label->setPosition(CCPoint(10.f, 10.f));
         label->setAnchorPoint(CCPoint(0.f, 0.5));
@@ -360,7 +356,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
 
         this->setContentHeight(label->getContentHeight());
         break;
-    case OptionLineType::SingleColor:
+    case OptionLineType::Color:
         sqr = ColorChannelSprite::create();
         sqr->setScale(0.5);
         this->m_colpk = CCMenuItemSpriteExtra::create(sqr, this, menu_selector(SetupOptionLine::onPickColor));
@@ -407,13 +403,13 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
     case OptionLineType::Slider:
         this->setID(mode == 3 ? "duty" :"satu");
         if (mode == 3)
-            return SliderBundleBase::init("duty", "Duty %", 50, 99, 0, true, true,
+            return SliderBundleBase::init("duty", "Duty %", 50, 99, 0, 0, true,
                 0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 40.f, 25.f,
                 [](float value) -> float { return value / 99; },
                 [](float s) -> float { return 99 * s; }
             );
         else
-            return SliderBundleBase::init("satu", "Saturation", 50, 100, 0, true, true,
+            return SliderBundleBase::init("satu", "Saturation", 50, 100, 0, 0, true,
                 0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 40.f, 25.f,
                 [](float value) -> float { return value / 100; },
                 [](float s) -> float { return 100 * s; }
@@ -421,6 +417,14 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         break;
     }
     return true;
+}
+
+void SetupOptionLine::toggleTitle(bool yes, bool fade) {
+    if (m_toggler)
+        m_toggler->toggle(yes && !fade);
+    if (type == OptionLineType::Title && m_title)
+        // green or gray
+        m_title->runAction(CCTintTo::create(fade * ANIM_TIME_M, 127-127*yes, 127+128*yes, 127-127*yes));
 }
 
 float MyContentLayer::getSomething(float Y, float H) {

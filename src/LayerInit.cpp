@@ -1,7 +1,8 @@
 #include "Layer.hpp"
+#include <ranges>
 
 extern std::map<std::string, bool> opts;
-extern float speed;
+extern std::map<std::string, float> vals;
 
 // makup initial UI (only main page)
 bool ChromaLayer::init() {
@@ -25,10 +26,10 @@ bool ChromaLayer::init() {
     // blur
     BlurAPI::addBlur(this->m_bg);
     m_bg->setVisible(opts["blur-bg"]);
-    /*
+
     BlurAPI::getOptions(this->m_bg)->forcePasses = true;
-    BlurAPI::getOptions(this->m_bg)->passes = 1 + 4 * opts["blur-bg"];
-    */
+    BlurAPI::getOptions(this->m_bg)->passes = vals["blur-lvl"];
+
     /********** Main Menu **********/
     auto menuMain = CCMenu::create();
     menuMain->setPosition(CCPoint(0, 0));
@@ -168,7 +169,7 @@ void ChromaLayer::makeItemPage() {
     menuItem->addChild(lbfTarget);
 
     // speed menu
-    auto menuSpeed = SpeedSliderBundle::create(speed);
+    auto menuSpeed = SpeedSliderBundle::create(vals["speed"]);
     menuItem->addChild(menuSpeed);
 
     // toggle preview
@@ -489,6 +490,22 @@ void ChromaLayer::makeOptionsPage() {
     H += darkOpt->getContentHeight() + 15.f;
 
     #ifdef GEODE_IS_WINDOWS
+    /*
+    sTag ++;
+    auto blurlvlOpt = OptionSliderCell::create("Blur Level", H, sTag, "blur-lvl",
+        "Set how foggy the blur it is.  \n"
+        "You should turn on the blur switch firstly sure.",
+    0.f, 10.f, 0, [] (float val) -> float { return val / 10; }, [] (float s) -> float { return s * 10; });
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(blurlvlOpt);
+    H += blurlvlOpt->getContentHeight() + 15.f;
+    */
+    sTag ++;
+    auto blurlvlOpt = OptionArrowCell::create("Blur Level", H, sTag, "blur-lvl",
+        "Set how foggy the blur it is.  \nYou should turn on the blur switch firstly sure.",
+        std::ranges::views::iota(0, 10) | std::ranges::to<std::vector<int>>(), [] (int index) -> std::string { return numToString<int>(index + 1); });
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(blurlvlOpt);
+    H += blurlvlOpt->getContentHeight() + 15.f;
+
     sTag ++;
     auto blurOpt = OptionTogglerCell::create("Blur Background", H, sTag, "blur-bg",
         "Add a gaussian blur effect to the background.  \nGive it up if you feel this effect can't worth your device lag.  \n"
@@ -497,11 +514,35 @@ void ChromaLayer::makeOptionsPage() {
     H += blurOpt->getContentHeight() + 15.f;
     #endif
 
+    /*
+    sTag ++;
+    auto animOpt = OptionSliderCell::create("Menu Anim Time", H, sTag, "anim-speed",
+        "Set anim time cost of this mod menu. \n Spamming faster than animations may cause some visual glitches so too slow animations is never recommended.",
+    0.f, 1.f, 1, [] (float val) -> float { return val; }, [] (float s) -> float { return s; });
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(animOpt);
+    H += animOpt->getContentHeight() + 15.f;
+    */
+
+    sTag ++;
+    auto animOpt = OptionArrowCell::create("Menu Anim Time", H, sTag, "anim-time",
+        "Set anim time cost of this mod menu. \n Spamming faster than animations may cause some visual glitches so too slow animations is never recommended.",
+        std::ranges::views::iota(0, 7) | std::ranges::to<std::vector<int>>(), [] (int index) -> std::string { return numToString<float>(0.2 + index / 10.f, 1); });
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(animOpt);
+    H += animOpt->getContentHeight() + 15.f;
+
     sTag ++;
     auto pauseOpt = OptionTogglerCell::create("Pause Menu Entry", H, sTag, "pause",
         "Show mod menu entrance button in Pause Menu.  \nSure, it's not taking effect until you pause again.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(pauseOpt);
     H += pauseOpt->getContentHeight() + 15.f;
+
+
+    sTag ++;
+    auto editorOpt = OptionTogglerCell::create("Editor Test", H, sTag, "editor",
+        "Apply to Editor Playtest. Will also add a button in your editor page if <cg>checked</c>.  \n"
+        "But I do not promise your device will not lag there.");
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(editorOpt);
+    H += editorOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto prevOpt = OptionTogglerCell::create("Preview Effects", H, sTag, "prev",
@@ -555,23 +596,9 @@ void ChromaLayer::makeOptionsPage() {
     H += ghostOpt->getContentHeight() + 15.f;
 
     sTag ++;
-    auto initOpt = OptionTogglerCell::create("Chroma on Initial", H, sTag, "init",
-        "Both PlayLayer and LevelEditorLayer may have a lag between the player appears and she starts to move.  \n"
-        "If <cr>unchecked</c>, you can see your players of raw color when you pause quickly enough.");
-    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(initOpt);
-    H += initOpt->getContentHeight() + 15.f;
-
-    sTag ++;
     auto fixTitle = OptionTitleCell::create("Fix Options", H, sTag, "fix-title");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(fixTitle);
     H += 40.f;
-
-    sTag ++;
-    auto editorOpt = OptionTogglerCell::create("Editor Test", H, sTag, "editor",
-        "Apply to Editor Playtest. Will also add a button in your editor page if <cg>checked</c>.  \n"
-        "But I do not promise your device will not lag there.");
-    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(editorOpt);
-    H += editorOpt->getContentHeight() + 15.f;
 
     sTag ++;
     auto globedOpt = OptionTogglerCell::create("Globed Progress Indicator", H, sTag, "globed",
@@ -579,6 +606,13 @@ void ChromaLayer::makeOptionsPage() {
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(globedOpt);
     H += globedOpt->getContentHeight() + 15.f;
 
+    sTag ++;
+    auto initOpt = OptionTogglerCell::create("Chroma on Initial", H, sTag, "init",
+        "Both PlayLayer and LevelEditorLayer may have a lag between the player appears and she starts to move.  \n"
+        "If <cr>unchecked</c>, you can see your players of raw color when you pause quickly enough.");
+    static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(initOpt);
+    H += initOpt->getContentHeight() + 15.f;
+    
     sTag ++;
     auto igntwOpt = OptionTogglerCell::create("Ignore Timewarp", H, sTag, "igntw",
         "If <cg>checked</c>, chroma speed will keep constant during timewarp trigger taking effect (sync with real world clock).");
@@ -723,4 +757,29 @@ void ChromaLayer::makeInfoPage() {
     menuInfo->addChild(lbfCreditContent);
 
     this->m_hasInfoPage = true;
+}
+
+void ChromaLayer::makePopupPage() {
+   // hint menu
+    this->m_menuHint = CCMenu::create();
+    m_menuHint->setContentSize(ccp(0.f, 0.f));
+    m_menuHint->setScaleY(0.f);
+    m_menuHint->setID("popup-menu");
+    this->addChild(m_menuHint);
+
+    this->m_lbfHint = CCLabelBMFont::create("title", "ErasBold.fnt"_spr, 360.f);
+    m_lbfHint->setPositionY(138.f);
+    hide(m_lbfHint, 1, 0);
+    m_lbfHint->setID("info-title");
+    m_lbfHint->setTag(0);
+    m_menuHint->addChild(m_lbfHint);
+
+    auto lbfOkay = CCLabelBMFont::create("Okay", "ErasBold.fnt"_spr, 200.f);
+    lbfOkay->setScale(0.5);
+    this->m_btnOkay = CCMenuItemSpriteExtra::create(lbfOkay, this, menu_selector(ChromaLayer::onClose));
+    m_btnOkay->setPositionY(-135.f);
+    hide(m_btnOkay, 1, 0);
+    m_btnOkay->setID("info-button");
+    m_btnOkay->setTag(1);
+    m_menuHint->addChild(m_btnOkay);
 }

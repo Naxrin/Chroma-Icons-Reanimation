@@ -1,8 +1,10 @@
 #include "Layer.hpp"
 
-extern std::map<short, ChromaSetup> setups;
+extern std::map<short, ChromaPattern> setups;
 extern std::map<std::string, bool> opts;
-extern float speed;
+extern std::map<std::string, float> vals;
+// reset chroma
+std::map<PlayerObject*, bool> reset;
 
 // process some init animation
 void ChromaLayer::show() {
@@ -54,7 +56,7 @@ void ChromaLayer::show() {
 // schedule update rewrite
 void ChromaLayer::update(float d) {
     // step phase
-    this->m_phase = fmod(m_phase + 360 * d * speed, 360.f);
+    this->m_phase = fmod(m_phase + 360 * d * vals["speed"], 360.f);
     this->m_percentage = fmod(m_percentage + 10 * d, 100.f);
 
     if (m_hasSetupPage && m_currentTab)
@@ -167,33 +169,26 @@ bool ChromaLayer::switchTab(int tab) {
 }
 
 void ChromaLayer::makeHintPopup(std::string title, std::string content, float height) {
-    // hint menu
-    auto menuHint = CCMenu::create();
-    menuHint->setContentSize(ccp(0.f, 0.f));
-    menuHint->setScaleY(0.f);
-    menuHint->setID("popup-menu");
-    this->addChild(menuHint);
+    if (!this->m_hasPopupPage) {
+        this->makePopupPage();
+        this->m_hasPopupPage = true;
+    }
+
+    if (auto md = m_menuHint->getChildByID("md"))
+        md->removeFromParentAndCleanup(true);
 
     auto mdContent = MDTextArea::create(content, ccp(333.f, height));
     mdContent->setScale(1.2);
-    menuHint->addChild(mdContent);
+    //mdContent->getScrollLayer()->m_disableMovement = true;
+    mdContent->getScrollLayer()->setTouchEnabled(false);
+    mdContent->setID("md");
+    log::debug("will add child");
+    m_menuHint->addChild(mdContent);
+    log::debug("child added");
+    this->m_lbfHint->setString(title.c_str());
+    this->m_lbfHint->setPositionY(0.6 * height + 18.f);
 
-
-    auto lbfTitle = CCLabelBMFont::create(title.c_str(), "ErasBold.fnt"_spr, 360.f);
-    lbfTitle->setPositionY(0.6 * height + 18.f);
-    hide(lbfTitle, 1, 0);
-    lbfTitle->setID("info-title");
-    lbfTitle->setTag(0);
-    menuHint->addChild(lbfTitle);
-
-    auto lbfOkay = CCLabelBMFont::create("Okay", "ErasBold.fnt"_spr, 200.f);
-    lbfOkay->setScale(0.5);
-    auto btnOkay = CCMenuItemSpriteExtra::create(lbfOkay, this, menu_selector(ChromaLayer::onClose));
-    btnOkay->setPositionY(-0.6 * height - 15.f);
-    hide(btnOkay, 1, 0);
-    btnOkay->setID("info-button");
-    btnOkay->setTag(1);
-    menuHint->addChild(btnOkay);
+    this->m_btnOkay->setPositionY(-0.6 * height - 15.f);
 }
 
 // override ColorPickerDelegate function
@@ -202,3 +197,252 @@ void ChromaLayer::colorValueChanged(ccColor3B color) {
     refreshColorPage(3);
 }
 
+/**************** EVENT HANDLER *******************/
+
+void ChromaLayer::installRadios() {
+    this->m_radios.push_back(Signal<bool>("activate").listen([this] (bool activate) -> ListenerResult {
+        if (!reset.empty())
+            for (auto [key, _] : reset)
+                reset[key] = true;
+
+        // item menu toggle preview
+        m_cellItemAdv->toggleChroma();
+        m_cellItemEasy->toggleChroma();
+        m_cellItemEffect->toggleChroma();
+
+        // setup item
+        if (m_hasSetupPage){
+            for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsAdv->m_contentLayer->getChildren()))
+                cell->toggleChroma(cell == m_currentTab);
+            for (auto cell : CCArrayExt<SetupItemCell*>(m_scrollerSetupTabsEasy->m_contentLayer->getChildren()))
+                cell->toggleChroma(cell == m_currentTab);            
+        }
+
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<bool>("prev").listen([this] (bool prev) -> ListenerResult {
+        if (opts["activate"]) {
+            // toggle preview
+            m_cellItemAdv->toggleChroma();
+            m_cellItemEasy->toggleChroma();
+            m_cellItemEffect->toggleChroma();
+        }
+
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<bool>("dark-theme").listen([this] (bool dark) -> ListenerResult {
+        this->switchTheme();
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<bool>("blur-bg").listen([this] (bool blur) -> ListenerResult {
+        m_bg->setVisible(blur);
+        this->setOpacity(170 - 70 * blur);
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("blur-lvl").listen([this] (int level) -> ListenerResult {
+        BlurAPI::getOptions(this->m_bg)->passes = level + 1;
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<bool>("drag-slider").listen([this] (bool drag) -> ListenerResult {
+        this->m_onSlider = drag;
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("pick").listen([this] (int tab) -> ListenerResult {
+        // from item menu icon
+        if (this->m_pages.back() == Page::Item) {
+            if (!this->m_hasSetupPage)
+                this->makeSetupPage();
+            this->switchTab(tab);
+            this->m_cellWorkspace->refreshUI(m_currentSetup, false);
+            this->m_pages.push_back(Page::Setup);
+            this->fadeItemPage();
+            fade(m_btnInfo, false, ANIM_TIME_M);
+            this->runAction(CCSequence::create(
+                CCDelayTime::create(ANIM_TIME_M),
+                CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeSetupPage)),
+                CallFuncExt::create([this] () {
+                    fade(m_btnInfo, m_pages.back() == Page::Item || m_pages.back() == Page::Options, ANIM_TIME_M);
+                    fade(m_btnOptions, m_pages.back() == Page::Item || m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+                    fade(m_btnApply, m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+                }),
+                nullptr
+            ));
+        }
+        // from setup menu icon
+        else if (this->m_pages.back() == Page::Setup) {
+            bool really_changed = this->switchTab(tab);
+            if (really_changed) {
+
+                // show or hide channel switch arrow
+                bool showArrows = this->m_tab < 14 && !opts["easy"] || !this->m_tab;
+                fade(m_btnSetupArrowLeft, showArrows, ANIM_TIME_L);
+                fade(m_btnSetupArrowRight, showArrows, ANIM_TIME_L);
+
+                // workspace animation
+                this->m_cellWorkspace->runAction(CCSequence::create(
+                    CallFuncExt::create([this] () {
+                        m_cellWorkspace->Fade(false);
+                        m_cellWaitspace->refreshUI(m_currentSetup);
+                        // swap pointers
+                        auto temp = m_cellWaitspace;
+                        m_cellWaitspace = m_cellWorkspace;
+                        m_cellWorkspace = temp;
+                    }),
+                    CCDelayTime::create(ANIM_TIME_M / 3),
+                    CallFuncExt::create([this] () {
+                        m_cellWorkspace->Fade(true);
+                        }),
+                    nullptr
+                ));          
+            }
+        }
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("color").listen([this] (int tag) -> ListenerResult {
+        if (!this->m_hasColorPage)
+            this->makeColorPage();
+
+        auto cur = m_pages.back();
+        m_pages.push_back(Page::Color);
+        // maybe planning more
+        switch (cur) {
+        case Page::Setup:
+            this->fadeSetupPage();
+            break;
+        default:
+            break;
+        }
+        // color page
+        this->m_colorTag = tag;
+        ccColor3B col = getColorTarget()->getColor();
+        this->m_oriColor = col;
+        this->m_crtColor = col;
+        this->refreshColorPage(0);
+        this->runAction(CCSequence::create(
+            CCDelayTime::create(ANIM_TIME_M),
+            CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadeColorPage)),
+            CallFuncExt::create([this] () {
+                fade(m_btnInfo, m_pages.back() == Page::Item || m_pages.back() == Page::Options, ANIM_TIME_M);
+                fade(m_btnOptions, m_pages.back() == Page::Item || m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+                fade(m_btnApply, m_pages.back() == Page::Setup || m_pages.back() == Page::Color, ANIM_TIME_M);
+            }),
+            nullptr
+        ));
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("warning").listen([this] (int warn) -> ListenerResult {
+        switch (warn) {
+        // never remind
+        case 2:
+            Mod::get()->setSavedValue("notified", true);
+        // remind next time
+        case 1:
+            m_pages.pop_back();
+            // leave warn page
+            this->fadeWarnPage();
+            // go to main menu
+            m_pages.push_back(Page::Init);
+            // fade in item page
+            this->fadeMainMenu();
+            // make up item page
+            this->makeItemPage();
+            // fade in item page
+            this->fadeItemPage();
+            break;
+        // escape
+        default:
+            this->onClose(nullptr);
+        }
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("mode").listen([this] (int mode) -> ListenerResult {
+        this->m_currentSetup.mode = mode;
+        this->m_cellWorkspace->refreshUI(m_currentSetup, true);
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<ccColor3B>("color-hex").listen([this] (ccColor3B color) -> ListenerResult {
+        m_crtColor = color;
+        this->refreshColorPage(2);
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<float>("speed").listen([this] (float speed) -> ListenerResult {
+        Mod::get()->setSavedValue("speed", speed);
+        vals["speed"] = speed;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("duty").listen([this] (int duty) -> ListenerResult {
+        // cache
+        ccColor3B grad1 = m_currentSetup.gradient.begin()->second;
+        ccColor3B grad2 = m_currentSetup.gradient.rbegin()->second;
+        // clear
+        m_currentSetup.gradient.clear();
+        // construct
+        this->m_currentSetup.gradient[0] = grad1;
+        int d = duty ? (int)round(duty * 18 / 5) : 1;
+        this->m_currentSetup.gradient[d] = grad2;
+        if (d > 180)
+            this->m_currentSetup.gradient[2 * d - 360] = grad1;
+        if (d < 180)
+            this->m_currentSetup.gradient[360 - d] = grad2;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("satu").listen([this] (int satu) -> ListenerResult {
+        this->m_currentSetup.satu = satu;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("color-R").listen([this] (int r) -> ListenerResult {
+        m_crtColor.r = r;
+        this->refreshColorPage(1);
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("color-G").listen([this] (int g) -> ListenerResult {
+        m_crtColor.g = g;
+        this->refreshColorPage(1);
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<int>("color-b").listen([this] (int b) -> ListenerResult {
+        m_crtColor.r = b;
+        this->refreshColorPage(b);
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<bool>("best").listen([this] (bool best) -> ListenerResult {
+        m_currentSetup.best = best;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
+    this->m_radios.push_back(Signal<std::pair<std::string, std::string>>("option-desc").listen([this] (std::pair<std::string, std::string> pair) -> ListenerResult {
+        this->m_pages.push_back(Page::Popup);
+        this->fadeOptionsPage();
+        fade(m_btnInfo, false, ANIM_TIME_M);
+        this->makeHintPopup(pair.first, pair.second, 80.f);
+        this->runAction(CCSequence::create(
+            CCDelayTime::create(ANIM_TIME_M),
+            CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadePopupPage)),
+            nullptr
+        ));
+        return ListenerResult::Stop;
+    }));
+
+}

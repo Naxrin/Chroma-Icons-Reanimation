@@ -9,25 +9,21 @@ using namespace geode::prelude;
 
 // used for transition between pages
 // @note 0 - 0.5
-#define ANIM_TIME_L Mod::get()->getSavedValue<float>("anim-speed", 0.4)
+#define ANIM_TIME_L 0.1 * vals["anim-time"] + 0.2
 
 // used in delay between old page fades out and new page fades in
 // @note 0 - 0.24
-#define ANIM_TIME_M 0.6 * Mod::get()->getSavedValue<float>("anim-speed", 0.4)
+#define ANIM_TIME_M 0.06 * vals["anim-time"] + 0.12
 
 // used in scroller cell delay adn item cell enter delay
 // @note 0 - 0.05
-#define ANIM_TIME_GAP 0.06 * Mod::get()->getSavedValue<float>("anim-speed", 0.4)
+#define ANIM_TIME_GAP 0.006 * vals["anim-time"] + 0.012
 
 // used for cell color
-#define CELL_COLOR Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0, \
-                    Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0, \
-                    Mod::get()->getSavedValue<bool>("dark-theme", true) ? 255 : 0
+#define CELL_COLOR 255 * opts["dark-theme"], 255 * opts["dark-theme"], 255 * opts["dark-theme"]
 
 // used for bg color
-#define BG_COLOR Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255, \
-                    Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255, \
-                    Mod::get()->getSavedValue<bool>("dark-theme", true) ? 0 : 255
+#define BG_COLOR 255 * (1 - opts["dark-theme"]), 255 * (1 - opts["dark-theme"]), 255 * (1 - opts["dark-theme"])
 
 /********** Useful Const Value *************/
 
@@ -35,9 +31,9 @@ using namespace geode::prelude;
 static GameManager* gm = GameManager::sharedState();
 
 // fade utility (CCNode)
-void fade(CCNode* node, bool in, float time = ANIM_TIME_L, float scaleX = -1, float scaleY = -1, int opacity = -1);
+void fade(CCNode* node, bool in, float time, float scaleX = -1, float scaleY = -1, int opacity = -1);
 // fade utility (CCMenuItem)
-void fade(CCMenuItem* node, bool in, float time = ANIM_TIME_L, float scaleX = -1, float scaleY = -1, int opacity = -1);
+void fade(CCMenuItem* node, bool in, float time, float scaleX = -1, float scaleY = -1, int opacity = -1);
 
 /********** Item Channel Enumerate Class *************/
 
@@ -65,6 +61,8 @@ static std::string chnls[] = {
 typedef std::map<int, ccColor3B> mapline;
 typedef std::pair<int, ccColor3B> pairpos;
 
+void fadeSlider(Slider* slider, bool in);
+
 // load int color array from json file
 mapline MapfromJson(matjson::Value const& json, int def, int max);
 
@@ -72,65 +70,76 @@ mapline MapfromJson(matjson::Value const& json, int def, int max);
 matjson::Value MaptoJson(mapline const& vec);
 
 // The whole set of a color channel config
-struct ChromaSetup {
+struct ChromaPattern {
     // chroma mode Default/Static/Chromatic/Gradient/Progress
     int mode;
-    // chroma saturation eg.100=rgb/50=pastel
-    int satu;
-    // current/best progress for progress related mode
-    bool best;
     // static color
     ccColor3B color;
+    // chromatic phase offset
+    int phase;
+    // chroma saturation eg.100=rgb/50=pastel
+    int satu;
+    // chromatic brightness
+    int brit;
+    // reverse
+    bool rev;    
     // gradient map
     mapline gradient;
     // progress map
     mapline progress;
+    // current percentage or best progress for progress related mode
+    bool best;    
 };
 
 // default chroma setup for this mod
-#define DEFAULT_SETUP ChromaSetup{\
-    .mode = 0, .satu = 50, .best = false, .color = ccc3(255, 255, 255),\
+#define DEFAULT_SETUP ChromaPattern{\
+    .mode = 0,\
+    .color = ccc3(255, 255, 255),\
+    .phase = 0,\
+    .satu = 50,\
+    .brit = 100,\
+    .rev = false,\
     .gradient = {{0, ccc3(255, 255, 255)}, {180, ccc3(255, 255, 255)}},\
-    .progress = {{0, ccc3(255, 255, 255)}, {100, ccc3(255, 255, 255)}} }
-
-/*********** serialize chromasetup **********/
+    .progress = {{0, ccc3(255, 255, 255)}, {100, ccc3(255, 255, 255)}},\
+    .best = false\
+}
+/*********** serialize ChromaPattern **********/
 template<>
-struct matjson::Serialize<ChromaSetup> {
+struct matjson::Serialize<ChromaPattern> {
     // load json file
     // for int value we take the remainder to avoid out of range issue
-    static Result<ChromaSetup> fromJson(matjson::Value const& value) {
-        return Ok(ChromaSetup{
-            .mode = ((int)value["mode"].asInt().unwrapOr(0)) % 5,
-            .satu = ((int)value["saturation"].asInt().unwrapOr(50)) % 101,
-            .best = value["best"].asBool().unwrapOr(false),
+    static Result<ChromaPattern> fromJson(matjson::Value const& value) {
+        return Ok(ChromaPattern{
+            .mode = value.contains("mode") ? ((int)value["mode"].asInt().unwrapOr(0)) % 5 : 0,
             .color = value["color"].asString().andThen([](auto str) { return cc3bFromHexString(str, true); })
                 .unwrapOr(ccc3(255,255,255)),
-            .gradient = MapfromJson(value["gradient"], 180, 360),
-            .progress = MapfromJson(value["progress"], 100, 101)
+            .phase = value.contains("phase") ? ((int)value["phase"].asInt().unwrapOr(0)) % 360 : 0, 
+            .satu = value.contains("saturation") ? ((int)value["saturation"].asInt().unwrapOr(50)) % 101 : 50,
+            .brit = value.contains("brightness") ? ((int)value["brighttness"].asInt().unwrapOr(100)) % 101 : 100,
+            .rev = value.contains("reverse") ? value["reverse"].asBool().unwrapOr(false) : false,
+            .gradient = value.contains("gradient") ? MapfromJson(value["gradient"], 180, 360) : mapline({{0, ccc3(255, 255, 255)}, {180, ccc3(255, 255, 255)}}),
+            .progress = value.contains("progress") ? MapfromJson(value["progress"], 100, 101) : mapline({{0, ccc3(255, 255, 255)}, {100, ccc3(255, 255, 255)}}),
+            .best = value.contains("best") ? value["best"].asBool().unwrapOr(false) : false
         });
     }
 
     // dump to json file
-    static matjson::Value toJson(ChromaSetup const& value) {
+    static matjson::Value toJson(ChromaPattern const& value) {
         return matjson::makeObject({
             {"mode", value.mode},
-            {"saturation", value.satu},
-            {"best", value.best},
             {"color", cc3bToHexString(value.color)},
+            {"phase", value.phase},
+            {"saturation", value.satu},
+            {"brightness", value.brit},
+            {"reverse", value.rev},
             {"gradient", MaptoJson(value.gradient)},
-            {"progress", MaptoJson(value.progress)}
+            {"progress", MaptoJson(value.progress)},
+            {"best", value.best}
         });
     }
 
     // judge json file with max tolerance
     static bool isJson(matjson::Value value) {
-        if (!value.isObject()) return false;
-        if (!value.contains("mode") || !value["mode"].isNumber()) return false;
-        if (!value.contains("saturation") || !value["saturation"].isNumber()) return false;
-        if (!value.contains("best") || !value["best"].isBool()) return false;
-        if (!value.contains("color") || !value["color"].isString()) return false;
-        if (!value.contains("gradient") || !value["gradient"].isObject()) return false;
-        if (!value.contains("progress") || !value["progress"].isObject()) return false;
         return true;
     }
 };
@@ -168,7 +177,7 @@ struct myColorHSV {
 // @param phase current phase
 // @param percentage current level percentage
 // @param progress current level progress
-ccColor3B getChroma(ChromaSetup const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress);
+ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress);
 
 // get index for in-level pointer
 // @param p2 is player 2
