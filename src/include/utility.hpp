@@ -1,28 +1,24 @@
-// this file is used for most common used cases
-// also include some defines
+// this file the base and some defines for most common used cases
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include <Geode/loader/Dispatch.hpp>
+//#include <Geode/loader/Dispatch.hpp>
 
 using namespace geode::prelude;
 
 // used for transition between pages
-// @note 0 - 0.5
 #define ANIM_TIME_L 0.1 * vals["anim-time"] + 0.2
 
 // used in delay between old page fades out and new page fades in
-// @note 0 - 0.24
 #define ANIM_TIME_M 0.06 * vals["anim-time"] + 0.12
 
-// used in scroller cell delay adn item cell enter delay
-// @note 0 - 0.05
+// used in scroller cell delay and item cell enter delay
 #define ANIM_TIME_GAP 0.006 * vals["anim-time"] + 0.012
 
-// used for cell color
+// used for cell colors
 #define CELL_COLOR 255 * opts["dark-theme"], 255 * opts["dark-theme"], 255 * opts["dark-theme"]
 
-// used for bg color
+// used for bg colors
 #define BG_COLOR 255 * (1 - opts["dark-theme"]), 255 * (1 - opts["dark-theme"]), 255 * (1 - opts["dark-theme"])
 
 /********** Useful Const Value *************/
@@ -44,26 +40,34 @@ enum class Gamemode {
 };
 // pick icon name in my own mod
 static std::string items[] = {
-    "Icon", "Cube", "Ship", "Ball", "Ufo", "Wave", "Robot", "Spider", "Swing", "Jetpack", // 0~9
+    "Icon", "Cube", "Ship", "Ball", "Ufo", "Wave", "Robot", "Spider", "Swing", "Jetpack" // 0~9
 };
 
-// Ghost is preserved for future update
+// sprite channels
 enum class Channel {
     Main, Secondary, Glow, White, Ghost, Trail, DashFire, TPLine, WaveTrail, UFOShell
 };
 
 // channel names regarding enum class above
 static std::string chnls[] = {
-    "Main", "Secondary", "Glow", "White", "Ghost Trail", "Trail", "Dash Fire", "TP Line", "Wave Trail", "UFO Shell"
+    "Main", "Secondary", "Glow", "White",
+    "Ghost Trail", "Trail", "Dash Fire", "TP Line", "Wave Trail", "UFO Shell"
 };
 
 /********** SETUP AND SERIELIZE ***********/
-typedef std::map<int, ccColor3B> mapline;
-typedef std::pair<int, ccColor3B> pairpos;
 
+// for gradient mode, int means 0~359
+// for prtogress mode, int means 0~100
+typedef std::pair<int, ccColor3B> pairpos;
+// madeline
+typedef std::map<int, ccColor3B> mapline;
+
+// fade a slider
 void fadeSlider(Slider* slider, bool in);
 
 // load int color array from json file
+// @param def default value if fail to convert
+// @param max 360 for gradient mode and 101 for progress mode
 mapline MapfromJson(matjson::Value const& json, int def, int max);
 
 // dump int color array to json file
@@ -138,8 +142,8 @@ struct matjson::Serialize<ChromaPattern> {
         });
     }
 
-    // judge json file with max tolerance
     static bool isJson(matjson::Value value) {
+        //return value.isObject();
         return true;
     }
 };
@@ -150,19 +154,6 @@ struct matjson::Serialize<ChromaPattern> {
 template<typename T>
 struct Signal : public Event<Signal<T>, bool(T), std::string> {
     using Event<Signal<T>, bool(T), std::string>::Event;
-};
-
-class GJItemEffect : public CCSprite {
-public:
-    // register effectType
-    Channel effectType;
-    // the item in mod menu as this target gamemode
-    Gamemode targetMode = Gamemode::Icon;
-    // covering node sprite showing it's reference
-    CCSprite* m_cover;
-    // create
-    // @param tab the tab int this item is created for
-    static GJItemEffect* createEffectItem(int tab);
 };
 
 struct myColorHSV {
@@ -177,7 +168,7 @@ struct myColorHSV {
 // @param phase current phase
 // @param percentage current level percentage
 // @param progress current level progress
-ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress);
+ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, float phase, float percentage, int8_t progress);
 
 // get index for in-level pointer
 // @param p2 is player 2
@@ -188,7 +179,7 @@ inline short getIndex(bool p2, Gamemode id, Channel channel) {
     return (short)p2 << 10 | (int)id << 5 | (int)channel;
 }
 
-// get config key for mod save
+// get config key for mod save container
 // @param p2 is player 2
 // @param id Gamemode ID regarding ChromaLayer's index 0~9
 // @param channel main/second/glow/...

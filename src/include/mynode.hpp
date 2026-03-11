@@ -12,32 +12,59 @@ inline T getChildByIndex(CCNode *node, int index) {
 
 /********** UI ***********/
 
+class GJItemEffect : public CCSprite {
+protected:
+    // register effectType
+    Channel m_channel;
+    // the item in mod menu as this target gamemode
+    Gamemode m_gamemode;
+    // covering node sprite showing it's reference
+    CCSprite* m_cover;
+    // init
+    bool init(int tab);
+public:
+    Channel getChannel() { return this->m_channel; }
+    void setChannel(Channel channel) { this->m_channel = channel; }
+    Gamemode getGamemode() { return this->m_gamemode; }
+    void setGamemode(Gamemode gamemode) { this->m_gamemode = gamemode; }
+    CCSprite* cover() { return this->m_cover; }
+
+    // create
+    // @param tab the tab int this item is created for
+    static GJItemEffect* createEffectItem(int tab) {
+        auto node = new GJItemEffect();
+        if (node && node->init(tab)) {
+            node->autorelease();
+            return node;
+        };
+        CC_SAFE_DELETE(node);
+        return nullptr;
+    }
+};
+
 class PickItemButton : public CCMenuItemSpriteExtra {
 protected:
     // this icon is from setup page or not
-    bool src;
+    bool m_src;
     // is player 2
-    bool ptwo;
-    // chroma
-    bool chroma = false;
+    bool m_ptwo;
+    // should be chromatic
+    bool m_chroma;
     // icon sprite (gamemode tab only)
-    GJItemIcon* icon = nullptr;
-    // player
-    SimplePlayer* player = nullptr;
+    GJItemIcon* m_icon;
+    // player (gamemode tab only)
+    SimplePlayer* m_player;
     // effect sprite (effect tab only)
-    GJItemEffect* effect = nullptr;
-    // colors
-    ccColor3B mainColor;
-    ccColor3B secondColor;
-    ccColor3B glowColor;
+    GJItemEffect* m_effect;
+    // default colors
+    ccColor3B m_mainColor;
+    ccColor3B m_secondColor;
+    ccColor3B m_glowColor;
     // init
     bool init(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback);
 public:
     // set frame and default colors
-    void switchPlayer() {
-        this->ptwo = !ptwo;
-        setPlayerStatus();
-    }
+    void switchPlayer();
     // set player status
     void setPlayerStatus();
     // fade one by one
@@ -49,18 +76,7 @@ public:
     // toggle on or off chroma
     void toggleChroma(bool current);
     // edit mode target (effect only)
-    void setModeTarget(Gamemode gamemode) {
-        if (this->effect->effectType == Channel::WaveTrail && (int)gamemode) {
-            this->effect->targetMode = Gamemode::Wave;
-            return;
-        }
-        if (this->effect->effectType == Channel::UFOShell && (int)gamemode) {
-            this->effect->targetMode = Gamemode::Ufo;
-            return;
-        }
-        this->effect->targetMode = gamemode;
-    }
-
+    void setModeTarget(Gamemode gamemode);
     // constructor for effects
     static PickItemButton* create(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback) {
         auto node = new PickItemButton();
@@ -261,12 +277,12 @@ public:
 class MyContentLayer : public GenericContentLayer {
 public:
     // height of his scrollLayer mommy
-    float ceilingHeight = 0;
+    float m_ceilingHeight = 0;
     // nodes' Y positions when they are on display
     // arranged by tag order, from bottom to top
-    std::vector<float> Ystd;
+    std::vector<float> m_Ystd;
     // node action volume
-    std::vector<CCAction*> acts;
+    std::vector<CCAction*> m_acts;
     // get a mysterious value related to manually scrolled animaiton
     // @param Y cell's vertical pos
     // @param H cell's content height
@@ -286,8 +302,8 @@ public:
     // register the node's initial position Y
     void addChild(CCNode* child) override {
         CCNode::addChild(child);
-        Ystd.push_back(child->getPositionY());
-        acts.push_back(nullptr);
+        this->m_Ystd.push_back(child->getPositionY());
+        this->m_acts.push_back(nullptr);
     }
 
     static MyContentLayer* create(float width, float height) {
@@ -319,7 +335,7 @@ public:
         this->setTouchEnabled(true);
     }
     void setCeiling() {
-        static_cast<MyContentLayer*>(this->m_contentLayer)->ceilingHeight = getContentHeight();
+        static_cast<MyContentLayer*>(this->m_contentLayer)->m_ceilingHeight = getContentHeight();
     }
     void Transition(bool in, int move);
 

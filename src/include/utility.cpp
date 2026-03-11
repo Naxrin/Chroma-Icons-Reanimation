@@ -18,9 +18,9 @@ void fade(CCNode* node, bool in, float time, float scaleX, float scaleY, int opa
     if (opacity < 0)
         opacity = in ? 255 : 0;
     if (scaleX < 0)
-        scaleX = in ? 1 : 0.5;
+        scaleX = in ? 1.f : 0.5f;
     if (scaleY < 0)
-        scaleY = in ? 1 : 0.5;
+        scaleY = in ? 1.f : 0.5f;
 
     auto action = CCSpawn::create(
         CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, opacity)),
@@ -60,24 +60,31 @@ void fade(CCMenuItem* node, bool in, float time, float scaleX, float scaleY, int
 }
 
 void fadeSlider(Slider* slider, bool in) {
-    slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
-    slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255*in)));
+    slider->getChildByType<CCSprite>(0)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255 * in)));
+    slider->m_sliderBar->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255 * in)));
+    slider->getThumb()->getChildByTag(1)->runAction(CCEaseExponentialOut::create(CCFadeTo::create(ANIM_TIME_M, 255 * in)));
 }
 
 // load int color array from json file
 mapline MapfromJson(matjson::Value const& json, int def, int max) {
+    // protect
     if (json.isNull() || !json.isObject())
         return {{0, ccc3(255, 255, 255)}, {def, ccc3(255, 255, 255)}};
+    // ret
     mapline map;
     for (auto& [key, val] : json) {
-        auto keynum = numFromString<int>(key).unwrapOr(max);
+        auto res = numFromString<int>(key);
+        if (!res.isOk())
+            continue;
+        auto keynum = res.unwrapOrDefault();
         // block irregular weird value
         if (keynum >= 0 && keynum < max && val.isString())
             map[keynum] = val.asString().andThen([](auto str)
                 { return cc3bFromHexString(str, true); }).unwrapOr(ccc3(255,255,255));        
     }
-
+    // in case all values are invalid
+    if (map.empty())
+        return {{0, ccc3(255, 255, 255)}, {def, ccc3(255, 255, 255)}};
     return map;
 }
 
@@ -87,27 +94,6 @@ matjson::Value MaptoJson(mapline const& map) {
     for (auto pair: map)
         json[numToString(pair.first)] = cc3bToHexString(pair.second);
     return json;
-}
-
-GJItemEffect* GJItemEffect::createEffectItem(int id) {
-    auto base = new GJItemEffect();
-    if (base && base->initWithFile("effect_base.png"_spr)) {
-        // cascade opacity
-        base->setCascadeOpacityEnabled(true);
-        base->effectType = Channel(id - 6);
-        // add cover
-        std::string str = fmt::format("{}_{}.png","effect"_spr , id - 10);
-        base->m_cover = CCSprite::create(str.c_str());
-        auto size = base->getContentSize();
-        base->m_cover->setPosition(CCPoint(size.width / 2, size.height / 2));
-        base->m_cover->setID("cover");
-        base->addChild(base->m_cover);
-
-        base->autorelease();
-        return base;
-    }
-    CC_SAFE_DELETE(base);
-    return nullptr;
 }
 
 // RGB -> HSV
@@ -182,7 +168,7 @@ inline ccColor3B getGradient(const float &middle, const pairpos &l, const pairpo
     );
 }
 
-ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, float phase, float percentage, int progress) {
+ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, float phase, float percentage, int8_t progress) {
     if (!opts["activate"])
         return defaultVal;
 

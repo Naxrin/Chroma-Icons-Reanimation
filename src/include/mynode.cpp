@@ -25,53 +25,78 @@ inline int garageIconIndex(int index) {
     }
 }
 
+bool GJItemEffect::init(int tab) {
+    if (!CCSprite::initWithFile("effect_base.png"_spr))
+        return false;
+    // cascade opacity
+    this->setCascadeOpacityEnabled(true);
+    this->m_channel = Channel(tab - 6);
+    // add cover
+    std::string str = fmt::format("{}_{}.png","effect"_spr , tab - 10);
+    this->m_cover = CCSprite::create(str.c_str());
+    auto size = this->getContentSize();
+    this->m_cover->setPosition(CCPoint(size.width / 2, size.height / 2));
+    this->m_cover->setID("cover");
+    this->addChild(this->m_cover);
+
+    return true;
+}
+
 bool PickItemButton::init(int tag, bool src, CCObject* target, cocos2d::SEL_MenuHandler callback) {
     this->setTag(tag);
-    this->src = src;
+    this->m_src = src;
 
     // effect
     if (tag > 9) {
         // spr
-        effect = GJItemEffect::createEffectItem(tag);
-        effect->setScale(src ? 0.75 : 0.85);
+        this->m_effect = GJItemEffect::createEffectItem(tag);
+        this->m_effect->setScale(src ? 0.75 : 0.85);
         // init frame color
         this->setPlayerStatus();
-        // set type
-        effect->effectType = Channel(tag - 6);
+        // why did I write such a line then?
+        //this->m_effect->type() = Channel(tag - 6);
         // init button
-        return CCMenuItemSpriteExtra::init(effect, effect, target, callback);
+        return CCMenuItemSpriteExtra::init(this->m_effect, this->m_effect, target, callback);
     }
     // icon
     // spr
     int index = tag ? tag - 1 : 0;
-    this->icon = GJItemIcon::createBrowserItem(UnlockType(gametype[index]), garageIconIndex(index));
-    this->player = static_cast<SimplePlayer*>(this->icon->m_player);
+    this->m_icon = GJItemIcon::createBrowserItem(UnlockType(gametype[index]), garageIconIndex(index));
+    this->m_player = static_cast<SimplePlayer*>(this->m_icon->m_player);
+    // add default glow color
     if (gm->m_playerGlow)
-        player->setGlowOutline(ccc3(255, 255, 255));
+        m_player->setGlowOutline(ccc3(255, 255, 255));
     // setup page
     if (src)
-        icon->setScale(0.6);
+        m_icon->setScale(0.6);
+    // adv mode item cell
     else if (tag)
-        icon->setScale(0.8);
+        m_icon->setScale(0.8);
+    // easy mode item cell
     else
-        icon->setScale(1.15);
+        m_icon->setScale(1.15);
 
     // init frame and color
     this->setPlayerStatus();
 
     // cascade opacity ohh fuck
-    icon->setCascadeOpacityEnabled(true);
-    icon->m_player->setCascadeOpacityEnabled(true);
-    for (CCObject* obj: CCArrayExt<CCObject*>(icon->m_player->getChildren()))
+    this->m_icon->setCascadeOpacityEnabled(true);
+    this->m_icon->m_player->setCascadeOpacityEnabled(true);
+    for (CCObject* obj: CCArrayExt<CCObject*>(this->m_icon->m_player->getChildren()))
         static_cast<CCSprite*>(obj)->setCascadeOpacityEnabled(true);
     if (index == 5 || index == 6) {
-        auto part = icon->m_player->getChildByType<CCAnimatedSprite>(0)->getChildByType<CCPartAnimSprite>(0);
+        auto part = this->m_icon->m_player->getChildByType<CCAnimatedSprite>(0)->getChildByType<CCPartAnimSprite>(0);
         part->setCascadeOpacityEnabled(true);
         for (CCObject* obj: CCArrayExt<CCObject*>(part->getChildren()))
             static_cast<CCSprite*>(obj)->setCascadeOpacityEnabled(true);
     }
     // init button
-    return CCMenuItemSpriteExtra::init(icon, icon, target, callback);
+    return CCMenuItemSpriteExtra::init(this->m_icon, this->m_icon, target, callback);
+}
+
+void PickItemButton::switchPlayer() {
+    this->m_ptwo = !this->m_ptwo;
+    setPlayerStatus();
 }
 
 void PickItemButton::setPlayerStatus() {
@@ -83,73 +108,73 @@ void PickItemButton::setPlayerStatus() {
     // frame
     if (index < 9) {
         // update frames 
-        f = (SDI && ptwo) ? SDI->getSavedValue<int64_t>(SDInames[index]) : garageIconIndex(index);
-        player->updatePlayerFrame(f, IconType(index));
+        f = (SDI && m_ptwo) ? SDI->getSavedValue<int64_t>(SDInames[index]) : garageIconIndex(index);
+        m_player->updatePlayerFrame(f, IconType(index));
         if (index == 5)
-            player->m_robotSprite->updateFrame(f);
+            this->m_player->m_robotSprite->updateFrame(f);
         if (index == 6)
-            player->m_spiderSprite->updateFrame(f);
+            this->m_player->m_spiderSprite->updateFrame(f);
             
         // More Icons compatible
         if (auto MI = Loader::get()->getLoadedMod("hiimjustin000.more_icons")) {
             // config
-            auto name = MI->getSavedValue<std::string>(MInames[index] + (ptwo ? "-dual" : ""));
+            auto name = MI->getSavedValue<std::string>(MInames[index] + (this->m_ptwo ? "-dual" : ""));
             // post event
             /*
             Dispatch<SimplePlayer*, std::string, IconType>(
                 "hiimjustin000.more_icons/simple-player", player, name, IconType(index)).post();*/
         }           
     }
-    if (SDI && ptwo) {
+    if (SDI && this->m_ptwo) {
         // colors
         m = SDI->getSavedValue<int64_t>("color1");
         s = SDI->getSavedValue<int64_t>("color2");
         g = SDI->getSavedValue<int64_t>("colorglow");
     } else {
-        m = ptwo ? gm->getPlayerColor2() : gm->getPlayerColor();
-        s = ptwo ? gm->getPlayerColor() : gm->getPlayerColor2();
+        m = this->m_ptwo ? gm->getPlayerColor2() : gm->getPlayerColor();
+        s = this->m_ptwo ? gm->getPlayerColor() : gm->getPlayerColor2();
         g = gm->getPlayerGlowColor();
     }
 
-    this->mainColor = gm->colorForIdx(m);
-    this->secondColor = gm->colorForIdx(s);
-    this->glowColor = gm->colorForIdx(g);
+    this->m_mainColor = gm->colorForIdx(m);
+    this->m_secondColor = gm->colorForIdx(s);
+    this->m_glowColor = gm->colorForIdx(g);
 }
 
 void PickItemButton::delayFade(int delay, bool in) {
     this->runAction(CCSequence::create(
-        CCDelayTime::create(0.01 + ANIM_TIME_GAP*(1+delay)),
+        CCDelayTime::create(0.01 + ANIM_TIME_GAP * (1 + delay)),
         CallFuncExt::create([this, in](void) { fade(this, in, ANIM_TIME_L); }),
         nullptr
     ));
 }
 
 void PickItemButton::runChroma(float const& phase, float const& percentage, int const& progress) {
-    if (!this->chroma)
+    if (!this->m_chroma)
         return;
     if (this->getTag() > 9)
-        this->effect->setColor(getChroma(
-            setups[getIndex(ptwo, effect->targetMode, effect->effectType)], this->mainColor, phase, percentage, progress));
+        this->m_effect->setColor(getChroma(
+            setups[getIndex(this->m_ptwo, this->m_effect->getGamemode(), this->m_effect->getChannel())], this->m_mainColor, phase, percentage, progress));
     else {
         // main
-        player->setColor(getChroma(
-            setups[getIndex(ptwo, Gamemode(getTag()), Channel::Main)], this->mainColor, phase, percentage, progress));
+        this->m_player->setColor(getChroma(
+            setups[getIndex(this->m_ptwo, Gamemode(getTag()), Channel::Main)], this->m_mainColor, phase, percentage, progress));
         // second
-        player->setSecondColor(getChroma(
-            setups[getIndex(ptwo, Gamemode(getTag()), Channel::Secondary)], this->secondColor, phase + 120 * opts["sep-second"], percentage, progress));
+        this->m_player->setSecondColor(getChroma(
+            setups[getIndex(this->m_ptwo, Gamemode(getTag()), Channel::Secondary)], this->m_secondColor, phase + 120 * opts["sep-second"], percentage, progress));
         // glow
-        if (player->m_hasGlowOutline)
-            player->setGlowOutline(getChroma(
-                setups[getIndex(ptwo, Gamemode(getTag()), Channel::Glow)], this->glowColor, phase + 240 * opts["sep-glow"], percentage, progress));
+        if (this->m_player->m_hasGlowOutline)
+            this->m_player->setGlowOutline(getChroma(
+                setups[getIndex(this->m_ptwo, Gamemode(getTag()), Channel::Glow)], this->m_glowColor, phase + 240 * opts["sep-glow"], percentage, progress));
 
         // white
-        auto white = getChroma(setups[getIndex(ptwo, Gamemode(getTag()), Channel::White)], ccc3(255, 255, 255), phase, percentage, progress);
-        if (icon->m_unlockType == UnlockType::Robot)
-            player->m_robotSprite->m_extraSprite->setColor(white);
-        else if (icon->m_unlockType == UnlockType::Spider)
-            player->m_spiderSprite->m_extraSprite->setColor(white);
+        auto white = getChroma(setups[getIndex(this->m_ptwo, Gamemode(getTag()), Channel::White)], ccc3(255, 255, 255), phase, percentage, progress);
+        if (this->m_icon->m_unlockType == UnlockType::Robot)
+            this->m_player->m_robotSprite->m_extraSprite->setColor(white);
+        else if (this->m_icon->m_unlockType == UnlockType::Spider)
+            this->m_player->m_spiderSprite->m_extraSprite->setColor(white);
         else
-            player->m_detailSprite->setColor(white);
+            this->m_player->m_detailSprite->setColor(white);
     }
 }
 
@@ -160,27 +185,39 @@ void PickItemButton::toggleChroma() {
 // toggle on or off chroma, activated means not grey
 void PickItemButton::toggleChroma(bool current) {
     // toggle
-    this->chroma = current;
+    this->m_chroma = current;
     // on
-    if (this->chroma)
+    if (this->m_chroma)
         return;
     // off
     if (this->getTag() > 9)
-        this->effect->setColor(opts["activate"] ? this->mainColor : ccc3(127, 127, 127));
+        this->m_effect->setColor(opts["activate"] ? this->m_mainColor : ccc3(127, 127, 127));
     else {
-        player->setColor(opts["activate"] ? this->mainColor : ccc3(175, 175, 175));
-        player->setSecondColor(opts["activate"] ? this->secondColor : ccc3(255, 255, 255));
-        if (player->m_hasGlowOutline)
-            player->setGlowOutline(opts["activate"] ? this->glowColor : ccc3(255, 255, 255));
+        this->m_player->setColor(opts["activate"] ? this->m_mainColor : ccc3(175, 175, 175));
+        this->m_player->setSecondColor(opts["activate"] ? this->m_secondColor : ccc3(255, 255, 255));
+        if (this->m_player->m_hasGlowOutline)
+            this->m_player->setGlowOutline(opts["activate"] ? this->m_glowColor : ccc3(255, 255, 255));
 
         // white
-        if (icon->m_unlockType == UnlockType::Robot)
-            player->m_robotSprite->m_extraSprite->setColor(ccc3(255, 255, 255));
-        else if (icon->m_unlockType == UnlockType::Spider)
-            player->m_spiderSprite->m_extraSprite->setColor(ccc3(255, 255, 255));
-        else if (player->m_detailSprite)
-            player->m_detailSprite->setColor(ccc3(255, 255, 255));
+        if (this->m_icon->m_unlockType == UnlockType::Robot)
+            this->m_player->m_robotSprite->m_extraSprite->setColor(ccc3(255, 255, 255));
+        else if (this->m_icon->m_unlockType == UnlockType::Spider)
+            this->m_player->m_spiderSprite->m_extraSprite->setColor(ccc3(255, 255, 255));
+        else if (this->m_player->m_detailSprite)
+            this->m_player->m_detailSprite->setColor(ccc3(255, 255, 255));
     }
+}
+
+void PickItemButton::setModeTarget(Gamemode gamemode) {
+    if (this->m_effect->getChannel() == Channel::WaveTrail && (int)gamemode) {
+        this->m_effect->setGamemode(Gamemode::Wave);
+        return;
+    }
+    if (this->m_effect->getChannel() == Channel::UFOShell && (int)gamemode) {
+        this->m_effect->setGamemode(Gamemode::Ufo);
+        return;
+    }
+    this->m_effect->setGamemode(gamemode);
 }
 
 bool SliderBundleBase::init(std::string topic, const char* title, float value, float max, float min, int precision, bool has_arrow, \
@@ -429,7 +466,7 @@ void SetupOptionLine::toggleTitle(bool yes, bool fade) {
 
 float MyContentLayer::getSomething(float Y, float H) {
     auto y = this->getPositionY() + Y;
-    float p1 = ceilingHeight - y - H / 2;
+    float p1 = m_ceilingHeight - y - H / 2;
     float p2 = y - H / 2;
     // invisible case
     if (p1 < 0 || p2 < 0)
@@ -463,10 +500,10 @@ void ScrollLayerPlus::Transition(bool in, int move) {
     while (tag > 0 && tag <= m) {
         if (auto opt = static_cast<CCMenu*>(m_contentLayer->getChildByTag(tag))) {
             // start
-            float y0 = m_realCL->Ystd.at(tag-1) - (in && !move ? 0.f : 0);
+            float y0 = m_realCL->m_Ystd.at(tag-1) - (in && !move ? 0.f : 0);
             float tg0 = m_realCL->getSomething(y0, opt->getContentHeight());
             // dest
-            float y1 = m_realCL->Ystd.at(tag-1) - (in || move ? 0 : 0.f);
+            float y1 = m_realCL->m_Ystd.at(tag-1) - (in || move ? 0 : 0.f);
             float tg1 = m_realCL->getSomething(y1, opt->getContentHeight());
             //opt->stopInnerAction();
 
@@ -490,7 +527,7 @@ void ScrollLayerPlus::Transition(bool in, int move) {
             //float newScale = in ? 0.5 + 0.5 * tg1 : 0.25 + 0.25 * tg1;
 
             if (in)
-                m_realCL->acts.at(tag-1) = opt->runAction(CCSequence::create(
+                m_realCL->m_acts.at(tag-1) = opt->runAction(CCSequence::create(
                     CCDelayTime::create(delay),
                     CCSpawn::create(
                         CCEaseExponentialOut::create(CCScaleTo::create(ANIM_TIME_M, 0.5 + 0.5 * tg1)),
@@ -506,7 +543,7 @@ void ScrollLayerPlus::Transition(bool in, int move) {
                     nullptr
                 ));
             else
-                m_realCL->acts.at(tag-1) = opt->runAction(CCSequence::create(
+                m_realCL->m_acts.at(tag-1) = opt->runAction(CCSequence::create(
                     CCDelayTime::create(delay),
                     CCSpawn::create(
                         CCEaseExponentialOut::create(CCScaleTo::create(ANIM_TIME_M, tg1 > tg0 ? 0.25 + 0.25 * tg0 : 0.25 + 0.25 * tg1)),
