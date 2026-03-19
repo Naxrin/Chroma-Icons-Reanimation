@@ -17,7 +17,7 @@ public:
     // tint
     void tint(float d, int r, int g, int b);
     // black / white
-    inline virtual void switchTheme();
+    virtual void switchTheme();
 };
 
 // notice player when they launch it in extreme demons
@@ -52,7 +52,7 @@ protected:
     CCSprite* m_spr;
     CCLabelBMFont* m_title;
     CCLayerGradient* m_gradient;
-    CCPoint display_pos;
+    CCPoint m_pos;
     bool init(const char* text, CCPoint pos, float width, int tag, std::string id);
 public:
     void Fade(bool) override;
@@ -89,7 +89,7 @@ public:
 // Option Toggler
 class OptionTogglerCell : public BaseCell {
 protected:
-    bool yes;
+    bool m_yes;
     std::string m_title;
     std::string m_desc;
     CCMenuItemToggler* m_toggler;

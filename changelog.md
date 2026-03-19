@@ -1,3 +1,9 @@
+# 4.6.1
+### Addition
+- More Icons compatible again
+### Bugfix
+- No, just codes polish
+
 # 4.6.0
 ### Addition
 - More fun Options

@@ -124,15 +124,15 @@ public:
 class SliderBundleBase : public CCMenu, public TextInputDelegate, public SliderDelegate {
 protected:
     // topic
-    std::string topic;
+    std::string m_topic;
     // value
-    float value;
+    float m_value;
     // max value, -1 if up to infinity
-    float max;
+    float m_max;
     // min value
-    float min;
+    float m_min;
     // precision
-    float precision;
+    float m_precision;
     // label
     CCLabelBMFont* m_label = nullptr;
     // inputer
@@ -144,9 +144,9 @@ protected:
     // right arrow
     CCMenuItemSpriteExtra* m_btnRight = nullptr;  
     // value to slider (this may return a value out of 1~0 range, unfiltered)
-    std::function<float (float)> toSlider;
+    std::function<float (float)> m_toSlider;
     // slider to value
-    std::function<float (float)> fromSlider;
+    std::function<float (float)> m_fromSlider;
     // worst init function ever
     bool init(std::string topic, const char* title, float value, float max, float min, int precision, bool has_arrow, \
         float labelScale,  float sliderScale, float inputerScale, float arrowScale, float sliderPosX, float inputerPosX, float labelWidth, float inputerWidth, float arrowDistance,\
@@ -155,24 +155,24 @@ public:
     // update value from text input
     void textChanged(CCTextInputNode* p) override {
         std::string input = p->getString();
-        this->setVal(std::clamp(numFromString<float>(input, precision).unwrapOr(this->value), 0.f, 1.f));
+        this->setVal(std::clamp(numFromString<float>(input, this->m_precision).unwrapOr(this->m_value), 0.f, 1.f));
     }
     // check value > max case
     void textInputClosed(CCTextInputNode* p) override {
         std::string input = p->getString();
-        this->setVal(std::clamp(numFromString<float>(input, precision).unwrapOr(this->value), (float)min, (float)max));
-        postEvent();
+        this->setVal(std::clamp(numFromString<float>(input, this->m_precision).unwrapOr(this->m_value), this->m_min, this->m_max));
+        this->postEvent();
     }
     // change chroma frequency by slider
     void onSlider(CCObject* sender) {
-        this->setVal(this->fromSlider(m_slider->getValue()), -1);
+        this->setVal(this->m_fromSlider(this->m_slider->getValue()), -1);
     }
     // on arrow
     void onArrow(CCObject* sender) {
         float delta = sender->getTag() == 2 ? 0.1 : -0.1;
-        float news = std::clamp(this->toSlider(value) + delta, 0.f, 1.f);
-        this->setVal(this->fromSlider(news));
-        postEvent();
+        float news = std::clamp(this->m_toSlider(this->m_value) + delta, 0.f, 1.f);
+        this->setVal(this->m_fromSlider(news));
+        this->postEvent();
     }
     // mute onClose
     void sliderBegan(Slider *p) override {
@@ -181,19 +181,17 @@ public:
     // unmute onClose and post event
     void sliderEnded(Slider *p) override {
         Signal<bool>("drag-slider").send(false);
-        this->setVal(this->fromSlider(m_slider->getValue()));
-        postEvent();
+        this->setVal(this->m_fromSlider(this->m_slider->getValue()));
+        this->postEvent();
     };
     // post event
     virtual void postEvent() {
-        if (this->precision)
-            Signal<float>(this->topic).send(value);
+        if (this->m_precision)
+            Signal<float>(this->m_topic).send(this->m_value);
         else
-            Signal<int>(this->topic).send((int)value);
+            Signal<int>(this->m_topic).send((int)this->m_value);
     }
-    float getVal() {
-        return this->value;
-    }
+    float getVal() { return this->m_value; }
     void setVal(float value, short mode = 0);
     // i hate cascading opacity
     void helpFade(bool in);
@@ -236,20 +234,20 @@ protected:
     // toggler callback
     void onToggle(CCObject*) {
         // mode
-        if (type == OptionLineType::Title)
-            Signal<int>("mode").send(mode);
+        if (this->m_type == OptionLineType::Title)
+            Signal<int>("mode").send(this->m_mode);
         // best toggler
-        else if (type == OptionLineType::Toggler)
-            Signal<bool>("best").send(!m_toggler->isToggled());
+        else if (this->m_type == OptionLineType::Toggler)
+            Signal<bool>("best").send(!this->m_toggler->isToggled());
     };
     void onPickColor(CCObject* sender) {
         Signal<int>("color").send(sender->getTag());
     };
 public:
     // line ui type
-    OptionLineType type;
+    OptionLineType m_type;
     // the mode this line points to
-    int mode;
+    int m_mode;
     // title (title line only)
     CCLabelBMFont* m_title = nullptr;
     // toggler (shared)
@@ -308,7 +306,7 @@ public:
 
     static MyContentLayer* create(float width, float height) {
         auto ret = new MyContentLayer();
-        if (ret->initWithColor({ 0, 0, 0, 0 }, width, height)) {
+        if (ret->initWithColor(ccc4(0, 0, 0, 0 ), width, height)) {
             ret->autorelease();
             return ret;
         }
@@ -319,7 +317,7 @@ public:
 
 class ScrollLayerPlus : public ScrollLayer {
 protected:
-    CCAction* actionFade = nullptr;
+    CCAction* m_actionFade = nullptr;
 public:
 
     ScrollLayerPlus(CCRect const& rect, bool scrollWheelEnabled, bool vertical) : 

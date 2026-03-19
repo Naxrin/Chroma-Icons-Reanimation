@@ -13,13 +13,13 @@ bool BaseCell::setup(CCPoint point, CCSize size, int tag, std::string id) {
     this->setID(id);
 
     // bg
-    m_bg = NineSlice::create("square.png"_spr);
-    m_bg->setPosition(CCPoint(size.width/2, size.height/2));
-    m_bg->setContentSize(CCSize(size.width+10, size.height+10));
-    m_bg->setZOrder(-1);
-    m_bg->setColor(ccc3(CELL_COLOR));
-    m_bg->setID("background");
-    this->addChild(m_bg);
+    this->m_bg = NineSlice::create("square.png"_spr);
+    this->m_bg->setPosition(CCPoint(size.width/2, size.height/2));
+    this->m_bg->setContentSize(CCSize(size.width+10, size.height+10));
+    this->m_bg->setZOrder(-1);
+    this->m_bg->setColor(ccc3(CELL_COLOR));
+    this->m_bg->setID("background");
+    this->addChild(this->m_bg);
 
     return true;
 }
@@ -50,10 +50,10 @@ bool WarnCell::init() {
     this->setScale(0.5);
     this->setOpacity(0.f);
 
-    m_title = CCLabelBMFont::create("WARNING", "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentCenter);
-    m_title->setPosition(CCPoint(210.f, 260.f));
-    m_title->setScale(0.8);
-    this->addChild(m_title);
+    this->m_title = CCLabelBMFont::create("WARNING", "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentCenter);
+    this->m_title->setPosition(CCPoint(210.f, 260.f));
+    this->m_title->setScale(0.8);
+    this->addChild(this->m_title);
 
     this->m_text = MDTextArea::create(
         "- It looks like your are playing an extreme demon, perhaps also a list demon (Chroma Icons doesn't access Pointercrate so idk)."
@@ -65,18 +65,18 @@ bool WarnCell::init() {
         ccp(333.f, 120.f)
     );
 
-    m_text->setPosition(CCPoint(210.f, 170.f));
-    m_text->setScale(1.2);
-    m_text->getScrollLayer()->m_disableMovement = true;
-    this->addChild(m_text);
+    this->m_text->setPosition(CCPoint(210.f, 170.f));
+    this->m_text->setScale(1.2);
+    this->m_text->getScrollLayer()->m_disableMovement = true;
+    this->addChild(this->m_text);
 
     auto labConfirm = CCLabelBMFont::create("YES ALWAYS", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     labConfirm->setScale(0.4);
-    m_btnConfirm = CCMenuItemSpriteExtra::create(labConfirm, this, menu_selector(WarnCell::onClick));
-    m_btnConfirm->setPosition(CCPoint(210.f, 84.f));
+    this->m_btnConfirm = CCMenuItemSpriteExtra::create(labConfirm, this, menu_selector(WarnCell::onClick));
+    this->m_btnConfirm->setPosition(CCPoint(210.f, 84.f));
     //m_btnConfirm->setColor(ccc3(255-col, 255-col, 255-col));
-    m_btnConfirm->setTag(2);
-    this->addChild(m_btnConfirm);
+    this->m_btnConfirm->setTag(2);
+    this->addChild(this->m_btnConfirm);
 
     auto hintConfirm = CCLabelBMFont::create(
         "I know what this mod means to record submission, never pop it again.",
@@ -90,7 +90,6 @@ bool WarnCell::init() {
     labRemind->setScale(0.4);
     m_btnRemind = CCMenuItemSpriteExtra::create(labRemind, this, menu_selector(WarnCell::onClick));
     m_btnRemind->setPosition(CCPoint(210.f, 52.f));
-    //m_btnRemind->setColor(ccc3(255-col, 255-col, 255-col));
     m_btnRemind->setTag(1);
     this->addChild(m_btnRemind);
 
@@ -104,11 +103,11 @@ bool WarnCell::init() {
 
     auto labEscape = CCLabelBMFont::create("EXIT", "ErasBold.fnt"_spr, 200.f, CCTextAlignment::kCCTextAlignmentCenter);
     labEscape->setScale(0.4);
-    m_btnEscape = CCMenuItemSpriteExtra::create(labEscape, this, menu_selector(WarnCell::onClick));
-    m_btnEscape->setPosition(CCPoint(210.f, 20.f));
-    m_btnEscape->setColor(ccc3(255, 96, 96));
-    m_btnEscape->setTag(0);
-    this->addChild(m_btnEscape);
+    this->m_btnEscape = CCMenuItemSpriteExtra::create(labEscape, this, menu_selector(WarnCell::onClick));
+    this->m_btnEscape->setPosition(CCPoint(210.f, 20.f));
+    this->m_btnEscape->setColor(ccc3(255, 96, 96));
+    this->m_btnEscape->setTag(0);
+    this->addChild(this->m_btnEscape);
 
     auto hintEscape = CCLabelBMFont::create(
         "Quit right now and tell the list team I not ever clicked the Chroma Icons button.",
@@ -127,7 +126,7 @@ void WarnCell::onClick(CCObject* sender) {
 
 void WarnCell::Fade(bool in) {
     BaseCell::Fade(in);
-    fade(m_text, in, ANIM_TIME_L, 1.2 * in, 1.2 * in);
+    fade(this->m_text, in, ANIM_TIME_L, 1.2 * in, 1.2 * in);
 }
 
 bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::string id) {
@@ -150,31 +149,32 @@ bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::s
     m_clip->setZOrder(-1);
 
     this->m_spr = CCSprite::create("titlebg.png"_spr);
-    m_spr->setTextureRect(CCRect(0, 0, width*2, 90.f));
-    m_spr->setOpacity(200);
+    this->m_spr->setTextureRect(CCRect(0, 0, width * 2, 90.f));
+    this->m_spr->setOpacity(200);
 
 
     ccTexParams TexParameters = {GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
-    m_spr->getTexture()->setTexParameters(&TexParameters);
+    this->m_spr->getTexture()->setTexParameters(&TexParameters);
 
-    m_clip->addChild(m_spr);
-    m_bg->addChildAtPosition(m_clip, Anchor::Center);
+    this->m_clip->addChild(m_spr);
+    this->m_bg->addChildAtPosition(m_clip, Anchor::Center);
 
-    m_spr->runAction(CCRepeatForever::create(CCSequence::create(
+    // wtf
+    this->m_spr->runAction(CCRepeatForever::create(CCSequence::create(
         CallFuncExt::create([this]() { m_spr->setPosition(CCPoint(275, 40.1)); }),
         CCMoveTo::create(30, CCPoint(40.5, -13)),
         nullptr
     )));
 
-    m_title = CCLabelBMFont::create(text, "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentCenter);
-    m_title->setScale(0.6);
-    m_title->setContentSize(CCSize(width, 25.f));
-    m_title->setWidth(300.f);
-    m_title->setAnchorPoint(CCPoint(0.5, 0.5));
-    m_title->setID("label");
-    this->addChildAtPosition(m_title, Anchor::Center);
+    this->m_title = CCLabelBMFont::create(text, "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentCenter);
+    this->m_title->setScale(0.6);
+    this->m_title->setContentSize(CCSize(width, 25.f));
+    this->m_title->setWidth(300.f);
+    this->m_title->setAnchorPoint(CCPoint(0.5, 0.5));
+    this->m_title->setID("label");
+    this->addChildAtPosition(this->m_title, Anchor::Center);
 
-    this->display_pos = pos;
+    this->m_pos = pos;
     return true;
 }
 
@@ -182,7 +182,7 @@ void TitleCell::Fade(bool in) {
     this->BaseCell::Fade(in);
     fade(m_spr, in, ANIM_TIME_L, -1, -1, 144);
     this->runAction(CCSequence::create(
-        CCEaseExponentialOut::create(CCMoveTo::create(ANIM_TIME_M, CCPoint(display_pos.x, display_pos.y - 30.f * in))),
+        CCEaseExponentialOut::create(CCMoveTo::create(ANIM_TIME_M, CCPoint(m_pos.x, m_pos.y - 30.f * in))),
         nullptr
     ));
 }
@@ -193,14 +193,14 @@ bool OptionTitleCell::init(const char* text, float y, int tag, std::string id) {
     if (!CCMenu::init())
         return false;
 
-    m_title = CCLabelBMFont::create(text, "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentCenter);
-    m_title->setScale(0.5);
-    m_title->setContentSize(CCSize(300.f, 20.f));
-    m_title->setWidth(340.f);
-    m_title->setAnchorPoint(CCPoint(0.5, 0.5));
-    m_title->setColor(ccc3(64, 192, 255));
-    m_title->setID("title");
-    addChild(m_title);
+    this->m_title = CCLabelBMFont::create(text, "ErasBold.fnt"_spr, 120.f, CCTextAlignment::kCCTextAlignmentCenter);
+    this->m_title->setScale(0.5);
+    this->m_title->setContentSize(CCSize(300.f, 20.f));
+    this->m_title->setWidth(340.f);
+    this->m_title->setAnchorPoint(CCPoint(0.5, 0.5));
+    this->m_title->setColor(ccc3(64, 192, 255));
+    this->m_title->setID("title");
+    this->addChild(this->m_title);
 
     // setup
     if (!BaseCell::setup(CCPoint(160.f, y-10.f), CCSize(300.f, 20.f), tag, id))
@@ -216,32 +216,31 @@ bool OptionTogglerCell::init(std::string title, float y, int tag, std::string id
     if (!CCMenu::init())
         return false;
 
-    this->yes = Mod::get()->getSavedValue<bool>(id);
+    this->m_yes = Mod::get()->getSavedValue<bool>(id);
     this->m_title = title;
     this->m_desc = desc;
 
-    m_toggler = CCMenuItemToggler::createWithStandardSprites(this, menu_selector(OptionTogglerCell::onOption), 0.6);
-    m_toggler->setPosition(ccp(290.f, 10.f));
-    m_toggler->setCascadeOpacityEnabled(true);
-    m_toggler->setID("toggler");
-    m_toggler->toggle(yes);
-    addChild(m_toggler);
+    this->m_toggler = CCMenuItemToggler::createWithStandardSprites(this, menu_selector(OptionTogglerCell::onOption), 0.6);
+    this->m_toggler->setPosition(ccp(290.f, 10.f));
+    this->m_toggler->setCascadeOpacityEnabled(true);
+    this->m_toggler->setID("toggler");
+    this->m_toggler->toggle(m_yes);
+    this->addChild(this->m_toggler);
 
-    m_label = CCLabelBMFont::create(title.c_str(), "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
-    m_label->setPosition(ccp(5.f, 10.f));
-    m_label->setScale(0.45);
-    m_label->setContentSize(CCSize(275.f, 20.f));
-    //m_label->setWidth(340.f);
-    m_label->setAnchorPoint(CCPoint(0.f, 0.5f));
-    m_label->setID("label");
-    addChild(m_label);
+    this->m_label = CCLabelBMFont::create(title.c_str(), "ErasBold.fnt"_spr, 240.f, CCTextAlignment::kCCTextAlignmentLeft);
+    this->m_label->setPosition(ccp(5.f, 10.f));
+    this->m_label->setScale(0.45);
+    this->m_label->setContentSize(CCSize(275.f, 20.f));
+    this->m_label->setAnchorPoint(CCPoint(0.f, 0.5f));
+    this->m_label->setID("label");
+    this->addChild(this->m_label);
 
     auto spr = CCSprite::create("infoBtn.png"_spr);
     spr->setScale(0.35);
-    m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(OptionTogglerCell::onDesc));
-    m_hint->setColor(ccc3(CELL_COLOR));
+    this->m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(OptionTogglerCell::onDesc));
+    this->m_hint->setColor(ccc3(CELL_COLOR));
     
-    addChild(m_hint);
+    this->addChild(this->m_hint);
 
     // setup
     if (!BaseCell::setup(CCPoint(160.f, y - 10.f), CCSize(300.f, 20.f), tag, id))
@@ -249,41 +248,41 @@ bool OptionTogglerCell::init(std::string title, float y, int tag, std::string id
 
     // switch!
     if (id == "activate") {
-        m_label->setCString(yes ? "Switch : ON" : "Switch : OFF");
-        m_label->setColor(ccc3(255-255*yes, 255*yes, 0));
+        this->m_label->setCString(this->m_yes ? "Switch : ON" : "Switch : OFF");
+        this->m_label->setColor(ccc3(255 - 255 * this->m_yes, 255 * this->m_yes, 0));
 
         // tint bg
-        this->tint(0, 80 * (!yes), 80 * (yes), 0);
+        this->tint(0, 80 * (!this->m_yes), 80 * (this->m_yes), 0);
     }
-    m_hint->setPosition(ccp(m_label->getContentWidth() * 0.45 + 15.f, 10.f));    
+    this->m_hint->setPosition(ccp(this->m_label->getContentWidth() * 0.45 + 15.f, 10.f));    
 
     return true;
 }
 
 void OptionTogglerCell::onOption(CCObject* sender) {
     // revert
-    yes = !yes;
+    this->m_yes = !this->m_yes;
     // set value
-    Mod::get()->setSavedValue(this->getID(), yes);
+    Mod::get()->setSavedValue(this->getID(), this->m_yes);
     // option
-    opts[this->getID()] = yes;  
+    opts[this->getID()] = this->m_yes;  
     // post signal
-    Signal<bool>(this->getID()).send(yes);
+    Signal<bool>(this->getID()).send(this->m_yes);
 
     // switch
     if (this->getID() == "activate") {
-        m_label->setCString(yes ? "Switch : ON" : "Switch : OFF");
-        m_label->setColor(ccc3(255-255*yes, 255*yes, 0));
+        m_label->setCString(this->m_yes ? "Switch : ON" : "Switch : OFF");
+        m_label->setColor(ccc3(255 - 255 * this->m_yes, 255 * this->m_yes, 0));
         // tint bg
-        this->tint(ANIM_TIME_M, 80 * (!yes), 80 * (yes), 0);
+        this->tint(ANIM_TIME_M, 80 * !this->m_yes, 80 * this->m_yes, 0);
         // desc button
-        m_hint->setPosition(ccp(m_label->getContentWidth() * 0.45 + 20.f, 10.f));
+        m_hint->setPosition(ccp(this->m_label->getContentWidth() * 0.45 + 20.f, 10.f));
     }
 }
 
 void OptionTogglerCell::onDesc(CCObject* sender) {
-    log::debug("title = {} desc = {}", m_title, m_desc);
-    Signal<std::pair<std::string, std::string>>("option-desc").send({m_title, m_desc});
+    log::debug("title = {} desc = {}", this->m_title, this->m_desc);
+    Signal<std::pair<std::string, std::string>>("option-desc").send({this->m_title, this->m_desc});
 }
 
 void OptionTogglerCell::switchTheme() {
@@ -669,34 +668,34 @@ void SetupOptionCell::refreshUI(ChromaPattern setup, bool fade) {
     }
     for (auto node: m_aryMenus) {
         // title toggle and tint
-        if (node->type == OptionLineType::Title) {
+        if (node->m_type == OptionLineType::Title) {
             Y -= 5.f;            
-            node->toggleTitle(node->mode == setup.mode, fade);
+            node->toggleTitle(node->m_mode == setup.mode, fade);
         } else
-            switch (node->type) {
+            switch (node->m_type) {
             case OptionLineType::Color:
                 node->m_colpk->setColor(setup.color);
                 break;
             case OptionLineType::MultiColor:
-                node->m_colpk1->setColor(node->mode == 4 ? setup.progress.begin()->second : grad1);
-                node->m_colpk2->setColor(node->mode == 4 ? (setup.progress.rbegin())->second : grad2);
+                node->m_colpk1->setColor(node->m_mode == 4 ? setup.progress.begin()->second : grad1);
+                node->m_colpk2->setColor(node->m_mode == 4 ? (setup.progress.rbegin())->second : grad2);
                 break;
             case OptionLineType::Toggler:
                 node->m_toggler->toggle(setup.best);
                 break;
             case OptionLineType::Slider:
-                node->setVal(node->mode == 3 ? (int)(duty / 3.6) : setup.satu);
+                node->setVal(node->m_mode == 3 ? (int)(duty / 3.6) : setup.satu);
                 break;
             default:
                 break;
             }
 
-        bool display = node->type == OptionLineType::Title || node->mode == setup.mode;
+        bool display = node->m_type == OptionLineType::Title || node->m_mode == setup.mode;
         auto action = CCSpawn::create(
             CCEaseExponentialOut::create(CCMoveTo::create(fade*ANIM_TIME_M, CCPoint(this->getContentWidth() / 2, Y))),
             CCEaseExponentialOut::create(CCScaleTo::create(fade*ANIM_TIME_M, 1, display)),
             CCEaseExponentialOut::create(CCFadeTo::create(fade*ANIM_TIME_M, display*255)),
-            CallFuncExt::create([node, display](void){ if (node->type == OptionLineType::Slider) node->helpFade(display); }),
+            CallFuncExt::create([node, display](void){ if (node->m_type == OptionLineType::Slider) node->helpFade(display); }),
             nullptr
         );
 
