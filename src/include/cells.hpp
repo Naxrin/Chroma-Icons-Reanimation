@@ -105,7 +105,7 @@ public:
     void onDesc(CCObject*);
     // switch theme
     void switchTheme();
-    
+    // create
     static OptionTogglerCell* create(const char* title, float y, int tag, std::string id, std::string desc) {
         auto node = new OptionTogglerCell();
         if (node && node->init(title, y, tag, id, desc)) {
@@ -120,15 +120,15 @@ public:
 class OptionArrowCell : public BaseCell {
 protected:
     // not end value
-    int index;
-    std::vector<int> enums;
+    int m_index;
+    std::vector<int> m_enums;
     std::string m_title;
     std::string m_desc;
     CCMenuItemSpriteExtra* m_btnArrowL;
     CCMenuItemSpriteExtra* m_btnArrowR;
     CCLabelBMFont* m_label, * m_display;
     CCMenuItemSpriteExtra* m_hint;
-
+    // stored index -> displayed string
     std::function<std::string (int)> getReal;
     // Step Toggle
     bool init(std::string title, float y, int tag, std::string id, std::string desc, std::vector<int> enums, std::function<std::string (int)> getReal);
@@ -150,10 +150,10 @@ public:
 
 class OptionSliderCell : public BaseCell, public SliderDelegate {
 protected:
-    float value;
-    float min;
-    float max;
-    float precision;
+    float m_value;
+    float m_min;
+    float m_max;
+    float m_precision;
 
     std::string m_title;
     std::string m_desc;
@@ -163,9 +163,9 @@ protected:
     CCMenuItemSpriteExtra* m_hint;
 
     // value to slider (this may return a value out of 1~0 range, unfiltered)
-    std::function<float (float)> toSlider;
+    std::function<float (float)> m_toSlider;
     // slider to value
-    std::function<float (float)> fromSlider;
+    std::function<float (float)> m_fromSlider;
 
     bool init(const char* title, float y, int tag, std::string id, std::string desc, float min, float max, int precision,
         std::function<float (float)> toSlider, std::function<float (float)> fromSlider);
@@ -193,7 +193,7 @@ public:
 class ItemCell : public BaseCell {
 protected:
     // buttons
-    std::vector<PickItemButton*> btns;
+    std::vector<PickItemButton*> m_btns;
     // tag = 1/2/3 -> adv/easy/effect
     bool init(int tag);
     void onPickItem(CCObject* sender);
@@ -219,7 +219,7 @@ class SetupItemCell : public BaseCell {
 protected:
     // just his button's tag
     // 0-9 -> icon 10~15 -> effect
-    int index;
+    int m_index;
     // button
     CCLabelBMFont* m_label = nullptr;
     // label
@@ -248,7 +248,7 @@ public:
 class SetupOptionCell : public BaseCell {
 protected:
     //std::string key;
-    ChromaPattern setup;
+    ChromaPattern m_setup;
     // i hate cascading his opacity
     bool init();
 public:
@@ -270,9 +270,9 @@ public:
 class ColorValueCell : public BaseCell, public TextInputDelegate, public SliderDelegate {
 protected:
     // value
-    int value = 255;
+    int m_value = 255;
     // rgb = 012
-    int type;
+    int m_type;
     CCLabelBMFont* m_label;
     Slider* m_slider;
     TextInput* m_inputer;
@@ -307,7 +307,7 @@ public:
 
 class ColorHexCell : public BaseCell, public TextInputDelegate {
 protected:
-    std::string str = "FFFFFF";
+    std::string m_str = "FFFFFF";
     CCLabelBMFont* m_label;
     Slider* m_slider;
     TextInput* m_inputer;
