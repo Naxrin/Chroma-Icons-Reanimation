@@ -1,4 +1,5 @@
 #include "mynode.hpp"
+#include "hiimjustin000.more_icons/include/MoreIcons.hpp"
 
 extern std::map<short, ChromaPattern> setups;
 extern std::map<std::string, bool> opts;
@@ -120,9 +121,7 @@ void PickItemButton::setPlayerStatus() {
             // config
             auto name = MI->getSavedValue<std::string>(MInames[index] + (this->m_ptwo ? "-dual" : ""));
             // post event
-            /*
-            Dispatch<SimplePlayer*, std::string, IconType>(
-                "hiimjustin000.more_icons/simple-player", player, name, IconType(index)).post();*/
+            more_icons::updateSimplePlayer(this->m_player, more_icons::activeIcon(IconType(index), this->m_ptwo));
         }           
     }
     if (SDI && this->m_ptwo) {

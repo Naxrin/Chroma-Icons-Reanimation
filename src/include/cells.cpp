@@ -456,9 +456,9 @@ void OptionSliderCell::onDesc(CCObject* sender) {
 void OptionSliderCell::onSlider(CCObject* sender) {
     this->m_value = this->m_fromSlider(m_slider->getValue());
     if (this->m_precision)
-        m_display->setCString(numToString(this->m_value, this->m_precision).c_str());
+        this->m_display->setCString(numToString(this->m_value, this->m_precision).c_str());
     else
-        m_display->setCString(numToString((int)this->m_value).c_str());
+        this->m_display->setCString(numToString((int)this->m_value).c_str());
 }
 
 void OptionSliderCell::postEvent() {
