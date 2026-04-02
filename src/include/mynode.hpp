@@ -2,7 +2,6 @@
 #pragma once
 
 #include "utility.hpp"
-#include <Geode/binding_arm/CCMenuItemSpriteExtra.hpp>
 #include <Geode/ui/TextInput.hpp>
 
 // get child by index and cast to type
@@ -240,7 +239,7 @@ protected:
             Signal<int>("mode").send(this->m_mode);
         // best toggler
         else if (this->m_type == OptionLineType::Toggler)
-            Signal<bool>("best").send(!this->m_toggler->isToggled());
+            Signal<bool>(this->getTag() == 14 ? "best" : "rev").send(!this->m_toggler->isToggled());
     };
     void onPickColor(CCObject* sender) {
         Signal<int>("color").send(sender->getTag());

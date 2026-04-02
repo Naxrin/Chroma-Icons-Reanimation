@@ -336,7 +336,8 @@ std::string descs[5] = {
     "- Phase option gives an alter phase offset besides <cy>Separate Dual Phase</c>\n"
     "- Set saturation percent to 50 if you want pastel like icons\n"
     "- Do you really need Brightness slider?",
-    "Gradient between colors",
+    "Gradient between the two colors  \n"
+    "Will make it better to use soon",
     "Let this color gradient from one to another regarding your percentage or progress.\n"
     "In plat levels your current progress is always regarded 0."
 };
@@ -369,7 +370,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         auto spr = CCSprite::create("infoBtn.png"_spr);
         spr->setScale(0.35f);
         this->m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(SetupOptionLine::onDesc));
-        this->m_hint->setPosition(ccp(25.f + this->m_title->getScaledContentWidth(), 10.f));
+        this->m_hint->setPosition(ccp(35.f + this->m_title->getScaledContentWidth(), 10.f));
         this->m_hint->setColor(ccc3(CELL_COLOR));
         this->addChild(this->m_hint);
 
@@ -378,7 +379,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         this->m_toggler->setCascadeOpacityEnabled(true);
         this->addChild(this->m_toggler);
     } else if (type == OptionLineType::Toggler) {
-        label = CCLabelBMFont::create("Best Progress", "ErasBold.fnt"_spr, 220.f, CCTextAlignment::kCCTextAlignmentLeft);
+        label = CCLabelBMFont::create(tag == 14 ? "Best Progress" : "Reverse", "ErasBold.fnt"_spr, 220.f, CCTextAlignment::kCCTextAlignmentLeft);
         label->setScale(0.4);
         label->setPosition(CCPoint(25.f, 10.f));
         label->setAnchorPoint(CCPoint(0.f, 0.5));
@@ -431,19 +432,40 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         label->setAnchorPoint(CCPoint(1.f, 0.5));
         this->addChild(label);        
     } else if (type == OptionLineType::Slider) {
-        this->setID(mode == 3 ? "duty" :"satu");
-        if (mode == 3)
+        switch (tag) {
+        case 6:
+            this->setID("phase");
+            return SliderBundleBase::init("phase", "Phase", 0, 360, 0, 0, true,
+                0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 60.f, 25.f,
+                [](float value) -> float { return value / 360.f; },
+                [](float s) -> float { return 360.f * s; }
+            );
+            break;
+        case 7:
+            this->setID("satu");
+            return SliderBundleBase::init("satu", "Saturation", 50, 100, 0, 0, true,
+                0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 60.f, 25.f,
+                [](float value) -> float { return value / 100; },
+                [](float s) -> float { return 100 * s; }
+            );
+            break;
+        case 8:
+            this->setID("brit");
+            return SliderBundleBase::init("brit", "Brightness", 50, 100, 0, 0, true,
+                0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 60.f, 25.f,
+                [](float value) -> float { return value / 100; },
+                [](float s) -> float { return 100 * s; }
+            );
+            break;
+        case 11:
+            this->setID("duty");
             return SliderBundleBase::init("duty", "Duty %", 50, 99, 0, 0, true,
-                0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 40.f, 25.f,
+                0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 60.f, 25.f,
                 [](float value) -> float { return value / 99; },
                 [](float s) -> float { return 99 * s; }
             );
-        else
-            return SliderBundleBase::init("satu", "Saturation", 50, 100, 0, 0, true,
-                0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 40.f, 25.f,
-                [](float value) -> float { return value / 100; },
-                [](float s) -> float { return 100 * s; }
-            );        
+            break;
+        }       
     }
     return true;
 }

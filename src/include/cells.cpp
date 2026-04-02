@@ -638,7 +638,7 @@ bool SetupOptionCell::init() {
     this->setScale(0.5);
     this->setCascadeOpacityEnabled(true);
     // node ids
-    std::vector<std::vector<int>> array = {{1, 2}, {1, 2, 3}, {1, 2, 5}, {1, 2, 4, 5}, {1, 2, 4, 6}};
+    std::vector<std::vector<int>> array = {{1}, {1, 3}, {1, 6, 5, 5, 5}, {1, 4, 5}, {1, 4, 6}};
     int t = 0;
     for (int mode = 0; mode < 5; mode++) {
         for (auto type: array.at(mode)) {
@@ -665,7 +665,7 @@ void SetupOptionCell::refreshUI(ChromaPattern setup, bool fade) {
         // get duty
         duty = p.second == grad2 ? p.first : p.first / 2 + 180;
     }
-    for (auto node: m_aryMenus) {
+    for (auto node: this->m_aryMenus) {
         // title toggle and tint
         if (node->m_type == OptionLineType::Title) {
             Y -= 5.f;            
@@ -680,10 +680,23 @@ void SetupOptionCell::refreshUI(ChromaPattern setup, bool fade) {
                 node->m_colpk2->setColor(node->m_mode == 4 ? (setup.progress.rbegin())->second : grad2);
                 break;
             case OptionLineType::Toggler:
-                node->m_toggler->toggle(setup.best);
+                node->m_toggler->toggle(node->getTag() == 14 ? setup.best : setup.rev);
                 break;
             case OptionLineType::Slider:
-                node->setVal(node->m_mode == 3 ? (int)(duty / 3.6) : setup.satu);
+                switch (node->getTag()) {
+                case 6:
+                    node->setVal(setup.phase);
+                    break;
+                case 7:
+                    node->setVal(setup.satu);
+                    break;
+                case 8:
+                    node->setVal(setup.brit);
+                    break;
+                default:
+                    node->setVal((int)(duty / 3.6));
+                    break;
+                }
                 break;
             default:
                 break;
@@ -714,7 +727,9 @@ void SetupOptionCell::refreshUI(ChromaPattern setup, bool fade) {
 void SetupOptionCell::Fade(bool in, int dir) {
     this->setPosition(CCPoint(50.f + 200 * dir * in, 0.f));
     BaseCell::Fade(in);
+    static_cast<SliderBundleBase*>(getChildByID("phase"))->helpFade(in);
     static_cast<SliderBundleBase*>(getChildByID("satu"))->helpFade(in);
+    static_cast<SliderBundleBase*>(getChildByID("brit"))->helpFade(in);
     static_cast<SliderBundleBase*>(getChildByID("duty"))->helpFade(in);
     // move
     if (dir)

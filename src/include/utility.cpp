@@ -172,23 +172,22 @@ ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, flo
     if (!opts["activate"])
         return defaultVal;
 
-    // current left intcolor valve
-    pairpos l = {0, ccc3(0, 0, 0)};
-    switch (setup.mode) {
     // static
-    case 1:
+    if (setup.mode == 1)
         return setup.color;
-    // chromatic
-    case 2:
-        phase = fmod(phase, 360.f);
-        return getRainbow(setup.phase + (1 - 2 * setup.rev) * phase, setup.satu, setup.brit);
+    // chromatic        
+    else if (setup.mode == 2) {
+        float ph = 360.f * setup.rev + (1 - 2 * setup.rev) * fmod(phase + setup.phase, 360.f);
+        return getRainbow(ph, setup.satu, setup.brit);        
+    }
     // gradient
-    case 3:
+    else if (setup.mode == 3) {
         // dont crash the game at least
-        if (setup.gradient.empty()) {
+        if (setup.gradient.empty())
             return defaultVal;
-        }
         phase = fmod(phase, 360.f);
+        // current left intcolor valve
+        pairpos l = {0, ccc3(0, 0, 0)};        
         for (pairpos r : setup.gradient) {
             // currently not reached the first checkpoint
             if (r.first > phase) {
@@ -203,12 +202,14 @@ ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, flo
         }
         // perhaps?
         return getGradient(phase, l, std::make_pair(setup.gradient.begin()->first + 360, setup.gradient.begin()->second));
+    }
     // progress
-    case 4:
+    else if (setup.mode == 4) {
         // dont crash the game at least
-        if (setup.progress.empty()) {
+        if (setup.progress.empty())
             return defaultVal;
-        }
+        // current left intcolor valve
+        pairpos l = {0, ccc3(0, 0, 0)};
         for (pairpos r : setup.progress) {
             if (r.first > (setup.best ? progress : percentage))
                 return r == *setup.progress.begin() ? setup.progress.begin()->second : getGradient(setup.best ? progress : percentage, l, r);
@@ -216,8 +217,7 @@ ccColor3B getChroma(ChromaPattern const& setup, ccColor3B const& defaultVal, flo
             l = r;
         }
         return setup.progress.rbegin()->second;
-    // default
-    default:
-        return defaultVal;
     }
+    else
+        return defaultVal;
 }

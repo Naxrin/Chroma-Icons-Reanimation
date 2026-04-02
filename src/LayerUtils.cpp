@@ -372,7 +372,7 @@ void ChromaLayer::installRadios() {
     }));
 
     this->m_radios.push_back(Signal<ccColor3B>("color-hex").listen([this] (ccColor3B color) -> ListenerResult {
-        m_crtColor = color;
+        this->m_crtColor = color;
         this->refreshColorPage(2);
         return ListenerResult::Stop;
     }));
@@ -402,32 +402,55 @@ void ChromaLayer::installRadios() {
         return ListenerResult::Stop;
     }));
 
+    this->m_radios.push_back(Signal<int>("phase").listen([this] (int phase) -> ListenerResult {
+        log::debug("phase signal received");
+        this->m_currentSetup.phase = phase % 360;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
     this->m_radios.push_back(Signal<int>("satu").listen([this] (int satu) -> ListenerResult {
+        log::debug("satu signal received");
         this->m_currentSetup.satu = satu;
         this->dumpConfig();
         return ListenerResult::Stop;
     }));
 
+    this->m_radios.push_back(Signal<int>("brit").listen([this] (int brit) -> ListenerResult {
+        log::debug("brit signal received");
+        this->m_currentSetup.brit = brit;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
     this->m_radios.push_back(Signal<int>("color-R").listen([this] (int r) -> ListenerResult {
-        m_crtColor.r = r;
+        this->m_crtColor.r = r;
         this->refreshColorPage(1);
         return ListenerResult::Stop;
     }));
 
     this->m_radios.push_back(Signal<int>("color-G").listen([this] (int g) -> ListenerResult {
-        m_crtColor.g = g;
+        this->m_crtColor.g = g;
         this->refreshColorPage(1);
         return ListenerResult::Stop;
     }));
 
     this->m_radios.push_back(Signal<int>("color-b").listen([this] (int b) -> ListenerResult {
-        m_crtColor.r = b;
+        this->m_crtColor.r = b;
         this->refreshColorPage(b);
         return ListenerResult::Stop;
     }));
 
+    this->m_radios.push_back(Signal<bool>("rev").listen([this] (bool rev) -> ListenerResult {
+        log::debug("rev signal received");
+        this->m_currentSetup.rev = rev;
+        this->dumpConfig();
+        return ListenerResult::Stop;
+    }));
+
     this->m_radios.push_back(Signal<bool>("best").listen([this] (bool best) -> ListenerResult {
-        m_currentSetup.best = best;
+        log::debug("best signal received");
+        this->m_currentSetup.best = best;
         this->dumpConfig();
         return ListenerResult::Stop;
     }));
