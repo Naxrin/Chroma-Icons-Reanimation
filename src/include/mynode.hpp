@@ -2,6 +2,7 @@
 #pragma once
 
 #include "utility.hpp"
+#include <Geode/binding_arm/CCMenuItemSpriteExtra.hpp>
 #include <Geode/ui/TextInput.hpp>
 
 // get child by index and cast to type
@@ -134,15 +135,15 @@ protected:
     // precision
     float m_precision;
     // label
-    CCLabelBMFont* m_label = nullptr;
+    CCLabelBMFont* m_label;
     // inputer
-    TextInput* m_inputer = nullptr;
+    TextInput* m_inputer;
     // slider
-    Slider* m_slider = nullptr;
+    Slider* m_slider;
     // left arrow
-    CCMenuItemSpriteExtra* m_btnLeft = nullptr;
+    CCMenuItemSpriteExtra* m_btnLeft;
     // right arrow
-    CCMenuItemSpriteExtra* m_btnRight = nullptr;  
+    CCMenuItemSpriteExtra* m_btnRight;  
     // value to slider (this may return a value out of 1~0 range, unfiltered)
     std::function<float (float)> m_toSlider;
     // slider to value
@@ -219,7 +220,6 @@ public:
 
 enum class OptionLineType {
     Title = 1,
-    Desc = 2,
     Color = 3,
     MultiColor = 4,
     Slider = 5,
@@ -229,6 +229,8 @@ enum class OptionLineType {
 // Setup Option Line, not a cell
 class SetupOptionLine : public SliderBundleBase {
 protected:
+    // hint (title only)
+    CCMenuItemSpriteExtra* m_hint;
     // init
     bool init(OptionLineType type, int mode, int tag);
     // toggler callback
@@ -243,21 +245,23 @@ protected:
     void onPickColor(CCObject* sender) {
         Signal<int>("color").send(sender->getTag());
     };
+    // on desc
+    void onDesc(CCObject* sender);
 public:
     // line ui type
     OptionLineType m_type;
     // the mode this line points to
     int m_mode;
     // title (title line only)
-    CCLabelBMFont* m_title = nullptr;
+    CCLabelBMFont* m_title;
     // toggler (shared)
-    CCMenuItemToggler* m_toggler = nullptr;
+    CCMenuItemToggler* m_toggler;
     // color picker
-    CCMenuItemSpriteExtra* m_colpk = nullptr;
+    CCMenuItemSpriteExtra* m_colpk;
     // color picker1
-    CCMenuItemSpriteExtra* m_colpk1 = nullptr;
+    CCMenuItemSpriteExtra* m_colpk1;
     // color picker2
-    CCMenuItemSpriteExtra* m_colpk2 = nullptr;
+    CCMenuItemSpriteExtra* m_colpk2;
     // toggle the toggler and set/tint the label' color
     void toggleTitle(bool yes, bool fade = false);
 

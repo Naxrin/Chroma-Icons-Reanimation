@@ -1,3 +1,10 @@
+# 4.6.2
+### Addition
+- Add Phase and Brightness option to chromatic mode
+- Collapse mode desc to an info button and remove the ErasLight font to decrease the mod size
+### Bugfix
+- Fix saturation and duty slider getting toxic in input displayed decimals
+
 # 4.6.1
 ### Addition
 - More Icons compatible again

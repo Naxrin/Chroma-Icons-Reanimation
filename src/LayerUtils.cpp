@@ -445,4 +445,16 @@ void ChromaLayer::installRadios() {
         return ListenerResult::Stop;
     }));
 
+    this->m_radios.push_back(Signal<std::pair<std::string, std::string>>("setup-desc").listen([this] (std::pair<std::string, std::string> pair) -> ListenerResult {
+        this->m_pages.push_back(Page::Popup);
+        this->fadeSetupPage();
+        fade(m_btnInfo, false, ANIM_TIME_M);
+        this->makeHintPopup(pair.first, pair.second, 80.f);
+        this->runAction(CCSequence::create(
+            CCDelayTime::create(ANIM_TIME_M),
+            CCCallFunc::create(this, callfunc_selector(ChromaLayer::fadePopupPage)),
+            nullptr
+        ));
+        return ListenerResult::Stop;
+    }));
 }

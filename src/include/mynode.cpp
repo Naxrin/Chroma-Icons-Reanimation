@@ -284,9 +284,14 @@ bool SliderBundleBase::init(std::string topic, const char* title, float value, f
 void SliderBundleBase::setVal(float value, short mode) {
     if (!mode)
         this->m_value = value;
-    if (mode < 1 && m_inputer)
-        // inputer
-        m_inputer->setString(numToString(value, this->m_precision));
+    if (mode < 1 && m_inputer) {
+        // inputer        
+        if (this->m_precision)
+            m_inputer->setString(numToString<float>(value, this->m_precision));
+        else
+            m_inputer->setString(numToString<int>(value, this->m_precision));
+    }
+
     if (mode > -1 && m_slider)
         // slider
         this->m_slider->setValue(std::clamp(this->m_toSlider(value), 0.f, 1.f));
@@ -326,13 +331,13 @@ void SpeedSliderBundle::Fade(bool in) {
 const char* titles[5] = {"Default", "Static", "Chromatic", "Gradient", "Progress"};
 std::string descs[5] = {
     "As if this mod isn't loaded here.",
-    "Set to any color you prefer.",
-    "Our favourite Hue Cycle Mode.  \n",
-    //"- Phase option gives an alter offset besides <cy>Separate Dual Phase</c> and so on. \n"
-    //"- Set saturation percent to 50 if you want pastel like icons. \n"
-    //"- Do you really need Brightness slider?",
-    "Gradient between two colors",
-    "Let this color gradient from one to another regarding your percentage or progress,"
+    "Set to any static color you prefer.",
+    "Our favourite Hue Cycle Mode\n"
+    "- Phase option gives an alter phase offset besides <cy>Separate Dual Phase</c>\n"
+    "- Set saturation percent to 50 if you want pastel like icons\n"
+    "- Do you really need Brightness slider?",
+    "Gradient between colors",
+    "Let this color gradient from one to another regarding your percentage or progress.\n"
     "In plat levels your current progress is always regarded 0."
 };
 
@@ -351,8 +356,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
     ColorChannelSprite* sqr;
     CCLabelBMFont* label;
     // customize
-    switch (type) {
-    case OptionLineType::Title:
+    if (type == OptionLineType::Title) {
         // special height
         this->setContentHeight(25.f);
 
@@ -362,12 +366,18 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         this->m_title->setAnchorPoint(CCPoint(0.f, 0.5));
         this->addChild(this->m_title);
 
+        auto spr = CCSprite::create("infoBtn.png"_spr);
+        spr->setScale(0.35f);
+        this->m_hint = CCMenuItemSpriteExtra::create(spr, this, menu_selector(SetupOptionLine::onDesc));
+        this->m_hint->setPosition(ccp(25.f + this->m_title->getScaledContentWidth(), 10.f));
+        this->m_hint->setColor(ccc3(CELL_COLOR));
+        this->addChild(this->m_hint);
+
         this->m_toggler = CCMenuItemToggler::createWithStandardSprites(this, menu_selector(SetupOptionLine::onToggle), 0.55);
         this->m_toggler->setPosition(CCPoint(10.f, 10.f));
         this->m_toggler->setCascadeOpacityEnabled(true);
         this->addChild(this->m_toggler);
-        break;
-    case OptionLineType::Toggler:
+    } else if (type == OptionLineType::Toggler) {
         label = CCLabelBMFont::create("Best Progress", "ErasBold.fnt"_spr, 220.f, CCTextAlignment::kCCTextAlignmentLeft);
         label->setScale(0.4);
         label->setPosition(CCPoint(25.f, 10.f));
@@ -378,18 +388,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         this->m_toggler->setPosition(CCPoint(10.f, 10.f));
         this->m_toggler->setCascadeOpacityEnabled(true);        
         this->addChild(this->m_toggler);
-        break;
-    case OptionLineType::Desc:
-        label = CCLabelBMFont::create(descs[mode].c_str(), "ErasLight.fnt"_spr, 220.f, CCTextAlignment::kCCTextAlignmentLeft);
-        label->setScale(0.8);
-        label->setPosition(CCPoint(10.f, 10.f));
-        label->setAnchorPoint(CCPoint(0.f, 0.5));
-        label->setColor(ccc3(255, 255, 0));
-        this->addChild(label);
-
-        this->setContentHeight(label->getContentHeight());
-        break;
-    case OptionLineType::Color:
+    } else if (type == OptionLineType::Color) {
         sqr = ColorChannelSprite::create();
         sqr->setScale(0.5);
         this->m_colpk = CCMenuItemSpriteExtra::create(sqr, this, menu_selector(SetupOptionLine::onPickColor));
@@ -403,8 +402,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         label->setPosition(CCPoint(25.f, 10.f));
         label->setAnchorPoint(CCPoint(0.f, 0.5));
         this->addChild(label);
-        break;
-    case OptionLineType::MultiColor:
+    } else if (type == OptionLineType::MultiColor) {
         sqr = ColorChannelSprite::create();
         sqr->setScale(0.5);
         this->m_colpk1 = CCMenuItemSpriteExtra::create(sqr, this, menu_selector(SetupOptionLine::onPickColor));
@@ -431,9 +429,8 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
         label->setScale(0.3);
         label->setPosition(CCPoint(155.f, 10.f));
         label->setAnchorPoint(CCPoint(1.f, 0.5));
-        this->addChild(label);
-        break;
-    case OptionLineType::Slider:
+        this->addChild(label);        
+    } else if (type == OptionLineType::Slider) {
         this->setID(mode == 3 ? "duty" :"satu");
         if (mode == 3)
             return SliderBundleBase::init("duty", "Duty %", 50, 99, 0, 0, true,
@@ -446,8 +443,7 @@ bool SetupOptionLine::init(OptionLineType type, int mode, int tag) {
                 0.4, 0.4, 0.5, 0.2, 120.f, 200.f, 140.f, 40.f, 25.f,
                 [](float value) -> float { return value / 100; },
                 [](float s) -> float { return 100 * s; }
-            );
-        break;
+            );        
     }
     return true;
 }
@@ -458,6 +454,12 @@ void SetupOptionLine::toggleTitle(bool yes, bool fade) {
     if (this->m_type == OptionLineType::Title && this->m_title)
         // green or gray
         this->m_title->runAction(CCTintTo::create(fade * ANIM_TIME_M, 127-127*yes, 127+128*yes, 127-127*yes));
+}
+
+void SetupOptionLine::onDesc(CCObject* sender) {
+    Signal<std::pair<std::string, std::string>>("setup-desc").send(
+        {fmt::format("{} Mode", titles[this->m_mode]), descs[this->m_mode]}
+    );
 }
 
 float MyContentLayer::getSomething(float Y, float H) {
