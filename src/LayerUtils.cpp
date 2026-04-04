@@ -77,19 +77,19 @@ CCMenuItemSpriteExtra* ChromaLayer::getColorTarget() {
     switch (m_colorTag) {
     case 1:
         m_lbfColorItem->setString("Static Color");
-        return m_cellWorkspace->m_aryMenus[4]->m_colpk;
+        return m_cellWorkspace->m_aryMenus[2]->m_colpk;
     case 2:
         m_lbfColorItem->setString("Gradient Color #1");
-        return m_cellWorkspace->m_aryMenus[10]->m_colpk1;
+        return m_cellWorkspace->m_aryMenus[9]->m_colpk1;
     case 3:
         m_lbfColorItem->setString("Gradient Color #2");
-        return m_cellWorkspace->m_aryMenus[10]->m_colpk2;
+        return m_cellWorkspace->m_aryMenus[9]->m_colpk2;
     case 4:
         m_lbfColorItem->setString("Progress Color @ 0%");
-        return m_cellWorkspace->m_aryMenus[14]->m_colpk1;
+        return m_cellWorkspace->m_aryMenus[12]->m_colpk1;
     case 5:
         m_lbfColorItem->setString("Progress Color @ 100%");
-        return m_cellWorkspace->m_aryMenus[14]->m_colpk2;
+        return m_cellWorkspace->m_aryMenus[12]->m_colpk2;
     }
     return nullptr;
 }
@@ -321,7 +321,7 @@ void ChromaLayer::installRadios() {
         }
         // color page
         this->m_colorTag = tag;
-        ccColor3B col = getColorTarget()->getColor();
+        ccColor3B col = this->getColorTarget()->getColor();
         this->m_oriColor = col;
         this->m_crtColor = col;
         this->refreshColorPage(0);

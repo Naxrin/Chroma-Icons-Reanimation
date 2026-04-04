@@ -1,3 +1,8 @@
+# 4.6.3
+### Bugfix
+- Fix a horrible color sprite crash (caused by setup menu rearrange)
+- Fix a tiny copy-ori-color button and copy-crt-button issue
+
 # 4.6.2
 ### Addition
 - Add Reverse, Phase and Brightness option to chromatic mode

@@ -113,7 +113,7 @@ void ChromaLayer::refreshColorPage(int type) {
 }
 
 void ChromaLayer::transistColorBtn(bool isCrt, bool display) {
-    CCMenuItemSpriteExtra* parent = isCrt ? m_btnColorDisplayCur : m_btnColorDisplayCur;
+    CCMenuItemSpriteExtra* parent = isCrt ? m_btnColorDisplayCur : m_btnColorDisplayOri;
     CCMenuItemSpriteExtra* boy = isCrt ? m_btnColorCopyCur : m_btnColorCopyOri;
     CCMenuItemSpriteExtra* girl = isCrt ? m_btnColorPasteCur : m_btnColorRescOri;
 
