@@ -479,7 +479,9 @@ void ChromaLayer::makeOptionsPage() {
     // are you trying to find out what does this quesiton marks option mean here?
     sTag ++;
     auto questionMarkOpt = OptionTogglerCell::create("???", H, sTag, "???",
-        "?????");
+        "**<cp>Naxlog #410**</c>  \n"
+        "In geometry dash, movable player icons are almost only seen in playing a level or playtesting a level, but I should point out that it's only \"almost\".\n  "
+        "This might be useful if I ever plan to get out of here and do something other than write messages in a log.");
     static_cast<MyContentLayer*>(m_scrollerOptions->m_contentLayer)->addChild(questionMarkOpt);
     H += questionMarkOpt->getContentHeight() + 15.f;
 

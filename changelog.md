@@ -1,3 +1,20 @@
+# 4.7.0
+### Addition
+- what
+### Bugfix
+- Fix visual glitch fading in/out the title
+- Better codes (I hope)
+### ToDo
+- Solid Wave Trail option
+- Save/Load/Port Preset!
+- Add custom async frequency option
+- More obvious operation feedbacks
+- Better info page
+- Restore option
+- A brief in-game intro manual and hover hint in case some features are not found till now
+- Fix possible crash with Mega Hack bot
+- Better title image in mod desc (and readme doc of repository)
+
 # 4.6.3
 ### Bugfix
 - Fix a horrible color sprite crash (caused by setup menu rearrange)

@@ -90,9 +90,8 @@ void ChromaLayer::onShowPopup(CCObject* sender) {
                 "**Also note that:**\n"
                 "- Ghost Trail is overwritten fixed and may not perfectly match RobTop's work.\n"
                 "- You can turn off my fix but ghost trail chroma will not work then.\n"
-                "- Rainbow and Fire Regular Trail will neither get rendered by RobTop nor Chroma Icons.\n"
-                "- Spider TP line is also fixed, this fix is optional but teleport line chroma **will not work** with this fix OFF.",
-                160.f
+                "- Rainbow and Fire Regular Trail will neither get rendered by RobTop nor Chroma Icons.",
+                150.f
             );
             break;
         }

@@ -181,6 +181,7 @@ bool TitleCell::init(const char* text, CCPoint pos, float width, int tag, std::s
 void TitleCell::Fade(bool in) {
     this->BaseCell::Fade(in);
     fade(this->m_spr, in, ANIM_TIME_L, -1, -1, 144);
+    fade(this->m_clip, in, ANIM_TIME_L, -1, -1, 144);
     this->runAction(CCSequence::create(
         CCEaseExponentialOut::create(CCMoveTo::create(
             ANIM_TIME_M, CCPoint(this->m_pos.x, this->m_pos.y - 30.f * in))),
