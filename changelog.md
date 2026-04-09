@@ -1,6 +1,6 @@
 # 4.7.0
 ### Addition
-- what
+- Solid Wave Trail Option
 ### Bugfix
 - Fix visual glitch fading in/out the title
 - Better codes (I hope)
@@ -12,7 +12,8 @@
 - Better info page
 - Restore option
 - A brief in-game intro manual and hover hint in case some features are not found till now
-- Fix possible crash with Mega Hack bot
+- Fix possible crash with Mega Hack bot (I hope)
+- Fix crash with globed
 - Better title image in mod desc (and readme doc of repository)
 
 # 4.6.3

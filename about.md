@@ -25,7 +25,7 @@ Toggle <cg>ON</c> / <cr>OFF</c> the whole mod anytime you want!
 ## <cy>How to use this mod?</c>
 This mod adds its menu entrance button to:
 - **Icon Select Menu**
-- **Pause Menu** (unless option "Pause Menu Entry" OFF)
+- **Pause Menu** (if option "Pause Menu Entry" ON)
 - **Level Editor Page** (if option "Editor Test" ON)  
 You can access the mod menu either in garage menu or in playing a level.  
 #### Note that:  

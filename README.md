@@ -25,7 +25,7 @@ Regarding Pointercrate List Team's policy for Mega Hack v7's Icon Effects, some 
 # What Does this mod do?
 This mod adds its menu entrance button to:  
 - **Icon Select Menu** *(GJGarageLayer)*
-- **Pause Menu** *(PauseLayer)*
+- **Pause Menu** *(PauseLayer)* (if option "Pause Menu Entry" ON)
 - **Level Editor Page** *(LevelEditorLayer)* (if the option Editor Test ON)  
 so you can access the mod menu either in game menu or in playing a level.  
 If you change any chroma pattern in a paused level, this mod will take effect once you return to play.  
@@ -100,9 +100,9 @@ This mod allows to set other chroma patterns for dual player 2,  click the **Pla
 If you're too lazy to set chroma pattern twice but hoping to make p2 just duplicate p1's pattern, then the mod option **Same Dual Chroma Setup** is for you.
   
 ## Advanced Mode
-If you just gonna stay at easy mode. you can just skip this and go to options. But...?  
-Click the easy - adv mode switch button, then the button will switch to Extreme Demon face, and the single player icon in the center will turn to the nine gamemodes icons.  
-Yes you're now in advanced mode.  
+If you just  stay at easy mode. you can just skip this and go to the options chapter. But...?  
+Click the easy - adv mode switch button, the button will switch to Extreme Demon face, and the single player icon in the center will turn to the nine gamemodes' icons.  
+You're now in advanced mode.  
   
 ### Gamemode-Channel Sprite Matrix
 Now that you are trying to understand advanced mode, this mod introduces a matrix-like icon sprite logic as follows:  
