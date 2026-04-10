@@ -6,9 +6,10 @@
 - Better codes (I hope)
 ### ToDo
 - Solid Wave Trail option
+- Blur Cells (Windows Only)
 - Save/Load/Port Preset!
-- Add custom async frequency option
-- More obvious operation feedbacks
+- Async frequency option
+- More obvious operation feedbacks and infos
 - Better info page
 - Restore option
 - A brief in-game intro manual and hover hint in case some features are not found till now

@@ -1,5 +1,4 @@
 ![image](naxrin.chroma_icons/title.png)
-# <cy>Chroma Icons</c>
 **Your ultimate solution of player icon colors**  
 Besides original functions, this mod also has:  
 #### <cy>New Intergrated Mod Menu</c>
